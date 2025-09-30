@@ -289,6 +289,9 @@ function cancelBookingFromSheet(cancelData) {
       const location = row[3]; // D欄：預約場地
       const date = row[4]; // E欄：預約日期
       
+      console.log(`檢查第${i+1}行: vendor="${vendor}", location="${location}", date="${date}"`);
+      console.log(`目標: vendor="${targetVendor}", location="${targetLocation}", date="${targetDate}"`);
+      
       // 比對餐車名稱、場地和日期
       if (vendor === targetVendor && 
           location === targetLocation && 
