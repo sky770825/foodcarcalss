@@ -1,0 +1,9 @@
+{
+  "action": "cancellation",
+  "vendor": "好的",
+  "location": "四維路59號",
+  "date": "2025-10-01",
+  "timeSlot": "14:00-20:00",
+  "cancelledAt": "2025-09-30T04:23:55.972Z",
+  "reason": "user_cancellation"
+}
