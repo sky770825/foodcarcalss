@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楊梅餐車排班報名系統</title>
+
+
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Microsoft JhengHei",sans-serif;line-height:1.6;color:#333;background:linear-gradient(135deg,#f8f9fa,#e9ecef);}
+a{text-decoration:none;color:inherit;}
+
+/* Hero 區塊 */
+.hero{
+  background:linear-gradient(135deg,#FF8A00,#FF4B2B);
+  color:white;text-align:center;padding:80px 20px;
+  position:relative;overflow:hidden;min-height:40vh;
+}
+.hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity:0.3;animation:float 20s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0px) rotate(0deg);}
+  50%{transform:translateY(-10px) rotate(1deg);}
+}
+.hero-content{position:relative;z-index:1;}
+.hero h1{font-size:2.5rem;margin-bottom:15px;text-shadow:2px 2px 4px rgba(0,0,0,0.3);}
+.hero p{font-size:1.2rem;margin-bottom:30px;opacity:0.95;}
+.hero button{
+  background:white;color:#FF4B2B;padding:15px 35px;
+  border:none;border-radius:30px;font-size:1.1rem;font-weight:bold;
+  cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+.hero button:hover{background:#ffe1d1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+
+/* 主內容 */
+.container{max-width:1200px;margin:50px auto;padding:0 20px;}
+.card{
+  background:white;padding:30px;border-radius:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,.1);margin-bottom:40px;
+  border:1px solid rgba(255,139,0,0.1);
+}
+h2.section-title{
+  margin-bottom:25px;text-align:center;color:#FF4B2B;
+  font-size:1.8rem;position:relative;
+}
+h2.section-title::after{
+  content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+  width:60px;height:3px;background:linear-gradient(90deg,#FF8A00,#FF4B2B);
+  border-radius:2px;
+}
+
+/* 場地分頁 */
+.location-tabs{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;margin-bottom:25px;
+}
+.location-tab{
+  background:white;border:2px solid #e9ecef;border-radius:10px;
+  padding:15px;text-align:center;cursor:pointer;transition:all .3s;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  position:relative;overflow:hidden;
+}
+.location-tab::before{
+  content:'';position:absolute;top:0;left:-100%;
+  width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+  transition:left 0.5s;
+}
+.location-tab:hover::before{left:100%;}
+.location-tab:hover{
+  border-color:#FF8A00;transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(255,139,0,0.2);
+}
+.location-tab.active{
+  background:linear-gradient(135deg,#FF8A00,#FF4B2B);
+  color:white;border-color:#FF4B2B;
+  box-shadow:0 4px 15px rgba(255,75,43,0.4);
+  transform:scale(1.02);
+}
+.location-tab i{font-size:1.5rem;margin-bottom:5px;}
+.location-tab span{font-weight:bold;font-size:1rem;}
+.location-tab small{font-size:0.8rem;opacity:0.8;}
+
+/* 場地資訊卡片 */
+.location-info{
+  background:linear-gradient(135deg,#fff5f0,#ffe8e0);
+  border-left:4px solid #FF8A00;padding:20px;margin-bottom:25px;
+  border-radius:8px;transition:all .3s;
+}
+.location-info h3{color:#FF4B2B;margin-bottom:15px;font-size:1.3rem;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;}
+.info-item{display:flex;align-items:center;gap:10px;}
+.info-item i{color:#FF8A00;width:20px;}
+
+/* 表單樣式 */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+label{display:block;margin-top:20px;font-weight:bold;color:#555;}
+input,select,textarea{
+  width:100%;padding:12px;margin-top:8px;
+  border:2px solid #e9ecef;border-radius:8px;font-size:1rem;
+  transition:border-color .3s,box-shadow .3s;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:#FF8A00;box-shadow:0 0 0 3px rgba(255,139,0,0.1);
+}
+
+/* 日期選擇樣式 */
+.date-selection{
+  display:flex;gap:10px;align-items:center;
+}
+.date-info{
+  background:#e3f2fd;border:1px solid #2196f3;border-radius:6px;
+  padding:8px 12px;margin-top:5px;
+}
+.date-info small{color:#1976d2;font-size:0.85rem;}
+
+/* 時段顯示樣式 */
+.fee-info {
+  grid-column: 1 / -1; /* 跨越所有列 */
+  margin-top: 10px;
+}
+
+.fee-display {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.fee-display i {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+.fee-display span {
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.fee-display small {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* 特殊提示樣式 */
+.special-notice{
+  background:#fff3cd;border:1px solid #ffeaa7;border-radius:6px;
+  padding:10px 12px;margin:10px 0;display:flex;align-items:center;
+  gap:8px;
+}
+.special-notice i{
+  color:#856404;font-size:1.1rem;
+}
+.special-notice span{
+  color:#856404;font-weight:600;font-size:0.9rem;
+}
+
+button.submit{
+  background:linear-gradient(135deg,#FF4B2B,#FF8A00);color:white;border:none;
+  margin-top:30px;padding:15px 30px;font-size:1.1rem;font-weight:bold;
+  border-radius:8px;cursor:pointer;transition:all .3s;
+  box-shadow:0 4px 15px rgba(255,75,43,0.3);
+}
+button.submit:hover{
+  transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,75,43,0.4);
+}
+
+/* 注意事項 */
+.notice-box{
+  background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;
+  padding:15px;margin-top:20px;
+}
+.notice-box h4{color:#856404;margin-bottom:10px;}
+.notice-box ul{color:#856404;padding-left:20px;}
+
+/* 日曆控制器 */
+.calendar-controls{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;padding:15px;background:#f8f9fa;
+  border-radius:10px;flex-wrap:wrap;gap:15px;
+}
+.month-navigation{
+  display:flex;align-items:center;gap:10px;
+}
+.nav-btn{
+  padding:8px 12px;border:2px solid #e9ecef;background:white;
+  border-radius:6px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;
+  min-width:40px;height:40px;
+}
+.nav-btn:hover{
+  border-color:#FF8A00;background:#fff5f0;
+}
+.today-btn{
+  padding:8px 15px;min-width:auto;
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+.today-btn:hover{
+  background:#FF4B2B;border-color:#FF4B2B;
+}
+.month-display{
+  padding:8px 15px;background:white;border:2px solid #e9ecef;
+  border-radius:6px;font-weight:bold;color:#555;
+  min-width:120px;text-align:center;
+}
+.filter-section{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.filter-section label{font-weight:bold;color:#555;margin:0;}
+.location-filters{
+  display:flex;gap:5px;flex-wrap:wrap;
+}
+.filter-btn{
+  padding:6px 12px;border:2px solid #e9ecef;background:white;
+  border-radius:20px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;gap:5px;font-size:0.9rem;
+  white-space:nowrap;
+}
+.filter-btn:hover{
+  border-color:#FF8A00;background:#fff5f0;
+}
+.filter-btn.active{
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+.view-toggle{
+  display:flex;gap:5px;
+}
+.view-btn{
+  padding:8px 15px;border:2px solid #e9ecef;background:white;
+  border-radius:6px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;gap:5px;
+}
+.view-btn:hover{border-color:#FF8A00;}
+.view-btn.active{
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+
+/* 新行事曆樣式 */
+.calendar-container {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-btn, .today-btn {
+  background: #FF8A00;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.nav-btn:hover, .today-btn:hover {
+  background: #e67e00;
+  transform: translateY(-1px);
+}
+
+.today-btn {
+  background: #28a745;
+}
+
+.today-btn:hover {
+  background: #218838;
+}
+
+.month-display {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  min-width: 120px;
+  text-align: center;
+}
+
+.location-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.location-filter label {
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
+}
+
+.location-filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.location-filter .filter-btn {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.location-filter .filter-btn:hover {
+  border-color: #FF8A00;
+  background: #fff5f0;
+  transform: translateY(-1px);
+}
+
+.location-filter .filter-btn.active {
+  background: #FF8A00;
+  border-color: #FF8A00;
+  color: white;
+}
+
+.location-filter .filter-btn.active:hover {
+  background: #e67a00;
+  border-color: #e67a00;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendar-day-header {
+  background: #f8f9fa;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+.calendar-day {
+  background: white;
+  min-height: 100px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: #f8f9fa;
+}
+
+.calendar-day.today {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+}
+
+.calendar-day.other-month {
+  background: #f8f9fa;
+  color: #999;
+}
+
+.calendar-day.booked {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.calendar-day.booked::after {
+  content: '🚫';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.calendar-day.non-operating {
+  background: #ffe6e6;
+  color: #cc0000;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.calendar-day.non-operating::after {
+  content: '❌';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-item {
+  background: #FF8A00;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.event-item:hover {
+  background: #e67e00;
+  transform: scale(1.05);
+}
+
+/* 事件容器和取消按鈕 */
+.event-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.cancel-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.cancel-btn:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+
+
+/* 場地縮圖 */
+.location-thumbnail{
+  width:100%;height:120px;object-fit:cover;
+  border-radius:8px;cursor:pointer;transition:transform .3s;
+  margin-top:10px;
+}
+.location-thumbnail:hover{transform:scale(1.05);}
+
+/* Toast 提示系統 */
+.toast-container{
+  position:fixed;top:20px;right:20px;z-index:9999;
+}
+.toast{
+  background:white;border-left:4px solid #28a745;
+  border-radius:8px;padding:15px 20px;margin-bottom:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+  transform:translateX(100%);opacity:0;
+  transition:all .3s ease;
+  min-width:300px;
+}
+.toast.show{
+  transform:translateX(0);opacity:1;
+}
+.toast.error{border-left-color:#dc3545;}
+.toast.warning{border-left-color:#ffc107;}
+.toast.info{border-left-color:#17a2b8;}
+.toast-header{
+  display:flex;align-items:center;margin-bottom:5px;
+}
+.toast-icon{
+  font-size:1.2rem;margin-right:8px;
+}
+.toast.success .toast-icon{color:#28a745;}
+.toast.error .toast-icon{color:#dc3545;}
+.toast.warning .toast-icon{color:#ffc107;}
+.toast.info .toast-icon{color:#17a2b8;}
+.toast-title{
+  font-weight:bold;font-size:1rem;
+}
+.toast-message{
+  font-size:0.9rem;color:#666;
+}
+
+/* 圖片放大模態框 */
+.image-modal{
+  display:none;position:fixed;z-index:1000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.image-modal.active{display:flex;}
+.modal-content{
+  max-width:90%;max-height:90%;object-fit:contain;
+  border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+.modal-close{
+  position:absolute;top:20px;right:30px;color:white;
+  font-size:40px;font-weight:bold;cursor:pointer;
+  z-index:1001;
+}
+.modal-close:hover{color:#FF8A00;}
+
+
+/* 手機友善 */
+@media(max-width:768px){
+  .hero h1{font-size:2rem;}
+  .hero p{font-size:1rem;}
+  .hero{padding:60px 20px;}
+  .form-grid{grid-template-columns:1fr;gap:15px;}
+  .info-grid{grid-template-columns:1fr;}
+  .calendar-controls{
+    flex-direction:column;align-items:stretch;gap:15px;
+  }
+  .month-navigation{justify-content:center;}
+  .filter-section{flex-direction:column;align-items:stretch;}
+  .location-filters{justify-content:center;}
+  .filter-btn{font-size:0.8rem;padding:5px 10px;}
+  .location-filter{flex-direction:column;align-items:stretch;gap:8px;}
+  .location-filter-buttons{justify-content:center;}
+  .location-filter .filter-btn{font-size:0.8rem;padding:6px 10px;}
+  .view-toggle{justify-content:center;}
+  
+  /* 行事曆手機優化 */
+  .fc-daygrid-day{min-height:80px;}
+  .fc-daygrid-day-number{font-size:0.9rem;padding:4px;}
+  .fc-daygrid-event{font-size:10px;padding:1px 4px;}
+  .fc-toolbar-title{font-size:1.2rem;}
+  .fc-button{font-size:0.8rem;padding:6px 12px;}
+  
+  /* 表單手機優化 */
+  .form-group{margin-bottom:15px;}
+  .form-group label{font-size:0.9rem;margin-bottom:5px;}
+  .form-group input,.form-group select,.form-group textarea{
+    padding:10px;font-size:0.9rem;
+  }
+  .btn{width:100%;padding:12px;font-size:1rem;}
+  
+  /* 場地卡片手機優化 */
+  .location-tab{flex-direction:column;text-align:center;padding:10px;}
+  .location-tab span{font-size:0.9rem;}
+  .location-tab small{font-size:0.7rem;}
+  .location-thumbnail{height:80px;margin-top:5px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero Banner -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>🚚 楊梅餐車排班報名</h1>
+  <p>立即預約您的餐車出攤檔期，隨時查看最新排班日曆</p>
+  <button onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">
+      <i class="fas fa-calendar-plus"></i> 立即報名
+  </button>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- 場地選擇 -->
+  <div class="card">
+    <h2 class="section-title">📍 選擇場地</h2>
+    <div class="location-tabs">
+      <button class="location-tab active" data-location="四維路59號">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>四維路59號</span>
+        <small>楊梅區四維路59號</small>
+        <img src="https://i.postimg.cc/wTB3mKM7/59.jpg" alt="四維路59號" class="location-thumbnail" data-full-image="https://i.postimg.cc/wTB3mKM7/59.jpg">
+      </button>
+      <button class="location-tab" data-location="四維路60號">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>四維路60號</span>
+        <small>楊梅區四維路60號</small>
+        <img src="https://i.postimg.cc/Vsgdvsfr/60.jpg" alt="四維路60號" class="location-thumbnail" data-full-image="https://i.postimg.cc/Vsgdvsfr/60.jpg">
+      </button>
+      <button class="location-tab" data-location="漢堡大亨">
+        <i class="fas fa-store"></i>
+        <span>漢堡大亨</span>
+        <small>楊梅區四維路70號</small>
+        <img src="https://i.postimg.cc/zD7VvDzH/70.jpg" alt="漢堡大亨" class="location-thumbnail" data-full-image="https://i.postimg.cc/zD7VvDzH/70.jpg">
+      </button>
+      <button class="location-tab" data-location="自由風">
+        <i class="fas fa-store"></i>
+        <span>自由風</span>
+        <small>楊梅區四維路190號</small>
+        <img src="https://i.postimg.cc/nV2CrVFX/190.jpg" alt="自由風" class="location-thumbnail" data-full-image="https://i.postimg.cc/nV2CrVFX/190.jpg">
+      </button>
+      <button class="location-tab" data-location="蔬蒔">
+        <i class="fas fa-leaf"></i>
+        <span>蔬蒔</span>
+        <small>楊梅區四維路216號</small>
+        <img src="https://i.postimg.cc/MZ5vHZ6j/216.jpg" alt="蔬蒔" class="location-thumbnail" data-full-image="https://i.postimg.cc/MZ5vHZ6j/216.jpg">
+      </button>
+      <button class="location-tab" data-location="金正好吃">
+        <i class="fas fa-utensils"></i>
+        <span>金正好吃</span>
+        <small>楊梅區四維路218號</small>
+        <img src="https://i.postimg.cc/bYgsrYyd/218.jpg" alt="金正好吃" class="location-thumbnail" data-full-image="https://i.postimg.cc/bYgsrYyd/218.jpg">
+      </button>
+    </div>
+    
+    <!-- 動態場地資訊 -->
+    <div id="locationInfo" class="location-info">
+      <h3><i class="fas fa-map-marker-alt"></i> 楊梅區四維路59號</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <i class="fas fa-clock"></i>
+          <span><strong>營業時間：</strong>早午 06:00-13:30 | 午晚 14:00-20:00</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-dollar-sign"></i>
+          <span><strong>費用：</strong>600元/天</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-truck"></i>
+          <span><strong>限制：</strong>僅限1車，餐車高度限制</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-ban"></i>
+          <span><strong>禁止：</strong>油炸落地攤、煙霧太大、飲料車</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 報名表單 -->
+  <div class="card" id="form">
+    <h2 class="section-title">📝 線上報名表</h2>
+    <div class="form-grid">
+      <div>
+        <label><i class="fas fa-store"></i> 餐車名稱</label>
+        <input type="text" id="vendorName" placeholder="例如：向陽坡刈包">
+      </div>
+      <div>
+        <label><i class="fas fa-map-marker-alt"></i> 選擇場地</label>
+      <select id="location">
+          <option value="">請選擇場地</option>
+        <option value="四維路59號">四維路59號</option>
+          <option value="四維路60號">四維路60號</option>
+          <option value="漢堡大亨">漢堡大亨 - 四維路70號</option>
+          <option value="自由風">自由風 - 四維路190號</option>
+          <option value="蔬蒔">蔬蒔 - 四維路216號</option>
+          <option value="金正好吃">金正好吃 - 四維路218號</option>
+      </select>
+      </div>
+      <div>
+        <label><i class="fas fa-calendar"></i> 選擇日期</label>
+        <div class="date-selection">
+          <input type="date" id="date" style="display:none;">
+          <select id="availableDates">
+            <option value="">請先選擇場地</option>
+      </select>
+        </div>
+        <div id="dateInfo" class="date-info">
+          <small><i class="fas fa-info-circle"></i> 請先選擇場地</small>
+        </div>
+      </div>
+      <div>
+        <label><i class="fas fa-utensils"></i> 餐車類型</label>
+        <select id="foodType">
+          <option value="">請選擇</option>
+          <option value="主食類">主食類</option>
+          <option value="甜點類">甜點類</option>
+          <option value="小點類">小點類</option>
+          <option value="中式餐點">中式餐點</option>
+          <option value="烤腿套餐">烤腿套餐</option>
+          <option value="甜品類">甜品類</option>
+          <option value="小吃類型">小吃類型</option>
+      </select>
+      </div>
+      <div class="fee-info">
+        <div class="fee-display">
+          <i class="fas fa-dollar-sign"></i>
+          <span>場地費：600元/天</span>
+          <small>營業時段：14:00-20:00</small>
+        </div>
+      </div>
+  </div>
+    
+    <div class="notice-box">
+      <h4><i class="fas fa-exclamation-triangle"></i> 重要注意事項</h4>
+      <ul>
+        <li>不供水、不供電，需自行清潔環境及垃圾處理</li>
+        <li>禁止油炸落地攤，其他可以不限，禁煙霧太大</li>
+        <li>禁止飲料及飲料車</li>
+        <li>餐車高度限制，請特別注意</li>
+        <li>地點優勢：本路段生意最好的早餐店，超過十年以上老顧客母數大</li>
+      </ul>
+    </div>
+    
+    <button class="submit" id="submitBtn">
+      <i class="fas fa-paper-plane"></i> 送出報名
+    </button>
+  </div>
+
+
+  <!-- 日曆區塊 -->
+  <div class="card">
+  <h2 class="section-title">📅 排班行事曆</h2>
+    
+    <!-- 新的行事曆容器 -->
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <div class="calendar-nav">
+          <button id="prevMonth" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+          <span id="currentMonth" class="month-display">2025年10月</span>
+          <button id="nextMonth" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+          <button id="todayBtn" class="today-btn">今天</button>
+        </div>
+        <div class="location-filter">
+          <label><i class="fas fa-filter"></i> 篩選場地：</label>
+          <div class="location-filter-buttons">
+            <button class="filter-btn active" data-location="四維路59號">
+              <i class="fas fa-map-marker-alt"></i> 四維路59號
+            </button>
+            <button class="filter-btn" data-location="四維路60號">
+              <i class="fas fa-map-marker-alt"></i> 四維路60號
+            </button>
+            <button class="filter-btn" data-location="漢堡大亨">
+              <i class="fas fa-store"></i> 漢堡大亨
+            </button>
+            <button class="filter-btn" data-location="自由風">
+              <i class="fas fa-store"></i> 自由風
+            </button>
+            <button class="filter-btn" data-location="蔬蒔">
+              <i class="fas fa-leaf"></i> 蔬蒔
+            </button>
+            <button class="filter-btn" data-location="金正好吃">
+              <i class="fas fa-utensils"></i> 金正好吃
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 行事曆內容將由JavaScript生成 -->
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 圖片放大模態框 -->
+<div id="imageModal" class="image-modal">
+  <span class="modal-close">&times;</span>
+  <img class="modal-content" id="modalImage" src="" alt="">
+</div>
+
+<script>
+// 多場地規則配置
+const locationConfigs = {
+  "四維路59號": {
+    name: "楊梅區四維路59號",
+    address: "楊梅區四維路59號",
+    type: "戶外場地",
+    days: [1, 2, 3, 4, 5, 6, 0], // 整個月都可以排
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車，餐車高度限制",
+      ban: "油炸落地攤、煙霧太大、飲料車",
+      special: "整月都可排班"
+    }
+  },
+  "四維路60號": {
+    name: "楊梅區四維路60號",
+    address: "楊梅區四維路60號",
+    type: "戶外場地",
+    days: [1, 2, 3], // 週一~週三可以營業
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車",
+      ban: "油炸落地攤、煙霧太大",
+      special: "該場地週一~週三營業，國定假日休息"
+    }
+  },
+  "漢堡大亨": {
+    name: "漢堡大亨",
+    address: "楊梅區四維路70號",
+    type: "合作店面",
+    days: [1, 2, 3, 4, 5, 6], // 只有週日休，其它日都可以排
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車，需配合店面營業",
+      ban: "油煙霧太大、飲料車",
+      special: "該場地週日休息"
+    }
+  },
+  "自由風": {
+    name: "自由風",
+    address: "楊梅區四維路190號",
+    type: "合作店面",
+    days: [0, 1, 2, 4, 5], // 週三、週六不排，其它都可排
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車，需配合店面營業",
+      ban: "煙霧太大、飲料車",
+      special: "週三週六不排"
+    }
+  },
+  "蔬蒔": {
+    name: "蔬蒔",
+    address: "楊梅區四維路216號",
+    type: "健康蔬食",
+    days: [3, 6], // 只有週三、週六可排
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車，不要跟店面強碰商品",
+      ban: "高糖飲料",
+      special: "只有週三、週六可排班"
+    }
+  },
+  "金正好吃": {
+    name: "金正好吃",
+    address: "楊梅區四維路218號",
+    type: "美食廣場",
+    days: [2], // 只有週二可以排班
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車",
+      ban: "煙霧太大、噪音過大",
+      special: "該場地僅限週二營業"
+    }
+  }
+};
+
+// 已預約的日期和時段 (模擬資料)
+const bookedSlots = {
+  "四維路59號": {
+    "2025-10-01": ["14:00-20:00"], // 向陽坡刈包
+    "2025-10-02": ["14:00-20:00"], // 餓食鬼美味販売所
+    "2025-10-03": ["14:00-20:00"], // 麥米食小米甜甜圈
+    "2025-10-07": ["14:00-20:00"], // 腸新
+    "2025-10-08": ["14:00-20:00"], // 滷拉拉冷滷味
+    "2025-10-09": ["14:00-20:00"], // 懶貓窯烤披薩
+    "2025-10-13": ["14:00-20:00"], // 好嗜拾光
+    "2025-10-14": ["14:00-20:00"], // 黃佳香碳烤玉米
+    "2025-10-15": ["14:00-20:00"], // 露露姐水果攤鹹水雞
+    "2025-10-16": ["14:00-20:00"], // 輪見輪愛-旗魚黑輪
+    "2025-10-17": ["14:00-20:00"], // 阿賢油飯
+    "2025-10-20": ["14:00-20:00"], // 寶嘉-烤肉飯/義大利麵
+    "2025-10-21": ["14:00-20:00"], // 沖天炮燒烤
+    "2025-10-22": ["14:00-20:00"], // 露露姐水果攤鹹水雞
+    "2025-10-23": ["14:00-20:00"], // 安德尼斯烘焙坊
+    "2025-10-24": ["14:00-20:00"], // 菲揚煙燻滷味
+    "2025-10-27": ["14:00-20:00"], // 麵線杜
+    "2025-10-28": ["14:00-20:00"], // 豆豆哥專業毛豆
+    "2025-10-29": ["14:00-20:00"], // 天昱坊_客家蔬食
+    "2025-10-30": ["14:00-20:00"], // 巧味豆乳雞
+    "2025-10-31": ["14:00-20:00"]  // 喵喵雞蛋糕、甘草芭樂、楊桃冰
+  },
+  "四維路60號": {
+    "2025-10-01": ["14:00-20:00"], // 旺喜屋
+    "2025-10-07": ["14:00-20:00"], // 鄭老爹肉燥乾麵
+    "2025-10-08": ["14:00-20:00"], // 眾品餚創意料理
+    "2025-10-13": ["14:00-20:00"], // 熊國王滷味
+    "2025-10-14": ["14:00-20:00"], // 阿騰火烤楓糖甜甜圈
+    "2025-10-15": ["14:00-20:00"], // 基隆三明治
+    "2025-10-20": ["14:00-20:00"], // Gogo烤飛雞
+    "2025-10-21": ["14:00-20:00"], // 宇宙雞蛋糕
+    "2025-10-22": ["14:00-20:00"], // 滷拉拉冷滷味
+    "2025-10-27": ["14:00-20:00"], // 旺喜屋
+    "2025-10-28": ["14:00-20:00"], // 港灣與貓韓式街邊小吃
+    "2025-10-29": ["14:00-20:00"]  // 天昱坊_客家蔬食
+  },
+  "漢堡大亨": {
+    "2025-10-01": ["14:00-20:00"], // 臧記排骨酥
+    "2025-10-02": ["14:00-20:00"], // 那個彩色地瓜球
+    "2025-10-07": ["14:00-20:00"], // 三寶爸排骨酥/涼拌海鮮
+    "2025-10-08": ["14:00-20:00"], // 臧記排骨酥
+    "2025-10-09": ["14:00-20:00"], // 極品鹽水雞
+    "2025-10-13": ["14:00-20:00"], // 芙玉軒
+    "2025-10-14": ["14:00-20:00"], // 小饅魚造型饅頭
+    "2025-10-15": ["14:00-20:00"], // 朱記川滷
+    "2025-10-16": ["14:00-20:00"], // 萬兆香萬巒豬腳
+    "2025-10-17": ["14:00-20:00"], // 酷媽胖卡
+    "2025-10-20": ["14:00-20:00"], // 蔬孟園
+    "2025-10-21": ["14:00-20:00"], // 饞了找我
+    "2025-10-22": ["14:00-20:00"], // 臧記排骨酥
+    "2025-10-23": ["14:00-20:00"], // 法國道地吉拿棒
+    "2025-10-24": ["14:00-20:00"], // 起來車輪肉蛋堡
+    "2025-10-27": ["14:00-20:00"], // 蒜老爹六蒜包
+    "2025-10-29": ["14:00-20:00"], // 臧記排骨酥
+    "2025-10-30": ["14:00-20:00"], // 諸大爺脆皮烤豬 + 鄭姐美食
+    "2025-10-31": ["14:00-20:00"]  // 羽朵甜小米甜甜圈
+  },
+  "自由風": {
+    "2025-10-02": ["14:00-20:00"], // 方人也鮮奶麻糬
+    "2025-10-07": ["14:00-20:00"], // 小鳥吃吐司
+    "2025-10-20": ["14:00-20:00"]  // A happiness手作奶酪
+  },
+  "蔬蒔": {
+    "2025-10-04": ["14:00-20:00"], // 台東放山豬石板烤肉
+    "2025-10-08": ["14:00-20:00"], // 台東放山豬石板烤肉
+    "2025-10-15": ["14:00-20:00"], // 抓餅工程行
+    "2025-10-18": ["14:00-20:00"], // 台東放山豬石板烤肉
+    "2025-10-22": ["14:00-20:00"], // 台東放山豬石板烤肉
+    "2025-10-29": ["14:00-20:00"]  // 滷拉拉冷滷味
+  },
+  "金正好吃": {
+    "2025-10-07": ["14:00-20:00"]  // 國家雞蜜 (週二)
+  }
+};
+
+// 當前選中的場地
+let currentLocation = "四維路59號";
+
+// 場地分頁切換
+document.querySelectorAll('.location-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    // 移除所有active類
+    document.querySelectorAll('.location-tab').forEach(t => t.classList.remove('active'));
+    // 添加active類到當前選中
+    tab.classList.add('active');
+    
+    // 更新當前場地
+    currentLocation = tab.dataset.location;
+    
+    // 更新表單中的場地選擇
+    document.getElementById('location').value = currentLocation;
+    
+    // 觸發報名表場地選擇的change事件
+    document.getElementById('location').dispatchEvent(new Event('change'));
+    
+    // 更新場地資訊顯示
+    updateLocationInfo(currentLocation);
+    
+    // 更新行事曆篩選
+    currentFilter = currentLocation;
+    // 更新行事曆篩選按鈕的active狀態
+    document.querySelectorAll('.location-filter .filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.location === currentLocation) {
+        btn.classList.add('active');
+      }
+    });
+    // 重新渲染行事曆
+    renderCalendar();
+  });
+});
+
+// 更新場地資訊顯示
+function updateLocationInfo(location) {
+  const config = locationConfigs[location];
+  if (!config) return;
+  
+  let specialNotice = '';
+  if (config.info.special) {
+    specialNotice = `
+      <div class="special-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>${config.info.special}</span>
+      </div>
+    `;
+  }
+  
+  const locationInfo = document.getElementById('locationInfo');
+  locationInfo.innerHTML = `
+    <h3><i class="fas fa-map-marker-alt"></i> ${config.name}</h3>
+    ${specialNotice}
+    <div class="info-grid">
+      <div class="info-item">
+        <i class="fas fa-clock"></i>
+        <span><strong>營業時間：</strong>${config.info.hours}</span>
+      </div>
+      <div class="info-item">
+        <i class="fas fa-dollar-sign"></i>
+        <span><strong>費用：</strong>${config.info.fee}</span>
+      </div>
+      <div class="info-item">
+        <i class="fas fa-truck"></i>
+        <span><strong>限制：</strong>${config.info.limit}</span>
+      </div>
+      <div class="info-item">
+        <i class="fas fa-ban"></i>
+        <span><strong>禁止：</strong>${config.info.ban}</span>
+      </div>
+    </div>
+  `;
+}
+
+// 2025年主要國定假日列表
+const nationalHolidays2025 = [
+  '2025-01-01', // 元旦
+  '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', '2025-02-03', // 春節連假
+  '2025-04-04', '2025-04-05', '2025-04-06', '2025-04-07', // 清明節連假
+  '2025-05-01', // 勞動節
+  '2025-05-31', // 端午節
+  '2025-10-06', '2025-10-07', '2025-10-08', // 中秋節連假
+  '2025-10-10', '2025-10-11', '2025-10-12', '2025-10-13', // 國慶日連假
+  '2025-12-25'  // 聖誕節
+];
+
+// 生成可用日期選項 - 完全分離條件版本
+function generateAvailableDates(location) {
+  const locationConfig = locationConfigs[location];
+  if (!locationConfig) {
+    console.log('找不到場地配置:', location);
+    return [];
+  }
+  
+  const availableDates = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // 條件1：生成未來3個月的所有日期（當前月份 + 未來2個月）
+  const currentMonth = today.getMonth() + 1; // 1-12
+  const currentYear = today.getFullYear();
+  
+  // 生成當前月份和未來2個月的所有日期
+  for (let i = 0; i < 3; i++) {
+    const targetMonth = currentMonth + i;
+    const targetYear = currentYear;
+    
+    let year, month;
+    if (targetMonth > 12) {
+      year = targetYear + Math.floor((targetMonth - 1) / 12);
+      month = ((targetMonth - 1) % 12) + 1;
+    } else {
+      year = targetYear;
+      month = targetMonth;
+    }
+    
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      const dayOfWeek = date.getDay();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      // 條件2：只處理未來日期
+      if (date < today) continue;
+      
+      // 條件3：檢查是否為該場地的營業日
+      if (!locationConfig.days.includes(dayOfWeek)) continue;
+      
+      // 條件4：特別處理四維路60號的國定假日
+      if (location === '四維路60號' && nationalHolidays2025.includes(dateStr)) {
+        // 不跳過國定假日，而是添加備註
+        const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const holidayName = getHolidayName(dateStr);
+        const displayDate = `${month}月${day}日(${dayNames[dayOfWeek]})`;
+        availableDates.push({
+          value: dateStr,
+          text: `${displayDate} - ${holidayName}國定假日`,
+          dayOfWeek: dayOfWeek,
+          isHoliday: true
+        });
+        continue; // 跳過後續處理，因為已經添加了
+      }
+      
+      // 條件5：檢查日曆上是否已有餐車預約
+      const hasEvent = allEvents.some(event => {
+        let eventDate;
+        if (event.start instanceof Date) {
+          eventDate = event.start.toISOString().split('T')[0];
+        } else {
+          eventDate = event.start.split('T')[0];
+        }
+        return eventDate === dateStr && event.location === location;
+      });
+      
+      // 條件6：時間控制檢查（獨立條件）- 顯示3個月
+      const currentDay = today.getDate();
+      const isTimeControlled = true; // 顯示3個月的排班日期
+      // const isTimeControlled = checkTimeControl(year, month, currentYear, currentMonth, currentDay);
+      
+      // 只有通過所有條件的日期才加入選項
+      if (!hasEvent && isTimeControlled) {
+        const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const displayDate = `${month}月${day}日(${dayNames[dayOfWeek]})`;
+        availableDates.push({
+          value: dateStr,
+          text: displayDate,
+          dayOfWeek: dayOfWeek
+        });
+      }
+    }
+  }
+  
+  // 按日期排序
+  availableDates.sort((a, b) => a.value.localeCompare(b.value));
+  
+  console.log(`場地: ${location}, 最終可用日期數量: ${availableDates.length}`);
+  return availableDates;
+}
+
+// 取消預約功能
+function cancelBooking(event, dateStr) {
+  // 要求輸入密碼
+  const password = prompt(`請輸入取消密碼以取消 ${event.title} 的預約：\n日期：${dateStr}\n場地：${event.location}`);
+  
+  if (password === null) {
+    // 用戶取消輸入
+    return;
+  }
+  
+  if (password !== '0825') {
+    showToast('error', '密碼錯誤', '取消密碼不正確，無法取消預約');
+    return;
+  }
+  
+  const confirmMsg = `確定要取消 ${event.title} 在 ${event.location} 的預約嗎？\n日期：${dateStr}\n時間：14:00-20:00`;
+  
+  if (confirm(confirmMsg)) {
+    // 從 allEvents 中移除事件
+    const eventIndex = allEvents.findIndex(e => 
+      e.title === event.title && 
+      e.location === event.location && 
+      e.start === event.start
+    );
+    
+    if (eventIndex !== -1) {
+      allEvents.splice(eventIndex, 1);
+    }
+    
+    // 從 bookedSlots 中移除時段
+    if (bookedSlots[event.location] && bookedSlots[event.location][dateStr]) {
+      const slotIndex = bookedSlots[event.location][dateStr].indexOf('14:00-20:00');
+      if (slotIndex !== -1) {
+        bookedSlots[event.location][dateStr].splice(slotIndex, 1);
+        
+        // 如果該日期沒有其他時段，刪除整個日期
+        if (bookedSlots[event.location][dateStr].length === 0) {
+          delete bookedSlots[event.location][dateStr];
+        }
+      }
+    }
+    
+    // 重新渲染行事曆
+    renderCalendar();
+    
+    // 如果當前選擇的是同一個場地，重新生成可用日期選項
+    const currentLocation = document.getElementById('location').value;
+    if (currentLocation === event.location) {
+      const availableDates = generateAvailableDates(currentLocation);
+      const dateSelect = document.getElementById('availableDates');
+      dateSelect.innerHTML = '<option value="">選擇可用日期</option>';
+      availableDates.forEach(date => {
+        const opt = document.createElement('option');
+        opt.value = date.value;
+        opt.textContent = date.text;
+        dateSelect.appendChild(opt);
+      });
+    }
+    
+    showToast('success', '取消成功', `已取消 ${event.title} 的預約`);
+  }
+}
+
+// 提交到Google Sheets
+async function submitToGoogleSheets(formData) {
+  // Google Apps Script Web App URL - 請替換為您的實際URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+  
+  // 準備要發送的數據
+  const dataToSend = {
+    action: 'addBooking',
+    data: {
+      vendor: formData.vendor,
+      location: formData.location,
+      date: formData.date,
+      timeSlot: formData.timeSlot,
+      foodType: formData.foodType,
+      timestamp: formData.timestamp
+    }
+  };
+  
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // 避免CORS問題
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend)
+    });
+    
+    // 由於使用no-cors模式，無法檢查response.status
+    // 假設發送成功
+    console.log('數據已發送到Google Sheets:', dataToSend);
+    return Promise.resolve();
+    
+  } catch (error) {
+    console.error('發送到Google Sheets失敗:', error);
+    throw error;
+  }
+}
+
+// 獲取國定假日名稱
+function getHolidayName(dateStr) {
+  const holidayMap = {
+    '2025-01-01': '元旦',
+    '2025-01-28': '春節',
+    '2025-01-29': '春節',
+    '2025-01-30': '春節',
+    '2025-02-28': '和平紀念日',
+    '2025-04-04': '兒童節',
+    '2025-04-05': '清明節',
+    '2025-05-01': '勞動節',
+    '2025-06-14': '端午節',
+    '2025-09-27': '中秋節',
+    '2025-10-10': '國慶日',
+    '2025-12-25': '聖誕節'
+  };
+  return holidayMap[dateStr] || '國定假日';
+}
+
+// 時間控制檢查函數（獨立條件）
+function checkTimeControl(targetYear, targetMonth, currentYear, currentMonth, currentDay) {
+  console.log(`檢查時間控制: 目標${targetYear}-${targetMonth}, 當前${currentYear}-${currentMonth}-${currentDay}`);
+  
+  // 總是允許當前月份
+  if (targetYear === currentYear && targetMonth === currentMonth) {
+    console.log(`允許當前月份: ${targetYear}-${targetMonth}`);
+    return true;
+  }
+  
+  // 根據時間控制規則檢查其他月份
+  if (currentDay >= 1) { // 每月1日開始
+    // 開放當前月份 + 3個月後的月份
+    // 例如：9月 → 開放12月，10月 → 開放隔年1月，11月 → 開放隔年2月
+    const allowedMonth = currentMonth + 3;
+    const allowedYear = currentYear;
+    
+    let finalAllowedMonth, finalAllowedYear;
+    if (allowedMonth > 12) {
+      finalAllowedYear = allowedYear + Math.floor((allowedMonth - 1) / 12);
+      finalAllowedMonth = ((allowedMonth - 1) % 12) + 1;
+    } else {
+      finalAllowedYear = allowedYear;
+      finalAllowedMonth = allowedMonth;
+    }
+    
+    console.log(`計算允許月份: ${finalAllowedYear}-${finalAllowedMonth}`);
+    
+    // 檢查是否為允許的月份
+    if (targetYear === finalAllowedYear && targetMonth === finalAllowedMonth) {
+      console.log(`允許月份: ${targetYear}-${targetMonth}`);
+      return true;
+    }
+    
+    // 如果已經過了月中，也開放下一個月
+    if (currentDay >= 15) {
+      const nextAllowedMonth = allowedMonth + 1;
+      let finalNextAllowedMonth, finalNextAllowedYear;
+      if (nextAllowedMonth > 12) {
+        finalNextAllowedYear = allowedYear + Math.floor((nextAllowedMonth - 1) / 12);
+        finalNextAllowedMonth = ((nextAllowedMonth - 1) % 12) + 1;
+      } else {
+        finalNextAllowedYear = allowedYear;
+        finalNextAllowedMonth = nextAllowedMonth;
+      }
+      
+      console.log(`計算月中允許月份: ${finalNextAllowedYear}-${finalNextAllowedMonth}`);
+      
+      if (targetYear === finalNextAllowedYear && targetMonth === finalNextAllowedMonth) {
+        console.log(`允許月中月份: ${targetYear}-${targetMonth}`);
+        return true;
+      }
+    }
+  }
+  
+  console.log(`拒絕月份: ${targetYear}-${targetMonth}`);
+  return false;
+}
+
+// 場地選擇事件
+document.getElementById('location').addEventListener('change', () => {
+  const loc = document.getElementById('location').value;
+  const dateInput = document.getElementById('date');
+  const dateSelect = document.getElementById('availableDates');
+  const dateInfo = document.getElementById('dateInfo');
+  
+  // 同步更新行事曆篩選和上方場地分頁
+  if (loc) {
+    currentFilter = loc;
+    
+    // 更新行事曆篩選按鈕的active狀態
+    document.querySelectorAll('.location-filter .filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.location === loc) {
+        btn.classList.add('active');
+      }
+    });
+    
+    // 更新上方場地分頁的active狀態
+    document.querySelectorAll('.location-tab').forEach(tab => {
+      tab.classList.remove('active');
+      if (tab.dataset.location === loc) {
+        tab.classList.add('active');
+      }
+    });
+    
+    // 更新場地資訊顯示
+    updateLocationInfo(loc);
+    
+    // 重新渲染行事曆
+    renderCalendar();
+  }
+  
+  // 重置
+  dateInput.value = '';
+  dateInput.style.display = 'none';
+  dateSelect.style.display = 'block';
+  dateInfo.style.display = 'block';
+  
+  if (!loc) {
+    dateSelect.style.display = 'none';
+    dateInfo.style.display = 'none';
+    return;
+  }
+  
+  const locationConfig = locationConfigs[loc];
+  if (!locationConfig) {
+    return;
+  }
+  
+  // 所有場地都使用下拉選單
+  const availableDates = generateAvailableDates(loc);
+  
+  if (availableDates.length > 0) {
+    // 更新選項
+    dateSelect.innerHTML = '<option value="">選擇可用日期</option>';
+    availableDates.forEach(date => {
+      const opt = document.createElement('option');
+      opt.value = date.value;
+      opt.textContent = date.text;
+      dateSelect.appendChild(opt);
+    });
+    
+    // 更新提示訊息
+    if (locationConfig.days.length < 7) {
+      const dayNames = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+      const allowedDays = locationConfig.days.map(day => dayNames[day]).join('、');
+      dateInfo.innerHTML = `<small><i class="fas fa-info-circle"></i> 該場地僅限${allowedDays}營業</small>`;
+    } else {
+      dateInfo.innerHTML = '<small><i class="fas fa-info-circle"></i> 該場地整個月都可以排班</small>';
+    }
+  } else {
+    dateInfo.innerHTML = '<small><i class="fas fa-exclamation-triangle"></i> 該場地近期無可用日期</small>';
+  }
+});
+
+// 日期選擇事件
+function handleDateChange() {
+  const loc = document.getElementById('location').value;
+  const dateSelect = document.getElementById('availableDates');
+  const selectedDate = dateSelect.value;
+  
+  if (!loc || !selectedDate) {
+    return;
+  }
+  
+  // 檢查日曆上是否已有餐車名稱
+  const hasEvent = allEvents.some(event => {
+    const eventDate = event.start.toISOString().split('T')[0];
+    return eventDate === selectedDate && event.location === loc;
+  });
+  
+  if (hasEvent) {
+    alert('該日期已有餐車排班，請選擇其他日期');
+    return;
+  }
+}
+
+// 綁定事件
+document.getElementById('date').addEventListener('change', handleDateChange);
+document.getElementById('availableDates').addEventListener('change', handleDateChange);
+
+// 所有場地的預約事件
+const allEvents = [
+  // 四維路59號 - 根據完整排班資料更新
+  { title: '向陽坡刈包', start: '2025-10-01', location: '四維路59號', color: '#FF8A00' },
+  { title: '餓食鬼美味販売所', start: '2025-10-02', location: '四維路59號', color: '#FF8A00' },
+  { title: '麥米食小米甜甜圈', start: '2025-10-03', location: '四維路59號', color: '#FF8A00' },
+  { title: '腸新', start: '2025-10-07', location: '四維路59號', color: '#FF8A00' },
+  { title: '滷拉拉冷滷味', start: '2025-10-08', location: '四維路59號', color: '#FF8A00' },
+  { title: '懶貓窯烤披薩', start: '2025-10-09', location: '四維路59號', color: '#FF8A00' },
+  { title: '好嗜拾光', start: '2025-10-13', location: '四維路59號', color: '#FF8A00' },
+  { title: '黃佳香碳烤玉米', start: '2025-10-14', location: '四維路59號', color: '#FF8A00' },
+  { title: '露露姐水果攤鹹水雞', start: '2025-10-15', location: '四維路59號', color: '#FF8A00' },
+  { title: '輪見輪愛-旗魚黑輪', start: '2025-10-16', location: '四維路59號', color: '#FF8A00' },
+  { title: '阿賢油飯', start: '2025-10-17', location: '四維路59號', color: '#FF8A00' },
+  { title: '寶嘉-烤肉飯/義大利麵', start: '2025-10-20', location: '四維路59號', color: '#FF8A00' },
+  { title: '沖天炮燒烤', start: '2025-10-21', location: '四維路59號', color: '#FF8A00' },
+  { title: '露露姐水果攤鹹水雞', start: '2025-10-22', location: '四維路59號', color: '#FF8A00' },
+  { title: '安德尼斯烘焙坊', start: '2025-10-23', location: '四維路59號', color: '#FF8A00' },
+  { title: '菲揚煙燻滷味', start: '2025-10-24', location: '四維路59號', color: '#FF8A00' },
+  { title: '麵線杜', start: '2025-10-27', location: '四維路59號', color: '#FF8A00' },
+  { title: '豆豆哥專業毛豆', start: '2025-10-28', location: '四維路59號', color: '#FF8A00' },
+  { title: '天昱坊_客家蔬食', start: '2025-10-29', location: '四維路59號', color: '#FF8A00' },
+  { title: '巧味豆乳雞', start: '2025-10-30', location: '四維路59號', color: '#FF8A00' },
+  { title: '喵喵雞蛋糕、甘草芭樂、楊桃冰', start: '2025-10-31', location: '四維路59號', color: '#FF8A00' },
+
+  // 四維路60號 - 根據完整排班資料更新
+  { title: '旺喜屋', start: '2025-10-01', location: '四維路60號', color: '#28a745' },
+  { title: '鄭老爹肉燥乾麵', start: '2025-10-07', location: '四維路60號', color: '#17a2b8' },
+  { title: '眾品餚創意料理', start: '2025-10-08', location: '四維路60號', color: '#6f42c1' },
+  { title: '熊國王滷味', start: '2025-10-13', location: '四維路60號', color: '#fd7e14' },
+  { title: '阿騰火烤楓糖甜甜圈', start: '2025-10-14', location: '四維路60號', color: '#20c997' },
+  { title: '基隆三明治', start: '2025-10-15', location: '四維路60號', color: '#e83e8c' },
+  { title: 'Gogo烤飛雞', start: '2025-10-20', location: '四維路60號', color: '#6c757d' },
+  { title: '宇宙雞蛋糕', start: '2025-10-21', location: '四維路60號', color: '#343a40' },
+  { title: '滷拉拉冷滷味', start: '2025-10-22', location: '四維路60號', color: '#dc3545' },
+  { title: '旺喜屋', start: '2025-10-27', location: '四維路60號', color: '#ffc107' },
+  { title: '港灣與貓韓式街邊小吃', start: '2025-10-28', location: '四維路60號', color: '#6f42c1' },
+  { title: '天昱坊_客家蔬食', start: '2025-10-29', location: '四維路60號', color: '#fd7e14' },
+
+  // 漢堡大亨 (四維路70號) - 根據完整排班資料更新
+  { title: '臧記排骨酥', start: '2025-10-01', location: '漢堡大亨', color: '#6f42c1' },
+  { title: '那個彩色地瓜球', start: '2025-10-02', location: '漢堡大亨', color: '#fd7e14' },
+  { title: '三寶爸排骨酥/涼拌海鮮', start: '2025-10-07', location: '漢堡大亨', color: '#20c997' },
+  { title: '臧記排骨酥', start: '2025-10-08', location: '漢堡大亨', color: '#e83e8c' },
+  { title: '極品鹽水雞', start: '2025-10-09', location: '漢堡大亨', color: '#6c757d' },
+  { title: '芙玉軒', start: '2025-10-13', location: '漢堡大亨', color: '#343a40' },
+  { title: '小饅魚造型饅頭', start: '2025-10-14', location: '漢堡大亨', color: '#dc3545' },
+  { title: '朱記川滷', start: '2025-10-15', location: '漢堡大亨', color: '#ffc107' },
+  { title: '萬兆香萬巒豬腳', start: '2025-10-16', location: '漢堡大亨', color: '#6f42c1' },
+  { title: '酷媽胖卡', start: '2025-10-17', location: '漢堡大亨', color: '#fd7e14' },
+  { title: '蔬孟園', start: '2025-10-20', location: '漢堡大亨', color: '#20c997' },
+  { title: '饞了找我', start: '2025-10-21', location: '漢堡大亨', color: '#e83e8c' },
+  { title: '臧記排骨酥', start: '2025-10-22', location: '漢堡大亨', color: '#6c757d' },
+  { title: '法國道地吉拿棒', start: '2025-10-23', location: '漢堡大亨', color: '#343a40' },
+  { title: '起來車輪肉蛋堡', start: '2025-10-24', location: '漢堡大亨', color: '#dc3545' },
+  { title: '蒜老爹六蒜包', start: '2025-10-27', location: '漢堡大亨', color: '#ffc107' },
+  { title: '臧記排骨酥', start: '2025-10-29', location: '漢堡大亨', color: '#6f42c1' },
+  { title: '諸大爺脆皮烤豬', start: '2025-10-30', location: '漢堡大亨', color: '#fd7e14' },
+  { title: '鄭姐美食', start: '2025-10-30', location: '漢堡大亨', color: '#20c997' },
+  { title: '羽朵甜小米甜甜圈', start: '2025-10-31', location: '漢堡大亨', color: '#e83e8c' },
+
+  // 自由風 (四維路190號) - 根據完整排班資料更新
+  { title: '方人也鮮奶麻糬', start: '2025-10-02', location: '自由風', color: '#20c997' },
+  { title: '小鳥吃吐司', start: '2025-10-07', location: '自由風', color: '#e83e8c' },
+  { title: 'A happiness手作奶酪', start: '2025-10-20', location: '自由風', color: '#6c757d' },
+
+  // 蔬蒔 (四維路216號) - 根據完整排班資料更新
+  { title: '台東放山豬石板烤肉', start: '2025-10-04', location: '蔬蒔', color: '#20c997' },
+  { title: '台東放山豬石板烤肉', start: '2025-10-08', location: '蔬蒔', color: '#20c997' },
+  { title: '抓餅工程行', start: '2025-10-15', location: '蔬蒔', color: '#20c997' },
+  { title: '台東放山豬石板烤肉', start: '2025-10-18', location: '蔬蒔', color: '#20c997' },
+  { title: '台東放山豬石板烤肉', start: '2025-10-22', location: '蔬蒔', color: '#20c997' },
+  { title: '滷拉拉冷滷味', start: '2025-10-29', location: '蔬蒔', color: '#20c997' },
+
+  // 金正好吃 (四維路218號) - 僅週二
+  { title: '國家雞蜜', start: '2025-10-07', location: '金正好吃', color: '#dc3545' }
+];
+
+// 新行事曆系統
+let currentDate = new Date(); // 當前日期
+let currentFilter = '四維路59號';
+
+// 初始化新行事曆
+function initNewCalendar() {
+  renderCalendar();
+  setupCalendarEvents();
+}
+
+// 渲染行事曆
+function renderCalendar() {
+  const calendarGrid = document.getElementById('calendarGrid');
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  
+  // 更新月份顯示
+  document.getElementById('currentMonth').textContent = `${year}年${month + 1}月`;
+  
+  // 清空網格
+  calendarGrid.innerHTML = '';
+  
+  // 添加星期標題
+  const dayHeaders = ['日', '一', '二', '三', '四', '五', '六'];
+  dayHeaders.forEach(day => {
+    const header = document.createElement('div');
+    header.className = 'calendar-day-header';
+    header.textContent = day;
+    calendarGrid.appendChild(header);
+  });
+  
+  // 獲取月份的第一天和最後一天
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+  
+  // 生成42個日期格子（6週）
+  for (let i = 0; i < 42; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    
+    // 檢查是否為其他月份
+    if (date.getMonth() !== month) {
+      dayElement.classList.add('other-month');
+    }
+    
+    // 檢查是否為今天
+    const today = new Date();
+    if (date.toDateString() === today.toDateString()) {
+      dayElement.classList.add('today');
+    }
+    
+    // 添加日期數字
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'day-number';
+    dayNumber.textContent = date.getDate();
+    dayElement.appendChild(dayNumber);
+    
+    // 添加事件
+    const eventsContainer = document.createElement('div');
+    eventsContainer.className = 'day-events';
+    
+    // 修正時區問題：使用本地日期格式
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const dayEvents = allEvents.filter(event => {
+      const eventDate = event.start instanceof Date ? 
+        `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}` : 
+        event.start.split('T')[0];
+      return eventDate === dateStr;
+    });
+    
+    dayEvents.forEach(event => {
+      // 只顯示當前篩選場地的事件
+      if (event.location === currentFilter) {
+        const eventContainer = document.createElement('div');
+        eventContainer.className = 'event-container';
+        
+        const eventElement = document.createElement('div');
+        eventElement.className = 'event-item';
+        eventElement.textContent = event.title;
+        eventElement.title = `${event.title} - ${event.location}`;
+        eventElement.addEventListener('click', () => {
+          showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
+        });
+        
+        // 添加取消按鈕
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'cancel-btn';
+        cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+        cancelBtn.title = '取消預約';
+        cancelBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          cancelBooking(event, dateStr);
+        });
+        
+        eventContainer.appendChild(eventElement);
+        eventContainer.appendChild(cancelBtn);
+        eventsContainer.appendChild(eventContainer);
+      }
+    });
+    
+    // 檢查是否已預約
+    if (dayEvents.length > 0) {
+      const hasEventForLocation = dayEvents.some(event => event.location === currentFilter);
+      if (hasEventForLocation) {
+        dayElement.classList.add('booked');
+      }
+    }
+    
+    // 檢查各場地的非開放日期
+    if (date.getMonth() === month) {
+      const dayOfWeek = date.getDay(); // 0=週日, 1=週一, 2=週二, 3=週三, 4=週四, 5=週五, 6=週六
+      let isNonOperating = false;
+      
+      switch (currentFilter) {
+        case '四維路60號':
+          // 週四~週日不開放
+          if (dayOfWeek >= 4 || dayOfWeek === 0) {
+            isNonOperating = true;
+          }
+          break;
+        case '蔬蒔':
+          // 只有週三、週六可排
+          if (dayOfWeek !== 3 && dayOfWeek !== 6) {
+            isNonOperating = true;
+          }
+          break;
+        case '金正好吃':
+          // 只有週二可排
+          if (dayOfWeek !== 2) {
+            isNonOperating = true;
+          }
+          break;
+        case '自由風':
+          // 週三、週六不排，其它都可排
+          if (dayOfWeek === 3 || dayOfWeek === 6) {
+            isNonOperating = true;
+          }
+          break;
+        case '漢堡大亨': // 四維路70號
+          // 週日不排，其它都可排
+          if (dayOfWeek === 0) {
+            isNonOperating = true;
+          }
+          break;
+      }
+      
+      if (isNonOperating) {
+        dayElement.classList.add('non-operating');
+      }
+    }
+    
+    dayElement.appendChild(eventsContainer);
+    calendarGrid.appendChild(dayElement);
+  }
+}
+
+// 設定行事曆事件
+function setupCalendarEvents() {
+  // 月份導航
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+  });
+  
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
+  
+  document.getElementById('todayBtn').addEventListener('click', () => {
+    currentDate = new Date();
+    renderCalendar();
+  });
+  
+  // 場地篩選按鈕
+  document.querySelectorAll('.location-filter .filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // 移除所有按鈕的active類別
+      document.querySelectorAll('.location-filter .filter-btn').forEach(b => b.classList.remove('active'));
+      // 為當前按鈕添加active類別
+      btn.classList.add('active');
+      // 更新篩選條件
+      currentFilter = btn.dataset.location;
+      
+      // 同步更新報名表的場地選擇
+      const formLocationSelect = document.getElementById('location');
+      if (formLocationSelect) {
+        formLocationSelect.value = currentFilter;
+        // 觸發change事件來更新日期選項
+        formLocationSelect.dispatchEvent(new Event('change'));
+      }
+      
+      renderCalendar();
+    });
+  });
+}
+
+
+// Toast 提示功能
+function showToast(type, title, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icons = {
+    success: 'fas fa-check-circle',
+    error: 'fas fa-exclamation-circle',
+    warning: 'fas fa-exclamation-triangle',
+    info: 'fas fa-info-circle'
+  };
+  
+  toast.innerHTML = `
+    <div class="toast-header">
+      <i class="toast-icon ${icons[type]}"></i>
+      <span class="toast-title">${title}</span>
+    </div>
+    <div class="toast-message">${message}</div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // 顯示動畫
+  setTimeout(() => toast.classList.add('show'), 100);
+  
+  // 自動隱藏
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => container.removeChild(toast), 300);
+  }, 4000);
+}
+
+// 表單提交
+document.getElementById('submitBtn').addEventListener('click', () => {
+  console.log('表單提交按鈕被點擊');
+  
+  const vendor = document.getElementById('vendorName').value.trim();
+  const loc = document.getElementById('location').value;
+  
+  // 取得選擇的日期
+  const date = document.getElementById('availableDates').value;
+  
+  const foodType = document.getElementById('foodType').value;
+  
+  console.log('表單數據:', { vendor, loc, date, foodType });
+  
+  // 驗證表單
+  if (!vendor || !loc || !date) {
+    showToast('error', '表單錯誤', '請完整填寫必要欄位');
+    return;
+  }
+  
+  // 檢查日曆上是否已有餐車名稱
+  const hasEvent = allEvents.some(event => {
+    let eventDate;
+    if (event.start instanceof Date) {
+      eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
+    } else {
+      eventDate = event.start.split('T')[0];
+    }
+    return eventDate === date && event.location === loc;
+  });
+  
+  if (hasEvent) {
+    showToast('error', '日期衝突', '該日期已有餐車排班，請選擇其他日期');
+    return;
+  }
+  
+  // 顯示載入提示
+  showToast('info', '提交中...', '正在處理您的報名申請');
+  
+  // 準備提交數據 - 簡化為主要欄位
+  const formData = {
+    vendor,           // 餐車名稱
+    foodType,         // 餐車類型
+    location: loc,    // 選擇場地
+    date,             // 選擇日期
+    timeSlot: '14:00-20:00',  // 固定營業時段
+    fee: '600',       // 固定場地費
+    timestamp: new Date().toISOString()
+  };
+  
+  // 顯示載入狀態
+  const submitBtn = document.getElementById('submitBtn');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+  submitBtn.disabled = true;
+  
+  // 發送到Google Sheets
+  submitToGoogleSheets(formData)
+    .then(() => {
+      // 成功提示
+      showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
+      
+      // 添加到事件列表
+      const newEvent = {
+        title: vendor,
+        start: date,
+        location: loc,
+        color: '#28a745'
+      };
+      
+      allEvents.push(newEvent);
+      
+      // 重新渲染行事曆
+      renderCalendar();
+      
+      // 更新已預約時段
+      if (!bookedSlots[loc]) {
+        bookedSlots[loc] = {};
+      }
+      if (!bookedSlots[loc][date]) {
+        bookedSlots[loc][date] = [];
+      }
+      bookedSlots[loc][date].push('14:00-20:00');
+      
+      // 重置表單
+      document.getElementById('vendorName').value = '';
+      document.getElementById('location').value = currentLocation;
+      document.getElementById('availableDates').value = '';
+      document.getElementById('foodType').value = '';
+      
+      // 重新生成可用日期選項
+      const availableDates = generateAvailableDates(loc);
+      const dateSelect = document.getElementById('availableDates');
+      dateSelect.innerHTML = '<option value="">選擇可用日期</option>';
+      availableDates.forEach(date => {
+        const opt = document.createElement('option');
+        opt.value = date.value;
+        opt.textContent = date.text;
+        dateSelect.appendChild(opt);
+      });
+      
+      // 恢復按鈕狀態
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    })
+    .catch((error) => {
+      console.error('提交失敗:', error);
+      showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試或聯繫管理員');
+      
+      // 恢復按鈕狀態
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
+});
+
+
+// 設定最小日期為今天
+document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+// 圖片放大功能
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化新行事曆
+  initNewCalendar();
+  
+  // 設定預設場地
+  updateLocationInfo(currentLocation);
+  document.getElementById('location').value = currentLocation;
+  
+  // 觸發場地選擇事件以初始化日期選擇器
+  document.getElementById('location').dispatchEvent(new Event('change'));
+  
+  // 圖片點擊放大功能
+  document.querySelectorAll('.location-thumbnail').forEach(thumbnail => {
+    thumbnail.addEventListener('click', function(e) {
+      e.stopPropagation(); // 防止觸發場地切換
+      const fullImageSrc = this.getAttribute('data-full-image');
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      
+      modalImage.src = fullImageSrc;
+      modalImage.alt = this.alt;
+      modal.classList.add('active');
+    });
+  });
+  
+  // 關閉模態框
+  document.querySelector('.modal-close').addEventListener('click', function() {
+    document.getElementById('imageModal').classList.remove('active');
+  });
+  
+  // 點擊模態框背景關閉
+  document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+  
+  // ESC鍵關閉模態框
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+  });
+});
+</script>
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toastContainer"></div>
+
+</body>
+</html>
