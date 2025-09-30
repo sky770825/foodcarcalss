@@ -17,42 +17,44 @@ function doPost(e) {
     // 解析接收到的數據
     const data = JSON.parse(e.postData.contents);
     
-    if (data.action === 'addBooking') {
-      return addBookingToSheet(data.data);
-    }
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: '未知的操作' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    // 直接處理報名數據，不需要action包裝
+    return addBookingToSheet(data);
       
   } catch (error) {
     console.error('處理請求時發生錯誤:', error);
     return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: '服務器錯誤' }))
+      .createTextOutput(JSON.stringify({ success: false, message: '服務器錯誤: ' + error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function addBookingToSheet(bookingData) {
   try {
+    // 記錄接收到的數據用於調試
+    console.log('接收到的數據:', JSON.stringify(bookingData));
+    
     // 獲取當前活動的工作表
     const sheet = SpreadsheetApp.getActiveSheet();
+    console.log('工作表名稱:', sheet.getName());
     
     // 準備要添加的數據行，匹配您的表格格式
     const rowData = [
       new Date(), // A: 時間戳記
-      bookingData.vendor, // B: 您的店名
-      bookingData.foodType, // C: 餐車類型
-      bookingData.location, // D: 預約場地
-      bookingData.date, // E: 預約日期
+      bookingData.vendor || '未提供', // B: 您的店名
+      bookingData.foodType || '未提供', // C: 餐車類型
+      bookingData.location || '未提供', // D: 預約場地
+      bookingData.date || '未提供', // E: 預約日期
       '己排班', // F: 己排
       bookingData.fee || '600', // G: 場地費
       '尚未付款', // H: 款項結清
       '場地未結，可排班通知版主' // I: 備註
     ];
     
+    console.log('準備添加的數據:', rowData);
+    
     // 添加數據到工作表
     sheet.appendRow(rowData);
+    console.log('數據已成功添加到工作表');
     
     // 自動調整列寬
     sheet.autoResizeColumns(1, 9);
@@ -60,7 +62,8 @@ function addBookingToSheet(bookingData) {
     return ContentService
       .createTextOutput(JSON.stringify({ 
         success: true, 
-        message: '報名記錄已成功添加到Google Sheets' 
+        message: '報名記錄已成功添加到Google Sheets',
+        data: bookingData
       }))
       .setMimeType(ContentService.MimeType.JSON);
       
@@ -69,7 +72,8 @@ function addBookingToSheet(bookingData) {
     return ContentService
       .createTextOutput(JSON.stringify({ 
         success: false, 
-        message: '無法添加記錄到工作表' 
+        message: '無法添加記錄到工作表: ' + error.toString(),
+        error: error.toString()
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -94,9 +98,32 @@ function testAddBooking() {
     date: '2025-10-15',
     timeSlot: '14:00-20:00',
     foodType: '中式料理',
+    fee: '600',
     timestamp: new Date().toISOString()
   };
   
   const result = addBookingToSheet(testData);
   console.log('測試結果:', result.getContent());
+  return result;
+}
+
+// 測試doPost函數
+function testDoPost() {
+  const mockEvent = {
+    postData: {
+      contents: JSON.stringify({
+        vendor: '測試餐車2',
+        location: '四維路60號',
+        date: '2025-10-16',
+        timeSlot: '14:00-20:00',
+        foodType: '甜點類',
+        fee: '600',
+        timestamp: new Date().toISOString()
+      })
+    }
+  };
+  
+  const result = doPost(mockEvent);
+  console.log('doPost測試結果:', result.getContent());
+  return result;
 }

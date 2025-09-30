@@ -1224,36 +1224,43 @@ function cancelBooking(event, dateStr) {
 
 // 提交到Google Sheets
 async function submitToGoogleSheets(formData) {
-  // Google Apps Script Web App URL - 請替換為您的實際URL
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+  // Google Apps Script Web App URL - 使用您提供的實際URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8X4xhZ7MqTb3DjZDYJoKFerT-8KyEFj7Zb5M-j-XagDquziWpCDHGhLH806nykC7-/exec';
   
-  // 準備要發送的數據
+  // 準備要發送的數據 - 直接發送表單數據，不需要action包裝
   const dataToSend = {
-    action: 'addBooking',
-    data: {
-      vendor: formData.vendor,
-      location: formData.location,
-      date: formData.date,
-      timeSlot: formData.timeSlot,
-      foodType: formData.foodType,
-      timestamp: formData.timestamp
-    }
+    vendor: formData.vendor,
+    location: formData.location,
+    date: formData.date,
+    timeSlot: formData.timeSlot,
+    foodType: formData.foodType,
+    fee: formData.fee,
+    timestamp: formData.timestamp
   };
   
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // 避免CORS問題
+      mode: 'cors', // 改為cors模式以檢查回應
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(dataToSend)
     });
     
-    // 由於使用no-cors模式，無法檢查response.status
-    // 假設發送成功
-    console.log('數據已發送到Google Sheets:', dataToSend);
-    return Promise.resolve();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Google Sheets回應:', result);
+    
+    if (result.success) {
+      console.log('數據已成功發送到Google Sheets:', dataToSend);
+      return Promise.resolve(result);
+    } else {
+      throw new Error(result.message || '提交失敗');
+    }
     
   } catch (error) {
     console.error('發送到Google Sheets失敗:', error);
