@@ -2744,8 +2744,80 @@ function startPeriodicSync() {
     }
   };
   
-  // 注意：已移除測試取消預約功能
-  // 取消預約現在只處理本地數據和GitHub同步
+  // 添加GitHub診斷功能
+  window.diagnoseGitHub = async function() {
+    console.log('開始診斷GitHub連接...');
+    
+    try {
+      // 測試1: 檢查Token
+      console.log('測試1: 檢查Token權限...');
+      const userResponse = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `token ${GITHUB_CONFIG.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        console.log('✅ Token有效，用戶:', userData.login);
+      } else {
+        console.error('❌ Token無效:', userResponse.status, await userResponse.text());
+        return;
+      }
+      
+      // 測試2: 檢查倉庫
+      console.log('測試2: 檢查倉庫權限...');
+      const repoResponse = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`, {
+        headers: {
+          'Authorization': `token ${GITHUB_CONFIG.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      if (repoResponse.ok) {
+        const repoData = await repoResponse.json();
+        console.log('✅ 倉庫可訪問:', repoData.full_name);
+      } else {
+        console.error('❌ 倉庫無法訪問:', repoResponse.status, await repoResponse.text());
+        return;
+      }
+      
+      // 測試3: 檢查bookings目錄
+      console.log('測試3: 檢查bookings目錄...');
+      const bookingsResponse = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/bookings`, {
+        headers: {
+          'Authorization': `token ${GITHUB_CONFIG.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      if (bookingsResponse.ok) {
+        const bookingsData = await bookingsResponse.json();
+        console.log('✅ bookings目錄可訪問，文件數量:', bookingsData.length);
+      } else {
+        console.error('❌ bookings目錄無法訪問:', bookingsResponse.status, await bookingsResponse.text());
+      }
+      
+      // 測試4: 嘗試上傳測試文件
+      console.log('測試4: 嘗試上傳測試文件...');
+      const testData = {
+        vendor: '診斷測試',
+        location: '四維路59號',
+        date: new Date().toISOString().split('T')[0],
+        timeSlot: '14:00-20:00',
+        fee: '600',
+        timestamp: new Date().toISOString(),
+        uploadTime: Date.now()
+      };
+      
+      const result = await uploadToGitHub(testData);
+      console.log('✅ 測試上傳成功:', result);
+      
+    } catch (error) {
+      console.error('❌ 診斷失敗:', error);
+    }
+  };
   
   // 即時數據監聽器（模擬WebSocket效果）
   let lastDataHash = '';
@@ -3260,15 +3332,39 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       // 檢查Google Sheets提交結果
       if (googleResult.status === 'fulfilled') {
         console.log('Google Sheets提交成功');
+        showToast('success', 'Google Sheets提交成功', '數據已保存到Google Sheets');
       } else {
         console.error('Google Sheets提交失敗:', googleResult.reason);
+        showToast('error', 'Google Sheets提交失敗', googleResult.reason?.message || '無法連接到Google Sheets');
       }
       
       // 檢查GitHub提交結果
       if (githubResult.status === 'fulfilled') {
-        console.log('GitHub上傳成功');
+        console.log('GitHub上傳成功:', githubResult.value);
+        showToast('success', 'GitHub上傳成功', '數據已同步到GitHub');
+        
+        // GitHub上傳成功後，立即觸發同步讓其他用戶看到
+        setTimeout(async () => {
+          try {
+            await syncWithGitHub();
+            console.log('提交後同步完成');
+          } catch (error) {
+            console.error('提交後同步失敗:', error);
+          }
+        }, 1000);
       } else {
         console.error('GitHub上傳失敗:', githubResult.reason);
+        showToast('error', 'GitHub上傳失敗', githubResult.reason?.message || '無法上傳到GitHub');
+        
+        // 即使GitHub失敗，也嘗試同步以獲取最新數據
+        setTimeout(async () => {
+          try {
+            await syncWithGitHub();
+            console.log('GitHub失敗後同步完成');
+          } catch (error) {
+            console.error('GitHub失敗後同步失敗:', error);
+          }
+        }, 2000);
       }
       
       // 只要有一個成功就繼續處理
