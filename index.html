@@ -893,19 +893,35 @@ button.submit:hover{
 /* 同步狀態指示器 */
 .sync-status{
   position:fixed;bottom:20px;right:20px;z-index:1000;
-  background:rgba(0,0,0,0.8);color:white;padding:10px 15px;
-  border-radius:20px;font-size:0.9rem;display:none;
-  align-items:center;gap:8px;backdrop-filter:blur(10px);
+  background:rgba(0,0,0,0.9);color:white;padding:12px 18px;
+  border-radius:25px;font-size:0.9rem;display:none;
+  align-items:center;gap:10px;backdrop-filter:blur(10px);
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  cursor:pointer;transition:all 0.3s ease;
+  border:2px solid transparent;
 }
 .sync-status.show{display:flex;}
+.sync-status:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 25px rgba(0,0,0,0.4);
+}
 .sync-status i{
   animation:spin 1s linear infinite;
+  font-size:1rem;
 }
 .sync-status.success{
-  background:rgba(40,167,69,0.9);
+  background:rgba(40,167,69,0.95);
+  border-color:rgba(40,167,69,0.5);
+}
+.sync-status.success i{
+  animation:none;
 }
 .sync-status.error{
-  background:rgba(220,53,69,0.9);
+  background:rgba(220,53,69,0.95);
+  border-color:rgba(220,53,69,0.5);
+}
+.sync-status.error i{
+  animation:none;
 }
 @keyframes spin{
   from{transform:rotate(0deg);}
@@ -1752,89 +1768,9 @@ function closePasswordModal() {
   document.getElementById('passwordInput').value = '';
 }
 
-// 從Google Sheets刪除預約記錄
-async function cancelBookingFromGoogleSheets(event, dateStr) {
-  try {
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzP8OXm3i72jtmsvUDdryBpTfc9s8LcHl1-RZpPvkhE8dHu_IPgnfGBuL3CK2s7Pdf/exec';
-    
-    // 準備取消數據
-    const cancelData = {
-      action: 'cancel',
-      vendor: event.title,
-      location: event.location,
-      date: dateStr,
-      timeSlot: '14:00-20:00',
-      cancelledAt: new Date().toISOString()
-    };
-    
-    // 使用 JSONP 方式避免 CORS 問題
-    const params = new URLSearchParams();
-    params.append('action', 'cancel');
-    params.append('vendor', cancelData.vendor);
-    params.append('location', cancelData.location);
-    params.append('date', cancelData.date);
-    params.append('timeSlot', cancelData.timeSlot);
-    params.append('cancelledAt', cancelData.cancelledAt);
-    params.append('callback', 'handleCancelResponse');
-    
-    // 創建 script 標籤來發送 JSONP 請求
-    return new Promise((resolve, reject) => {
-      let timeoutId;
-      
-      // 創建全局回調函數
-      window.handleCancelResponse = function(response) {
-        console.log('Google Sheets取消回應:', response);
-        
-        // 清除超時計時器
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        
-        if (response && response.success) {
-          resolve(response);
-        } else {
-          reject(new Error(response?.message || 'Google Sheets取消失敗'));
-        }
-        
-        // 清理
-        delete window.handleCancelResponse;
-        if (script && script.parentNode) {
-          document.head.removeChild(script);
-        }
-      };
-      
-      // 創建 script 標籤
-      const script = document.createElement('script');
-      script.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-      
-      // 設定超時（10秒）
-      timeoutId = setTimeout(() => {
-        reject(new Error('Google Sheets取消連接超時'));
-        delete window.handleCancelResponse;
-        if (script && script.parentNode) {
-          document.head.removeChild(script);
-        }
-      }, 10000);
-      
-      script.onerror = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        reject(new Error('無法連接到 Google Sheets 進行取消操作'));
-        delete window.handleCancelResponse;
-        if (script && script.parentNode) {
-          document.head.removeChild(script);
-        }
-      };
-      
-      document.head.appendChild(script);
-    });
-    
-  } catch (error) {
-    console.error('取消Google Sheets記錄失敗:', error);
-    throw error;
-  }
-}
+// 注意：已移除 cancelBookingFromGoogleSheets 函數
+// 取消預約現在只處理本地數據和GitHub同步
+// Google Sheets的記錄需要手動刪除
 
 // 上傳取消預約到GitHub
 async function uploadCancellationToGitHub(event, dateStr) {
@@ -1935,12 +1871,7 @@ async function verifyPassword() {
     showToast('info', '取消中...', '正在處理您的取消申請');
     
     try {
-      // 先嘗試從Google Sheets刪除記錄
-      console.log('開始從Google Sheets刪除記錄...');
-      const googleResult = await cancelBookingFromGoogleSheets(event, dateStr);
-      console.log('Google Sheets刪除結果:', googleResult);
-      
-      // 然後上傳取消記錄到GitHub
+      // 只上傳取消記錄到GitHub，不處理Google Sheets
       console.log('開始上傳取消記錄到GitHub...');
       const githubResult = await uploadCancellationToGitHub(event, dateStr);
       console.log('GitHub上傳結果:', githubResult);
@@ -1994,7 +1925,7 @@ async function verifyPassword() {
       });
     }
     
-    showToast('success', '取消成功', `已取消 ${event.title} 的預約，並從Google Sheets和GitHub中移除記錄`);
+    showToast('success', '取消成功', `已取消 ${event.title} 的預約，並同步到GitHub`);
     
     // 取消成功後立即觸發同步，讓其他用戶看到最新數據
     setTimeout(async () => {
@@ -2691,10 +2622,10 @@ function showSyncStatus(message, type = 'default') {
   // 添加提示文字
   status.title = '點擊手動同步最新數據';
   
-  // 3秒後自動隱藏
+  // 5秒後自動隱藏（延長顯示時間）
   setTimeout(() => {
     status.classList.remove('show');
-  }, 3000);
+  }, 5000);
 }
 
 // 檢查預約衝突（優化版本）
@@ -2798,6 +2729,23 @@ function startPeriodicSync() {
     showSyncStatus('手動同步中...', 'default');
     await smartSync(true);
   };
+  
+  // 添加測試同步功能
+  window.testSync = async function() {
+    console.log('開始測試同步...');
+    showSyncStatus('測試同步中...', 'default');
+    
+    try {
+      await syncWithGitHub();
+      console.log('測試同步完成');
+    } catch (error) {
+      console.error('測試同步失敗:', error);
+      showSyncStatus('測試同步失敗', 'error');
+    }
+  };
+  
+  // 注意：已移除測試取消預約功能
+  // 取消預約現在只處理本地數據和GitHub同步
   
   // 即時數據監聽器（模擬WebSocket效果）
   let lastDataHash = '';
@@ -3516,9 +3464,17 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 啟動定期同步
   startPeriodicSync();
   
+  // 頁面載入時顯示同步狀態
+  showSyncStatus('系統初始化中...', 'default');
+  
   // 如果沒有本地數據，立即同步GitHub
   if (!hasLocalData) {
     await syncWithGitHub();
+  } else {
+    // 即使有本地數據，也進行一次同步以確保最新
+    setTimeout(async () => {
+      await syncWithGitHub();
+    }, 1000);
   }
   
   // 圖片點擊放大功能
