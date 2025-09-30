@@ -1821,6 +1821,16 @@ async function uploadCancellationToGitHub(event, dateStr) {
     if (response.ok) {
       const result = await response.json();
       console.log('取消預約上傳到GitHub成功:', result);
+      
+      // 上傳成功後，立即更新index.html
+      try {
+        await updateIndexHtmlOnGitHub(cancellationData);
+        console.log('取消預約後index.html更新成功');
+      } catch (updateError) {
+        console.error('取消預約後更新index.html失敗:', updateError);
+        // 不影響主要上傳流程，只記錄錯誤
+      }
+      
       return { success: true, url: result.content.html_url };
     } else {
       const errorText = await response.text();
@@ -1941,7 +1951,7 @@ async function verifyPassword() {
 
 // GitHub配置
 const GITHUB_CONFIG = {
-  token: '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',
+  token: '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',
   owner: 'sky770825',
   repo: 'foodcarcalss',
   branch: 'main'
@@ -2028,6 +2038,16 @@ async function uploadToGitHub(data) {
     if (response.ok) {
       const result = await response.json();
       console.log('GitHub上傳成功:', result);
+      
+      // 上傳成功後，立即更新index.html
+      try {
+        await updateIndexHtmlOnGitHub(dataWithTimestamp);
+        console.log('index.html更新成功');
+      } catch (updateError) {
+        console.error('更新index.html失敗:', updateError);
+        // 不影響主要上傳流程，只記錄錯誤
+      }
+      
       return { success: true, url: result.content.html_url };
     } else {
       const errorText = await response.text();
@@ -2048,6 +2068,187 @@ async function uploadToGitHub(data) {
   } catch (error) {
     console.error('GitHub上傳錯誤:', error);
     throw error;
+  }
+}
+
+// 更新GitHub上的index.html文件
+async function updateIndexHtmlOnGitHub(bookingData) {
+  try {
+    console.log('開始更新GitHub上的index.html...');
+    
+    // 首先獲取當前的index.html內容
+    const currentIndexResponse = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/index.html`, {
+      headers: {
+        'Authorization': `token ${GITHUB_CONFIG.token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!currentIndexResponse.ok) {
+      throw new Error(`無法獲取當前index.html: ${currentIndexResponse.status}`);
+    }
+    
+    const currentIndexData = await currentIndexResponse.json();
+    const currentContent = atob(currentIndexData.content);
+    
+    // 解析當前內容，找到需要更新的部分
+    let updatedContent = currentContent;
+    
+    // 獲取準確的統計數據
+    const accurateStats = await calculateAccurateStats();
+    
+    // 更新統計信息（如果存在）
+    const statsPattern = /<div class="stats">[\s\S]*?<\/div>/;
+    const statsMatch = currentContent.match(statsPattern);
+    
+    if (statsMatch) {
+      // 更新統計內容
+      const newStats = `<div class="stats">
+        <div class="stat-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>總預約數：${accurateStats.totalBookings}</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-clock"></i>
+          <span>今日預約：${accurateStats.todayBookings}</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>活躍場地：${accurateStats.activeLocations}</span>
+        </div>
+      </div>`;
+      
+      updatedContent = updatedContent.replace(statsPattern, newStats);
+    }
+    
+    // 更新最後更新時間
+    const lastUpdatePattern = /最後更新[：:]\s*[\d\-\s:]+/;
+    const now = new Date().toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    if (lastUpdatePattern.test(updatedContent)) {
+      updatedContent = updatedContent.replace(lastUpdatePattern, `最後更新：${now}`);
+    } else {
+      // 如果沒有找到最後更新時間，在頁面底部添加
+      const footerPattern = /<\/body>/;
+      if (footerPattern.test(updatedContent)) {
+        const updateInfo = `\n  <!-- 系統信息 -->
+  <div style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
+    最後更新：${now}
+  </div>\n`;
+        updatedContent = updatedContent.replace(footerPattern, updateInfo + '</body>');
+      }
+    }
+    
+    // 編碼更新後的內容
+    const encodedUpdatedContent = btoa(unescape(encodeURIComponent(updatedContent)));
+    
+    // 上傳更新後的index.html
+    const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/index.html`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_CONFIG.token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify({
+        message: `更新index.html - ${bookingData.action === 'cancellation' ? '取消預約' : '新增預約'}: ${bookingData.vendor} - ${bookingData.location} - ${bookingData.date}`,
+        content: encodedUpdatedContent,
+        branch: GITHUB_CONFIG.branch,
+        sha: currentIndexData.sha // 需要提供當前的SHA以更新文件
+      })
+    });
+    
+    if (updateResponse.ok) {
+      const updateResult = await updateResponse.json();
+      console.log('index.html更新成功:', updateResult);
+      return { success: true, url: updateResult.content.html_url };
+    } else {
+      const errorText = await updateResponse.text();
+      console.error('更新index.html失敗 - 狀態:', updateResponse.status);
+      console.error('更新index.html失敗 - 回應:', errorText);
+      throw new Error(`更新index.html失敗: ${updateResponse.status}`);
+    }
+    
+  } catch (error) {
+    console.error('更新GitHub上的index.html時發生錯誤:', error);
+    throw error;
+  }
+}
+
+// 計算準確的統計數據
+async function calculateAccurateStats() {
+  try {
+    console.log('開始計算準確的統計數據...');
+    
+    // 獲取所有預約和取消記錄
+    const allBookings = await fetchBookingsFromGitHub();
+    
+    // 計算統計數據
+    let totalBookings = 0;
+    let todayBookings = 0;
+    const activeLocations = new Set();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 按時間戳排序，確保正確處理取消操作
+    allBookings.sort((a, b) => {
+      const timeA = a.uploadTime || new Date(a.timestamp).getTime();
+      const timeB = b.uploadTime || new Date(b.timestamp).getTime();
+      return timeA - timeB;
+    });
+    
+    // 追蹤每個預約的狀態
+    const bookingStates = new Map();
+    
+    for (const booking of allBookings) {
+      const bookingKey = `${booking.vendor}-${booking.location}-${booking.date}`;
+      
+      if (booking.action === 'cancellation') {
+        // 取消預約
+        if (bookingStates.has(bookingKey)) {
+          bookingStates.delete(bookingKey);
+        }
+      } else {
+        // 新增預約
+        bookingStates.set(bookingKey, booking);
+      }
+    }
+    
+    // 計算最終統計
+    for (const [key, booking] of bookingStates) {
+      totalBookings++;
+      activeLocations.add(booking.location);
+      
+      // 檢查是否為今日預約
+      const bookingDate = booking.date.split('T')[0];
+      if (bookingDate === today) {
+        todayBookings++;
+      }
+    }
+    
+    const stats = {
+      totalBookings,
+      todayBookings,
+      activeLocations: activeLocations.size
+    };
+    
+    console.log('統計數據計算完成:', stats);
+    return stats;
+    
+  } catch (error) {
+    console.error('計算統計數據時發生錯誤:', error);
+    // 返回默認值
+    return {
+      totalBookings: 0,
+      todayBookings: 0,
+      activeLocations: 6
+    };
   }
 }
 
@@ -2816,6 +3017,47 @@ function startPeriodicSync() {
       
     } catch (error) {
       console.error('❌ 診斷失敗:', error);
+    }
+  };
+  
+  // 添加測試index.html更新功能
+  window.testIndexUpdate = async function() {
+    console.log('開始測試index.html更新功能...');
+    
+    try {
+      const testData = {
+        vendor: '測試更新',
+        location: '四維路60號',
+        date: new Date().toISOString(),
+        timeSlot: '14:00-20:00',
+        foodType: '測試類型',
+        fee: '600',
+        timestamp: new Date().toISOString(),
+        uploadTime: Date.now()
+      };
+      
+      const result = await updateIndexHtmlOnGitHub(testData);
+      console.log('✅ index.html更新測試成功:', result);
+      showToast('success', '測試成功', 'index.html更新功能正常');
+      
+    } catch (error) {
+      console.error('❌ index.html更新測試失敗:', error);
+      showToast('error', '測試失敗', 'index.html更新功能異常: ' + error.message);
+    }
+  };
+  
+  // 添加測試統計計算功能
+  window.testStatsCalculation = async function() {
+    console.log('開始測試統計計算功能...');
+    
+    try {
+      const stats = await calculateAccurateStats();
+      console.log('✅ 統計計算測試成功:', stats);
+      showToast('success', '統計計算成功', `總預約: ${stats.totalBookings}, 今日: ${stats.todayBookings}, 活躍場地: ${stats.activeLocations}`);
+      
+    } catch (error) {
+      console.error('❌ 統計計算測試失敗:', error);
+      showToast('error', '統計計算失敗', '統計計算功能異常: ' + error.message);
     }
   };
   
