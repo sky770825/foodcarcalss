@@ -1998,7 +1998,9 @@ async function createGitHubDirectory(directoryName) {
 }
 
 // 上傳數據到GitHub
-async function uploadToGitHub(data) {
+async function uploadToGitHub(data, retryCount = 0) {
+  const MAX_RETRIES = 3;
+  
   try {
     // 確保目錄存在
     await createGitHubDirectory('bookings');
@@ -2084,6 +2086,29 @@ async function uploadToGitHub(data) {
     }
   } catch (error) {
     console.error('GitHub上傳錯誤:', error);
+    
+    // 重試機制
+    if (retryCount < MAX_RETRIES && (
+      error.name === 'TypeError' || 
+      error.message.includes('fetch') ||
+      error.message.includes('network')
+    )) {
+      console.log(`重試上傳 (${retryCount + 1}/${MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // 遞增延遲
+      return uploadToGitHub(data, retryCount + 1);
+    }
+    
+    // 提供更詳細的錯誤信息
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('網絡連接失敗，請檢查網絡連接');
+    } else if (error.message.includes('401')) {
+      throw new Error('GitHub認證失敗，請檢查Token');
+    } else if (error.message.includes('403')) {
+      throw new Error('GitHub權限不足，請檢查倉庫權限');
+    } else if (error.message.includes('422')) {
+      throw new Error('GitHub數據格式錯誤');
+    }
+    
     throw error;
   }
 }
