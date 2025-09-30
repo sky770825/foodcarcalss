@@ -2,8 +2,32 @@
 // 請將此代碼複製到 Google Apps Script 中
 
 function doGet(e) {
+  // 檢查是否有取消預約參數
+  if (e.parameter.action === 'cancel' && e.parameter.vendor) {
+    // 處理取消預約
+    const cancelData = {
+      vendor: e.parameter.vendor || '未提供',
+      location: e.parameter.location || '未提供',
+      date: e.parameter.date || '未提供',
+      timeSlot: e.parameter.timeSlot || '14:00-20:00',
+      cancelledAt: e.parameter.cancelledAt || new Date().toISOString()
+    };
+    
+    const result = cancelBookingFromSheet(cancelData);
+    
+    // 檢查是否為 JSONP 請求
+    if (e.parameter.callback) {
+      const callback = e.parameter.callback;
+      const jsonpResponse = `${callback}(${result.getContent()})`;
+      return ContentService
+        .createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      return result;
+    }
+  }
   // 檢查是否有報名數據參數
-  if (e.parameter.vendor) {
+  else if (e.parameter.vendor) {
     // 有報名數據，處理報名
     const bookingData = {
       vendor: e.parameter.vendor || '未提供',
@@ -167,8 +191,9 @@ function addBookingToSheet(bookingData) {
     // 設定時間戳記欄位（A欄）為文字格式，防止自動轉換
     sheet.getRange(lastRow, 1).setNumberFormat('@');
     
-    // 設定日期欄位（E欄）為文字格式，防止自動轉換
+    // 設定日期欄位（E欄）為文字格式，防止自動轉換，並置中對齊
     sheet.getRange(lastRow, 5).setNumberFormat('@');
+    sheet.getRange(lastRow, 5).setHorizontalAlignment('center');
     
     // 移除自動調整列寬功能，保持原有表格格式
     // sheet.autoResizeColumns(1, 9);
@@ -187,6 +212,123 @@ function addBookingToSheet(bookingData) {
       .createTextOutput(JSON.stringify({ 
         success: false, 
         message: '無法添加記錄到工作表: ' + error.toString(),
+        error: error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 取消預約並從Google Sheets刪除記錄
+function cancelBookingFromSheet(cancelData) {
+  try {
+    // 記錄接收到的取消數據用於調試
+    console.log('接收到的取消數據:', JSON.stringify(cancelData));
+    
+    // 使用指定的 Google Sheets ID
+    const SPREADSHEET_ID = '1cvWXGKA9-Oa_-aznD6J0YBW5uqf_J92fCdQYBTkOoQ4';
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    console.log('電子表格名稱:', spreadsheet.getName());
+    
+    // 獲取名為 "Form_Responses1" 的工作表
+    let sheet = spreadsheet.getSheetByName('Form_Responses1');
+    if (!sheet) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ 
+          success: false, 
+          message: '找不到工作表 Form_Responses1'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    console.log('工作表名稱:', sheet.getName());
+    
+    // 格式化日期用於比對
+    function formatDateForComparison(dateStr) {
+      if (!dateStr || dateStr === '未提供') return '未提供';
+      
+      const date = new Date(dateStr);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      const dayName = dayNames[date.getDay()];
+      
+      return `${month}月${day}日(${dayName})`;
+    }
+    
+    // 場地名稱到地址的對應關係（與addBookingToSheet保持一致）
+    function getLocationAddress(locationName) {
+      const locationMap = {
+        '四維路59號': '四維路59號',
+        '四維路60號': '四維路60號',
+        '漢堡大亨': '四維路70號',
+        '自由風': '四維路190號',
+        '蔬蒔': '四維路216號',
+        '金正好吃': '四維路218號'
+      };
+      
+      return locationMap[locationName] || locationName || '未提供';
+    }
+    
+    // 準備比對數據
+    const targetVendor = cancelData.vendor;
+    const targetLocation = getLocationAddress(cancelData.location);
+    const targetDate = formatDateForComparison(cancelData.date);
+    
+    console.log('尋找匹配記錄:', { targetVendor, targetLocation, targetDate });
+    
+    // 獲取所有數據
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    let foundRow = -1;
+    
+    // 從第8行開始搜尋（跳過標題行）
+    for (let i = 7; i < values.length; i++) {
+      const row = values[i];
+      const vendor = row[1]; // B欄：您的店名
+      const location = row[3]; // D欄：預約場地
+      const date = row[4]; // E欄：預約日期
+      
+      // 比對餐車名稱、場地和日期
+      if (vendor === targetVendor && 
+          location === targetLocation && 
+          date === targetDate) {
+        foundRow = i + 1; // Google Sheets行號從1開始
+        console.log(`找到匹配記錄在第${foundRow}行`);
+        break;
+      }
+    }
+    
+    if (foundRow === -1) {
+      console.log('未找到匹配的預約記錄');
+      return ContentService
+        .createTextOutput(JSON.stringify({ 
+          success: false, 
+          message: '未找到匹配的預約記錄',
+          searchCriteria: { targetVendor, targetLocation, targetDate }
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 刪除找到的行
+    sheet.deleteRow(foundRow);
+    console.log(`已刪除第${foundRow}行的預約記錄`);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        success: true, 
+        message: '預約記錄已成功從Google Sheets刪除',
+        deletedRow: foundRow,
+        data: cancelData
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('刪除預約記錄時發生錯誤:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: '無法刪除預約記錄: ' + error.toString(),
         error: error.toString()
       }))
       .setMimeType(ContentService.MimeType.JSON);

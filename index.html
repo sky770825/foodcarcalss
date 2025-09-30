@@ -1752,6 +1752,90 @@ function closePasswordModal() {
   document.getElementById('passwordInput').value = '';
 }
 
+// 從Google Sheets刪除預約記錄
+async function cancelBookingFromGoogleSheets(event, dateStr) {
+  try {
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzP8OXm3i72jtmsvUDdryBpTfc9s8LcHl1-RZpPvkhE8dHu_IPgnfGBuL3CK2s7Pdf/exec';
+    
+    // 準備取消數據
+    const cancelData = {
+      action: 'cancel',
+      vendor: event.title,
+      location: event.location,
+      date: dateStr,
+      timeSlot: '14:00-20:00',
+      cancelledAt: new Date().toISOString()
+    };
+    
+    // 使用 JSONP 方式避免 CORS 問題
+    const params = new URLSearchParams();
+    params.append('action', 'cancel');
+    params.append('vendor', cancelData.vendor);
+    params.append('location', cancelData.location);
+    params.append('date', cancelData.date);
+    params.append('timeSlot', cancelData.timeSlot);
+    params.append('cancelledAt', cancelData.cancelledAt);
+    params.append('callback', 'handleCancelResponse');
+    
+    // 創建 script 標籤來發送 JSONP 請求
+    return new Promise((resolve, reject) => {
+      let timeoutId;
+      
+      // 創建全局回調函數
+      window.handleCancelResponse = function(response) {
+        console.log('Google Sheets取消回應:', response);
+        
+        // 清除超時計時器
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        
+        if (response && response.success) {
+          resolve(response);
+        } else {
+          reject(new Error(response?.message || 'Google Sheets取消失敗'));
+        }
+        
+        // 清理
+        delete window.handleCancelResponse;
+        if (script && script.parentNode) {
+          document.head.removeChild(script);
+        }
+      };
+      
+      // 創建 script 標籤
+      const script = document.createElement('script');
+      script.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+      
+      // 設定超時（10秒）
+      timeoutId = setTimeout(() => {
+        reject(new Error('Google Sheets取消連接超時'));
+        delete window.handleCancelResponse;
+        if (script && script.parentNode) {
+          document.head.removeChild(script);
+        }
+      }, 10000);
+      
+      script.onerror = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        reject(new Error('無法連接到 Google Sheets 進行取消操作'));
+        delete window.handleCancelResponse;
+        if (script && script.parentNode) {
+          document.head.removeChild(script);
+        }
+      };
+      
+      document.head.appendChild(script);
+    });
+    
+  } catch (error) {
+    console.error('取消Google Sheets記錄失敗:', error);
+    throw error;
+  }
+}
+
 // 上傳取消預約到GitHub
 async function uploadCancellationToGitHub(event, dateStr) {
   try {
@@ -1829,12 +1913,29 @@ async function verifyPassword() {
     showToast('info', '取消中...', '正在處理您的取消申請');
     
     try {
-      // 上傳取消記錄到GitHub
-      await uploadCancellationToGitHub(event, dateStr);
-      console.log('取消預約已上傳到GitHub');
+      // 並行處理Google Sheets刪除和GitHub上傳
+      const [googleResult, githubResult] = await Promise.allSettled([
+        cancelBookingFromGoogleSheets(event, dateStr),
+        uploadCancellationToGitHub(event, dateStr)
+      ]);
+      
+      // 檢查Google Sheets刪除結果
+      if (googleResult.status === 'fulfilled') {
+        console.log('Google Sheets記錄刪除成功');
+      } else {
+        console.error('Google Sheets記錄刪除失敗:', googleResult.reason);
+      }
+      
+      // 檢查GitHub上傳結果
+      if (githubResult.status === 'fulfilled') {
+        console.log('取消預約已上傳到GitHub');
+      } else {
+        console.error('上傳取消記錄到GitHub失敗:', githubResult.reason);
+      }
+      
     } catch (error) {
-      console.error('上傳取消記錄到GitHub失敗:', error);
-      // 即使GitHub上傳失敗，仍然繼續本地取消操作
+      console.error('取消操作失敗:', error);
+      // 即使遠端操作失敗，仍然繼續本地取消操作
     }
     
     // 從 allEvents 中移除事件
@@ -1881,7 +1982,17 @@ async function verifyPassword() {
       });
     }
     
-    showToast('success', '取消成功', `已取消 ${event.title} 的預約，並同步到GitHub`);
+    showToast('success', '取消成功', `已取消 ${event.title} 的預約，並從Google Sheets和GitHub中移除記錄`);
+    
+    // 取消成功後立即觸發同步，讓其他用戶看到最新數據
+    setTimeout(async () => {
+      try {
+        await syncWithGitHub();
+        console.log('取消後同步完成');
+      } catch (error) {
+        console.error('取消後同步失敗:', error);
+      }
+    }, 2000); // 2秒後同步，確保GitHub上傳完成
   }
 }
 
@@ -2488,6 +2599,16 @@ function showSyncStatus(message, type = 'default') {
     icon.className = 'fas fa-exclamation-triangle';
   }
   
+  // 添加點擊手動同步功能
+  status.onclick = function() {
+    if (window.manualSync) {
+      window.manualSync();
+    }
+  };
+  
+  // 添加提示文字
+  status.title = '點擊手動同步最新數據';
+  
   // 3秒後自動隱藏
   setTimeout(() => {
     status.classList.remove('show');
@@ -2532,8 +2653,8 @@ async function checkBookingConflict(location, date, timeSlot) {
 // 定期同步數據（優化版本）
 function startPeriodicSync() {
   let lastSyncTime = 0;
-  const SYNC_INTERVAL = 30000; // 30秒同步間隔
-  const MIN_SYNC_INTERVAL = 10000; // 最小同步間隔10秒
+  const SYNC_INTERVAL = 15000; // 15秒同步間隔（提高頻率）
+  const MIN_SYNC_INTERVAL = 5000; // 最小同步間隔5秒（減少限制）
   
   // 智能同步函數
   async function smartSync(force = false) {
@@ -2568,8 +2689,14 @@ function startPeriodicSync() {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(() => {
       smartSync();
-    }, 5000); // 5秒後同步
+    }, 3000); // 3秒後同步（提高響應速度）
   });
+  
+  // 添加手動同步功能
+  window.manualSync = async function() {
+    showSyncStatus('手動同步中...', 'default');
+    await smartSync(true);
+  };
 }
 
 // 所有場地的預約事件 - 根據Google Sheets 10月份實際排班資料更新
@@ -3056,6 +3183,16 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         
         // 顯示繳費彈窗
         showPaymentModal();
+        
+        // 提交成功後立即觸發同步，讓其他用戶看到最新數據
+        setTimeout(async () => {
+          try {
+            await syncWithGitHub();
+            console.log('提交後同步完成');
+          } catch (error) {
+            console.error('提交後同步失敗:', error);
+          }
+        }, 2000); // 2秒後同步，確保GitHub上傳完成
       } else {
         // 兩個都失敗
         showToast('error', '提交失敗', '無法連接到服務器，請稍後再試或聯繫管理員');
