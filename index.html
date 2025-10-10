@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v2.4</title>
+<title>楊梅餐車排班報名系統 v2.7</title>
 
 
 <!-- Font Awesome -->
@@ -332,23 +332,34 @@ button.submit:hover{
 }
 
 .location-filter-buttons {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .location-filter .filter-btn {
-  padding: 6px 10px;
+  padding: 8px 10px;
   border: 2px solid #e0e0e0;
-  border-radius: 16px;
+  border-radius: 12px;
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.8rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  white-space: nowrap;
+  white-space: normal;
+  min-width: 0;
+  min-height: 36px;
+  line-height: 1.3;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.location-filter .filter-btn i {
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 .location-filter .filter-btn:hover {
@@ -558,7 +569,7 @@ button.submit:hover{
   font-weight:bold;font-size:1rem;
 }
 .toast-message{
-  font-size:0.9rem;color:#666;
+  font-size:0.9rem;color:#666;white-space:pre-line;
 }
 
 /* 圖片放大模態框 */
@@ -923,42 +934,59 @@ button.submit:hover{
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 9998;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(5px);
 }
 
 .loading-overlay.active {
   display: flex;
+  animation: fadeIn 0.3s ease;
 }
 
 .loading-spinner {
   background: white;
-  border-radius: 15px;
-  padding: 30px 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  padding: 35px 45px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
   text-align: center;
-  animation: fadeIn 0.3s ease;
+  animation: slideUp 0.4s ease;
+  min-width: 300px;
+  max-width: 400px;
 }
 
 .loading-spinner .spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #FF8A00;
+  width: 60px;
+  height: 60px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #FF8A00;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
+  margin: 0 auto 20px;
 }
 
 .loading-spinner p {
   color: #333;
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {
@@ -967,8 +995,12 @@ button.submit:hover{
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* 同步狀態指示器 - 已隱藏 */
@@ -1170,7 +1202,7 @@ body.line-browser .event-container {
     min-width:90px;
   }
   
-  /* 場地篩選按鈕 - 可滾動水平列表 */
+  /* 場地篩選按鈕 - 2行3欄網格佈局 */
   .location-filter{
     flex-direction:column;
     align-items:stretch;
@@ -1179,32 +1211,34 @@ body.line-browser .event-container {
   .location-filter label{
     font-size:0.85rem;
     text-align:center;
-    margin:0;
+    margin:0 0 8px 0;
   }
   
   .location-filter-buttons{
-    display:flex;
-    overflow-x:auto;
-    gap:5px;
-    padding:3px 0;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none; /* Firefox */
-  }
-  
-  .location-filter-buttons::-webkit-scrollbar{
-    display:none; /* Chrome/Safari */
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(2, 1fr);
+    gap:6px;
   }
   
   .location-filter .filter-btn{
-    font-size:0.7rem;
-    padding:5px 8px;
-    white-space:nowrap;
-    flex-shrink:0;
-    border-radius:12px;
+    font-size:0.68rem;
+    padding:6px 4px;
+    white-space:normal;
+    border-radius:8px;
+    min-height:42px;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    line-height:1.2;
+    text-align:center;
   }
   
   .location-filter .filter-btn i{
-    font-size:0.65rem;
+    font-size:0.75rem;
+    flex-shrink:0;
   }
   
   /* 日曆網格手機優化 - 緊湊但清晰 */
@@ -1359,162 +1393,298 @@ body.line-browser .event-container {
     font-size:0.8rem;
   }
   
-  /* 所有彈窗統一優化 */
+  /* 所有彈窗統一優化 - 緊湊化 */
   .payment-modal-content,
   .bank-modal-content,
   .cancel-modal-content,
   .password-modal-content{
-    width:96%;
+    width:92%;
     max-width:none;
-    max-height:85vh;
+    max-height:88vh;
+    border-radius:12px;
   }
   
-  /* 彈窗標題 */
+  /* 彈窗標題 - 緊湊化 */
   .payment-header,
   .bank-header,
   .cancel-header,
   .password-header{
-    padding:15px !important;
+    padding:12px 15px !important;
   }
   
   .payment-header h3,
   .bank-header h3,
   .cancel-header h3,
   .password-header h3{
-    font-size:1.1rem !important;
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+    gap:6px !important;
   }
   
-  /* 彈窗內容 */
+  .payment-header h3 i,
+  .bank-header h3 i,
+  .cancel-header h3 i,
+  .password-header h3 i{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+  }
+  
+  /* 彈窗內容 - 緊湊化 */
   .payment-body,
   .bank-body,
   .cancel-body,
   .password-body{
-    padding:18px !important;
+    padding:15px !important;
   }
   
-  /* 繳費按鈕 */
+  /* 繳費按鈕 - 緊湊化 */
   .payment-btn{
-    padding:12px 15px;
-    font-size:0.95rem;
+    padding:10px 12px;
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    gap:8px;
   }
   .payment-btn i{
-    font-size:1.2rem;
+    font-size:clamp(1rem, 4.5vw, 1.2rem);
   }
   
-  /* 銀行資訊 */
+  /* 繳費彈窗資訊區 */
+  .payment-info p{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+    margin:3px 0;
+  }
+  
+  .payment-notice p{
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem);
+    line-height:1.4;
+  }
+  
+  .payment-buttons{
+    gap:10px;
+    margin-bottom:15px;
+  }
+  
+  /* 銀行資訊 - 緊湊化 */
   .bank-item{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:6px;
-    padding:8px;
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    margin-bottom:8px;
   }
   .bank-item label{
     min-width:auto;
-    margin:0 0 3px 0;
-    font-size:0.85rem;
+    margin:0;
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem);
+    white-space:nowrap;
   }
-  .account-number{width:100%;}
+  .bank-item span{
+    font-size:clamp(0.85rem, 3.8vw, 0.9rem);
+  }
+  .account-number{
+    width:100%;
+    flex-direction:column;
+    gap:6px;
+  }
   .account-number span{
-    font-size:0.95rem;
-    padding:8px;
+    font-size:clamp(0.9rem, 4vw, 1rem);
+    padding:6px 8px;
   }
   .copy-btn{
-    padding:8px;
-    font-size:0.8rem;
+    padding:7px 10px;
+    font-size:clamp(0.75rem, 3.5vw, 0.8rem);
     width:100%;
-    margin-top:5px;
   }
   
-  /* 預約詳情 */
+  .bank-amount{
+    padding:10px;
+    margin-bottom:10px;
+  }
+  
+  .bank-amount label,
+  .bank-amount .amount{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+  }
+  
+  .bank-notice{
+    padding:10px;
+  }
+  
+  .bank-notice p{
+    font-size:clamp(0.75rem, 3.5vw, 0.8rem);
+    line-height:1.4;
+  }
+  
+  .official-account-btn{
+    padding:10px 15px;
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    gap:6px;
+  }
+  
+  /* 預約詳情 - 緊湊化 */
   .booking-details{
-    padding:12px;
-    border-radius:6px;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:12px;
   }
   .booking-details h4{
-    font-size:0.95rem;
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    margin-bottom:8px;
+    gap:6px;
   }
   .detail-item{
     flex-direction:row;
     align-items:center;
-    gap:8px;
-    padding:6px 0;
+    gap:6px;
+    padding:5px 0;
   }
   .detail-item label{
-    min-width:65px;
+    min-width:55px;
     margin:0;
-    font-size:0.85rem;
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    white-space:nowrap;
   }
   .detail-item span{
-    font-size:0.9rem;
+    font-size:clamp(0.8rem, 3.8vw, 0.88rem);
+    line-height:1.3;
   }
   
-  /* 操作按鈕 */
+  /* 操作按鈕 - 緊湊化 */
   .contact-support-btn,
   .password-cancel-btn{
-    padding:12px 15px;
-    font-size:0.95rem;
+    padding:10px 12px;
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    gap:6px;
   }
   
-  /* 密碼輸入 */
+  .cancel-notice p{
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    line-height:1.4;
+  }
+  
+  .cancel-buttons{
+    gap:10px;
+  }
+  
+  /* 密碼輸入 - 緊湊化 */
+  #passwordModal .password-body{
+    padding:20px 15px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child{
+    margin-bottom:15px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div{
+    width:50px !important;
+    height:50px !important;
+    margin-bottom:10px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div i{
+    font-size:1.3rem !important;
+  }
+  
+  #passwordModal .password-info p:first-of-type{
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+  }
+  
+  #passwordModal .password-info p:last-of-type{
+    font-size:clamp(0.78rem, 3.5vw, 0.85rem) !important;
+  }
+  
   .password-input-group{
     flex-direction:column;
     gap:10px;
   }
   .password-input-group input{
-    padding:12px;
-    padding-left:40px;
-    font-size:0.95rem;
-    height:45px;
+    padding:9px;
+    padding-left:36px;
+    font-size:clamp(0.88rem, 4vw, 0.95rem);
+    height:40px;
+    letter-spacing:1.5px;
+  }
+  .password-input-group i{
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    left:11px;
   }
   .password-submit-btn{
     width:100%;
     justify-content:center;
-    padding:12px;
-    font-size:1rem;
-    height:45px;
+    padding:9px 12px;
+    font-size:clamp(0.88rem, 4vw, 0.95rem);
+    height:40px;
+    gap:5px;
   }
   
-  /* 逾期接手/排班釋出彈窗 */
+  #passwordModal .password-info > div:last-child{
+    padding:8px 10px !important;
+    margin-top:12px !important;
+  }
+  
+  #passwordModal .password-info > div:last-child p{
+    font-size:clamp(0.72rem, 3.2vw, 0.78rem) !important;
+  }
+  
+  /* 逾期接手/排班釋出彈窗 - 緊湊化 */
   #takeoverModal .payment-body,
   #transferModal .password-body{
-    padding:15px !important;
+    padding:12px !important;
   }
   #takeoverModal label,
   #transferModal label{
     margin-top:8px;
-    font-size:0.85rem;
+    font-size:clamp(0.78rem, 3.5vw, 0.85rem);
   }
   #takeoverModal input,
   #takeoverModal select,
   #transferModal input,
   #transferModal select{
-    font-size:0.9rem;
+    font-size:clamp(0.85rem, 3.8vw, 0.9rem);
     padding:8px;
+    height:38px;
   }
   
-  /* Toast 提示手機優化 */
+  #takeoverModal .alert-warning p,
+  #takeoverModal .takeover-notice p,
+  #transferModal .special-notice span{
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+  }
+  
+  #takeoverModal .original-booking-info h4,
+  #transferModal .original-booking-info h4{
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    margin-bottom:8px;
+  }
+  
+  #takeoverModal button,
+  #transferModal button{
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    padding:10px 12px;
+    gap:5px;
+  }
+  
+  /* Toast 提示手機優化 - 緊湊化 */
   .toast-container{
-    top:8px;
-    right:8px;
-    left:8px;
+    top:10px;
+    right:10px;
+    left:10px;
   }
   .toast{
     min-width:auto;
     max-width:100%;
-    padding:12px 15px;
+    padding:10px 12px;
+    border-radius:8px;
   }
   .toast-header{
-    margin-bottom:4px;
+    margin-bottom:3px;
   }
   .toast-icon{
-    font-size:1rem;
+    font-size:clamp(0.9rem, 4vw, 1rem);
   }
   .toast-title{
-    font-size:0.9rem;
+    font-size:clamp(0.82rem, 4vw, 0.9rem);
   }
   .toast-message{
-    font-size:0.8rem;
-    line-height:1.3;
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    line-height:1.4;
   }
   
   /* Footer 手機優化 */
@@ -1555,14 +1725,28 @@ body.line-browser .event-container {
   /* 載入動畫手機優化 */
   .loading-spinner{
     padding:25px 30px;
+    min-width:260px;
+    max-width:90%;
+    border-radius:15px;
   }
   .loading-spinner .spinner{
-    width:40px;
-    height:40px;
-    margin-bottom:12px;
+    width:50px;
+    height:50px;
+    margin-bottom:15px;
+    border-width:4px;
   }
   .loading-spinner p{
-    font-size:0.9rem;
+    font-size:1rem;
+    letter-spacing:0.3px;
+    line-height:1.4;
+  }
+  
+  .loading-spinner p div:first-child{
+    font-size:clamp(1.1rem, 5vw, 1.3rem);
+  }
+  
+  .loading-spinner p div:last-child{
+    font-size:clamp(0.8rem, 3.5vw, 0.9rem);
   }
   
   /* 避免手機橫向滾動 */
@@ -1593,6 +1777,88 @@ body.line-browser .event-container {
   .location-tab i{font-size:1rem;}
   .location-tab span{font-size:0.75rem;}
   .location-thumbnail{height:45px;}
+  
+  /* 彈窗極小螢幕優化 - 更緊湊 */
+  .payment-modal-content,
+  .bank-modal-content,
+  .cancel-modal-content,
+  .password-modal-content{
+    width:94%;
+    border-radius:10px;
+  }
+  
+  .payment-header,
+  .bank-header,
+  .cancel-header,
+  .password-header{
+    padding:10px 12px !important;
+  }
+  
+  .payment-body,
+  .bank-body,
+  .cancel-body,
+  .password-body{
+    padding:12px !important;
+  }
+  
+  .payment-btn,
+  .contact-support-btn,
+  .password-cancel-btn{
+    padding:9px 10px;
+  }
+  
+  .booking-details,
+  .original-booking-info{
+    padding:8px;
+    margin-bottom:10px;
+  }
+  
+  #passwordModal .password-body{
+    padding:15px 12px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div{
+    width:45px !important;
+    height:45px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div i{
+    font-size:1.1rem !important;
+  }
+  
+  .password-input-group input{
+    height:38px;
+    font-size:0.85rem;
+  }
+  
+  .password-submit-btn{
+    height:38px;
+    font-size:0.85rem;
+    padding:8px 10px;
+  }
+  
+  #takeoverModal button,
+  #transferModal button{
+    padding:9px 8px;
+    font-size:0.82rem;
+  }
+  
+  /* 場地篩選按鈕 - 2行3欄保持一致 */
+  .location-filter-buttons{
+    grid-template-columns:repeat(3, 1fr);
+    gap:5px;
+  }
+  
+  .location-filter .filter-btn{
+    font-size:0.65rem;
+    padding:5px 3px;
+    min-height:38px;
+    gap:2px;
+  }
+  
+  .location-filter .filter-btn i{
+    font-size:0.7rem;
+  }
   
   .calendar-day{min-height:65px;}
   .day-number{font-size:clamp(0.65rem, 4.5vw, 0.8rem);}
@@ -1637,6 +1903,31 @@ body.line-browser .event-container {
     padding:11px 18px;
     font-size:0.95rem;
   }
+  
+  /* 載入動畫極小螢幕優化 */
+  .loading-spinner{
+    padding:20px 25px;
+    min-width:240px;
+    max-width:92%;
+  }
+  .loading-spinner .spinner{
+    width:45px;
+    height:45px;
+    margin-bottom:12px;
+  }
+  .loading-spinner p{
+    font-size:0.9rem;
+    line-height:1.3;
+  }
+  
+  .loading-spinner p div:first-child{
+    font-size:clamp(1rem, 6vw, 1.2rem);
+    margin-bottom:6px;
+  }
+  
+  .loading-spinner p div:last-child{
+    font-size:clamp(0.75rem, 4vw, 0.85rem);
+  }
 }
 </style>
 </head>
@@ -1653,7 +1944,7 @@ body.line-browser .event-container {
   </div>
 </section>
 
-<div class="container">
+<div class="container" id="mainContent" style="opacity: 0; transition: opacity 0.5s ease;">
 
   <!-- 排班行事曆 -->
   <div class="card">
@@ -1678,16 +1969,16 @@ body.line-browser .event-container {
               <i class="fas fa-map-marker-alt"></i> 四維路60號
             </button>
             <button class="filter-btn" data-location="漢堡大亨">
-              <i class="fas fa-store"></i> 漢堡大亨
+              <i class="fas fa-map-marker-alt"></i> 四維路70號
             </button>
             <button class="filter-btn" data-location="自由風">
-              <i class="fas fa-store"></i> 自由風
+              <i class="fas fa-map-marker-alt"></i> 四維路190號
             </button>
             <button class="filter-btn" data-location="蔬蒔">
-              <i class="fas fa-leaf"></i> 蔬蒔
+              <i class="fas fa-map-marker-alt"></i> 四維路216號
             </button>
             <button class="filter-btn" data-location="金正好吃">
-              <i class="fas fa-utensils"></i> 金正好吃
+              <i class="fas fa-map-marker-alt"></i> 四維路218號
             </button>
           </div>
         </div>
@@ -1749,10 +2040,14 @@ body.line-browser .event-container {
     <!-- 動態場地資訊 -->
     <div id="locationInfo" class="location-info">
       <h3><i class="fas fa-map-marker-alt"></i> 楊梅區四維路59號</h3>
+      <div class="special-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>整月都可排班</span>
+      </div>
       <div class="info-grid">
         <div class="info-item">
           <i class="fas fa-clock"></i>
-          <span><strong>營業時間：</strong>早午 06:00-13:30 | 午晚 14:00-20:00</span>
+          <span><strong>營業時間：</strong>14:00-20:00</span>
         </div>
         <div class="info-item">
           <i class="fas fa-dollar-sign"></i>
@@ -1859,8 +2154,8 @@ body.line-browser .event-container {
     </div>
     <div class="payment-body">
       <div class="payment-info">
-        <p><strong>場地費：600元</strong></p>
-        <p>請選擇付款方式完成繳費</p>
+        <p style="font-size: 1.05rem; margin: 5px 0;"><strong>場地費：600元</strong></p>
+        <p style="font-size: 0.9rem; margin: 5px 0;">請選擇付款方式完成繳費</p>
       </div>
       <div class="payment-buttons">
         <button class="payment-btn jkopay-btn" onclick="openJkopay()">
@@ -1975,32 +2270,32 @@ body.line-browser .event-container {
 <!-- 密碼輸入彈窗 -->
 <div id="passwordModal" class="password-modal">
   <div class="password-modal-content" style="max-width: 420px;">
-    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px;">
-      <h3 style="font-size: 1.4rem;"><i class="fas fa-shield-alt"></i> 密碼驗證</h3>
+    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-shield-alt"></i> 密碼驗證</h3>
       <span class="modal-close" onclick="closePasswordModal()">&times;</span>
     </div>
-    <div class="password-body" style="padding: 35px;">
+    <div class="password-body" style="padding: 25px;">
       <div class="password-info">
-        <div style="text-align: center; margin-bottom: 25px;">
-          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-            <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-lock" style="font-size: 1.6rem; color: white;"></i>
           </div>
-          <p style="font-size: 1.1rem; color: #333; margin: 0 0 8px 0; font-weight: bold;">請輸入取消密碼</p>
-          <p style="font-size: 0.9rem; color: #666; margin: 0;">驗證後即可取消預約</p>
+          <p style="font-size: 1.05rem; color: #333; margin: 0 0 6px 0; font-weight: bold;">請輸入取消密碼</p>
+          <p style="font-size: 0.85rem; color: #666; margin: 0;">驗證後即可取消預約</p>
         </div>
         
-        <div class="password-input-group" style="flex-direction: column; gap: 15px;">
+        <div class="password-input-group" style="flex-direction: column; gap: 12px;">
           <div style="position: relative;">
-            <i class="fas fa-key" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #667eea; font-size: 1.1rem;"></i>
-            <input type="password" id="passwordInput" placeholder="請輸入密碼" maxlength="10" style="padding-left: 45px; border: 2px solid #e0e0e0; font-size: 1.1rem; height: 50px; text-align: center; letter-spacing: 3px;">
+            <i class="fas fa-key" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #667eea; font-size: 1rem;"></i>
+            <input type="password" id="passwordInput" placeholder="請輸入密碼" maxlength="10" style="padding-left: 40px; border: 2px solid #e0e0e0; font-size: 1rem; height: 45px; text-align: center; letter-spacing: 2px;">
           </div>
-          <button class="password-submit-btn" onclick="verifyPassword()" style="width: 100%; height: 50px; font-size: 1.1rem; background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+          <button class="password-submit-btn" onclick="verifyPassword()" style="width: 100%; height: 45px; font-size: 1rem; background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
             <i class="fas fa-check-circle"></i> 確認驗證
           </button>
         </div>
         
-        <div style="background: #f8f9fa; border-left: 3px solid #667eea; padding: 12px 15px; margin-top: 20px; border-radius: 4px;">
-          <p style="margin: 0; color: #666; font-size: 0.85rem; line-height: 1.5;">
+        <div style="background: #f8f9fa; border-left: 3px solid #667eea; padding: 10px 12px; margin-top: 15px; border-radius: 4px;">
+          <p style="margin: 0; color: #666; font-size: 0.8rem; line-height: 1.4;">
             <i class="fas fa-info-circle" style="color: #667eea;"></i> 如忘記密碼，請聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>
           </p>
         </div>
@@ -2016,38 +2311,38 @@ body.line-browser .event-container {
       <h3><i class="fas fa-exchange-alt"></i> 排班釋出</h3>
       <span class="modal-close" onclick="closeTransferModal()">&times;</span>
     </div>
-    <div class="password-body" style="padding: 25px;">
+    <div class="password-body" style="padding: 18px;">
       <div class="transfer-info">
-        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px;">
-          <p style="margin: 0; color: #856404; font-size: 0.9rem; line-height: 1.5;">
-            <i class="fas fa-info-circle"></i> <strong>釋出說明：</strong>請先與接手餐車私下完成場租交易，確認無誤後再填寫此表單
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 12px; margin-bottom: 12px; border-radius: 6px;">
+          <p style="margin: 0; color: #856404; font-size: 0.82rem; line-height: 1.4;">
+            <i class="fas fa-info-circle"></i> <strong>釋出說明：</strong>請先完成場租交易後再填寫
           </p>
         </div>
         
-        <div class="original-booking-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-          <h4 style="margin-bottom: 10px; color: #FF4B2B; font-size: 1rem;">原預約資訊</h4>
-          <div class="detail-item" style="margin-bottom: 8px;">
-            <label style="margin: 0;">原餐車：</label>
-            <span id="transferOriginalVendor" style="font-weight: bold; color: #dc3545;"></span>
+        <div class="original-booking-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+          <h4 style="margin-bottom: 8px; color: #FF4B2B; font-size: 0.9rem;">原預約資訊</h4>
+          <div class="detail-item" style="margin-bottom: 6px; padding: 4px 0;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">原餐車：</label>
+            <span id="transferOriginalVendor" style="font-weight: bold; color: #dc3545; font-size: 0.85rem;"></span>
           </div>
-          <div class="detail-item" style="margin-bottom: 8px;">
-            <label style="margin: 0;">場地：</label>
-            <span id="transferLocation"></span>
+          <div class="detail-item" style="margin-bottom: 6px; padding: 4px 0;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">場地：</label>
+            <span id="transferLocation" style="font-size: 0.85rem;"></span>
           </div>
-          <div class="detail-item">
-            <label style="margin: 0;">日期：</label>
-            <span id="transferDate"></span>
+          <div class="detail-item" style="padding: 4px 0; border: none;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">日期：</label>
+            <span id="transferDate" style="font-size: 0.85rem;"></span>
           </div>
         </div>
         
         <div class="transfer-form">
-          <h4 style="margin-bottom: 12px; color: #FF4B2B; font-size: 1rem;">接手餐車資訊</h4>
+          <h4 style="margin-bottom: 10px; color: #FF4B2B; font-size: 0.9rem;">接手餐車資訊</h4>
           
-          <label style="margin-top: 10px; font-size: 0.9rem;">新店名 <span style="color: red;">*</span></label>
-          <input type="text" id="transferVendorName" placeholder="請輸入接手的餐車名稱" required>
+          <label style="margin-top: 8px; font-size: 0.85rem;">新店名 <span style="color: red;">*</span></label>
+          <input type="text" id="transferVendorName" placeholder="請輸入餐車名稱" required style="font-size: 0.88rem; padding: 8px;">
           
-          <label style="margin-top: 10px; font-size: 0.9rem;">餐車類型 <span style="color: red;">*</span></label>
-          <select id="transferFoodType" required>
+          <label style="margin-top: 8px; font-size: 0.85rem;">餐車類型 <span style="color: red;">*</span></label>
+          <select id="transferFoodType" required style="font-size: 0.88rem; padding: 8px;">
             <option value="">請選擇</option>
             <option value="主食類">主食類</option>
             <option value="甜點類">甜點類</option>
@@ -2058,19 +2353,19 @@ body.line-browser .event-container {
             <option value="小吃類型">小吃類型</option>
           </select>
           
-          <label style="margin-top: 10px; font-size: 0.9rem;">換班密碼 <span style="color: red;">*</span></label>
+          <label style="margin-top: 8px; font-size: 0.85rem;">換班密碼 <span style="color: red;">*</span></label>
           <div style="position: relative;">
-            <i class="fas fa-key" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #FF8A00; font-size: 1rem;"></i>
-            <input type="password" id="transferPassword" placeholder="請輸入換班密碼" maxlength="20" style="padding-left: 40px;">
+            <i class="fas fa-key" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #FF8A00; font-size: 0.9rem;"></i>
+            <input type="password" id="transferPassword" placeholder="請輸入換班密碼" maxlength="20" style="padding: 8px; padding-left: 35px; font-size: 0.88rem; height: 38px;">
           </div>
           
-          <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 12px; margin-top: 15px;">
-            <p style="margin: 0; color: #1976d2; font-size: 0.85rem; line-height: 1.5;">
-              <i class="fas fa-exclamation-circle"></i> 釋出後將替換為新餐車資訊，原餐車需自行與接手方完成場租交易
+          <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 8px 10px; margin-top: 12px;">
+            <p style="margin: 0; color: #1976d2; font-size: 0.78rem; line-height: 1.4;">
+              <i class="fas fa-exclamation-circle"></i> 釋出後將替換為新餐車，需自行完成場租交易
             </p>
           </div>
           
-          <button class="password-submit-btn" onclick="submitTransfer()" style="width: 100%; margin-top: 15px; background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
+          <button class="password-submit-btn" onclick="submitTransfer()" style="width: 100%; margin-top: 12px; padding: 10px 12px; font-size: 0.9rem; height: 42px; background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
             <i class="fas fa-exchange-alt"></i> 確認釋出換班
           </button>
         </div>
@@ -2086,25 +2381,31 @@ body.line-browser .event-container {
       <h3><i class="fas fa-hand-holding-usd"></i> 接手預約</h3>
       <span class="modal-close" onclick="closeTakeoverModal()">&times;</span>
     </div>
-    <div class="payment-body" style="padding: 20px;">
+    <div class="payment-body" style="padding: 18px;">
       <div class="takeover-info">
-        <div class="alert-warning" style="padding: 8px 12px; margin-bottom: 12px;">
+        <div class="alert-warning" style="padding: 8px 10px; margin-bottom: 10px;">
           <i class="fas fa-exclamation-triangle"></i>
-          <p style="font-size: 0.85rem;">此預約已逾期，可接手</p>
+          <p style="font-size: 0.82rem; margin: 0;">此預約已逾期，可接手</p>
         </div>
         
-        <div class="original-booking-info" style="padding: 10px; margin-bottom: 12px;">
-          <h4 style="margin-bottom: 8px; font-size: 0.95rem;">原預約：<span id="originalVendor" style="color: #dc3545;"></span> | <span id="takeoverLocation"></span> | <span id="takeoverDate"></span></h4>
+        <div class="original-booking-info" style="padding: 10px; margin-bottom: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px;">
+          <h4 style="margin: 0; font-size: 0.88rem; line-height: 1.4; color: #495057;">
+            原預約：<span id="originalVendor" style="color: #dc3545; font-weight: bold;"></span><br>
+            <span style="font-size: 0.82rem; color: #6c757d;">
+              <i class="fas fa-map-marker-alt" style="font-size: 0.75rem;"></i> <span id="takeoverLocation"></span> | 
+              <i class="fas fa-calendar" style="font-size: 0.75rem;"></i> <span id="takeoverDate"></span>
+            </span>
+          </h4>
         </div>
         
         <div class="takeover-form">
-          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">您的資訊</h4>
+          <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #FF4B2B;">您的資訊</h4>
           
-          <label style="margin-top: 8px;">店名 <span style="color: red;">*</span></label>
-          <input type="text" id="takeoverVendorName" placeholder="請輸入餐車名稱" required style="margin-top: 4px;">
+          <label style="margin-top: 8px; font-size: 0.85rem;">店名 <span style="color: red;">*</span></label>
+          <input type="text" id="takeoverVendorName" placeholder="請輸入餐車名稱" required style="margin-top: 4px; font-size: 0.9rem; padding: 8px;">
           
-          <label style="margin-top: 8px;">類型 <span style="color: red;">*</span></label>
-          <select id="takeoverFoodType" required style="margin-top: 4px;">
+          <label style="margin-top: 8px; font-size: 0.85rem;">類型 <span style="color: red;">*</span></label>
+          <select id="takeoverFoodType" required style="margin-top: 4px; font-size: 0.9rem; padding: 8px;">
             <option value="">請選擇</option>
             <option value="主食類">主食類</option>
             <option value="甜點類">甜點類</option>
@@ -2116,29 +2417,29 @@ body.line-browser .event-container {
           </select>
           
           <div class="locked-info" style="margin-top: 8px;">
-            <label style="margin: 0;"><i class="fas fa-dollar-sign"></i> 場地費</label>
+            <label style="margin: 0; font-size: 0.85rem;"><i class="fas fa-dollar-sign"></i> 場地費</label>
             <div class="fee-input-group" style="margin-top: 4px;">
-              <i class="fas fa-coins"></i>
-              <input type="text" value="600元/天 (14:00-20:00)" disabled readonly style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; font-weight: bold; cursor: not-allowed; border: 2px solid #4caf50; padding-left: 35px;">
+              <i class="fas fa-coins" style="font-size: 0.9rem; left: 10px;"></i>
+              <input type="text" value="600元/天" disabled readonly style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; font-weight: bold; cursor: not-allowed; border: 2px solid #4caf50; padding: 8px; padding-left: 32px; font-size: 0.88rem;">
             </div>
           </div>
           
-          <div class="takeover-notice" style="padding: 8px; margin-top: 10px;">
-            <p style="font-size: 0.85rem;"><i class="fas fa-clock"></i> 接手後需在24小時內付款</p>
+          <div class="takeover-notice" style="background: #e7f3ff; border: 1px solid #2196f3; border-radius: 6px; padding: 8px 10px; margin-top: 10px;">
+            <p style="font-size: 0.8rem; margin: 0; color: #1976d2;"><i class="fas fa-clock"></i> 接手後需在24小時內付款</p>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
-            <button id="takeoverSubmitBtn" class="submit" onclick="submitTakeover()" style="background: linear-gradient(135deg,#ffc107,#ff9800); margin: 0;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+            <button id="takeoverSubmitBtn" class="submit" onclick="submitTakeover()" style="background: linear-gradient(135deg,#ffc107,#ff9800); margin: 0; padding: 10px 8px; font-size: 0.88rem;">
               <i class="fas fa-hand-holding"></i> 確認接手
             </button>
-            <button class="submit" onclick="closeTakeoverModal(); showPaymentModal();" style="background: linear-gradient(135deg,#28a745,#20c997); margin: 0;">
+            <button class="submit" onclick="closeTakeoverModal(); showPaymentModal();" style="background: linear-gradient(135deg,#28a745,#20c997); margin: 0; padding: 10px 8px; font-size: 0.88rem;">
               <i class="fas fa-credit-card"></i> 原班繳費
             </button>
           </div>
           
-          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 10px; margin-top: 12px;">
-            <p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.4;">
-              <i class="fas fa-exclamation-triangle"></i> <strong>原班繳費提醒：</strong><span style="color: #dc3545; font-weight: bold;">遲繳</span>仍有可能<span style="color: #dc3545; font-weight: bold;">被其它人排班</span>，請補繳完快通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">小幫手</a>確認並更正
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px 10px; margin-top: 10px;">
+            <p style="margin: 0; color: #856404; font-size: 0.78rem; line-height: 1.4;">
+              <i class="fas fa-exclamation-triangle"></i> <strong>原班繳費：</strong><span style="color: #dc3545; font-weight: bold;">遲繳</span>仍可能<span style="color: #dc3545; font-weight: bold;">被排班</span>，請儘快通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">小幫手</a>確認
             </p>
           </div>
         </div>
@@ -2689,6 +2990,14 @@ function updateLocationInfo(location) {
   const config = locationConfigs[location];
   if (!config) return;
   
+  // 顯示完整地址作為標題
+  let displayTitle = config.address; // 使用地址而非名稱
+  
+  // 如果是店面場地，可以在地址後加上店名說明
+  if (config.type !== '戶外場地') {
+    displayTitle = `${config.address} (${location})`;
+  }
+  
   let specialNotice = '';
   if (config.info.special) {
     specialNotice = `
@@ -2701,7 +3010,7 @@ function updateLocationInfo(location) {
   
   const locationInfo = document.getElementById('locationInfo');
   locationInfo.innerHTML = `
-    <h3><i class="fas fa-map-marker-alt"></i> ${config.name}</h3>
+    <h3><i class="fas fa-map-marker-alt"></i> ${displayTitle}</h3>
     ${specialNotice}
     <div class="info-grid">
       <div class="info-item">
@@ -2998,7 +3307,7 @@ async function submitTransfer() {
   console.log('===================================');
   
   // 顯示載入提示
-  showLoading('正在處理排班釋出...');
+  showLoading('🔄 正在處理排班轉讓...');
   
   try {
     // 提交到Google Sheets
@@ -3007,7 +3316,7 @@ async function submitTransfer() {
     // 檢查提交結果
     if (result.success) {
       hideLoading();
-      showToast('success', '釋出成功！', `已將 ${transferData.originalEvent.title} 的班釋出給 ${newVendor}`);
+      showToast('success', '轉讓成功！', `✅ 排班已轉讓\n📤 原：${transferData.originalEvent.title}\n📥 新：${newVendor}`);
       
       // 更新本地事件
       const eventIndex = allEvents.findIndex(e => 
@@ -3161,7 +3470,7 @@ async function submitTakeover() {
   console.log('接手操作 - 提交數據:', formData);
   
   // 顯示載入提示
-  showToast('info', '提交中...', '正在處理接手預約');
+  showToast('info', '處理中', '🤝 正在為您接手排班...');
   
   // 禁用按鈕
   const submitBtn = document.getElementById('takeoverSubmitBtn');
@@ -3175,7 +3484,7 @@ async function submitTakeover() {
     
     // 檢查提交結果
     if (result.success) {
-      showToast('success', '接手成功！', `${newVendor} 已成功接手 ${takeoverData.location} ${takeoverData.formattedDate} 的預約`);
+      showToast('success', '接手成功！', `🎉 ${newVendor} 已成功接手\n📍 ${takeoverData.location}\n📅 ${takeoverData.formattedDate}`);
       
       // 更新本地事件
       const eventIndex = allEvents.findIndex(e => 
@@ -3381,7 +3690,7 @@ async function verifyPassword() {
   // 直接執行取消（密碼驗證已經是確認步驟）
   if (true) {
     // 顯示載入提示
-    showToast('info', '取消中...', '正在處理您的取消申請');
+    showToast('info', '處理中', '🗑️ 正在為您取消排班...');
     
     // 嘗試從Google Sheets刪除（無論來源，都嘗試刪除）
     try {
@@ -3513,7 +3822,7 @@ async function verifyPassword() {
           console.warn('⚠️ 預約可能還存在，將進行第2次同步...');
         } else {
           console.log('✅ 確認刪除成功 - 指定日期的預約已移除');
-          showToast('success', '取消成功', `已取消 ${event.title} 在 ${dateStr} 的預約`);
+          showToast('success', '取消成功', `✅ ${event.title} 的排班已取消\n📅 日期：${dateStr}`);
         }
       } catch (error) {
         console.error('取消後第1次同步失敗:', error);
@@ -4352,7 +4661,7 @@ function startSheetsSyncInterval() {
 // 手動觸發Google Sheets同步
 async function syncGoogleSheets() {
   console.log('手動同步Google Sheets...');
-  showToast('info', '同步中', '正在從Google Sheets獲取最新數據...');
+  showToast('info', '更新中', '🔄 正在更新最新排班資訊...');
   
   try {
     // 同時同步完整預約數據和已預約日期
@@ -4368,7 +4677,7 @@ async function syncGoogleSheets() {
       totalBooked += sheetsBookedDates[location].length;
     }
     
-    showToast('success', '同步成功', `已同步 ${sheetsBookings.length} 條記錄，${totalBooked} 個已預約日期`);
+    showToast('success', '更新成功', `✅ 已更新 ${sheetsBookings.length} 個排班，${totalBooked} 個已預約檔期`);
     
     // 重新生成當前場地的可用日期
     const currentLoc = document.getElementById('location').value;
@@ -4380,7 +4689,7 @@ async function syncGoogleSheets() {
     checkOverduePayments();
   } catch (error) {
     console.error('同步失敗:', error);
-    showToast('error', '同步失敗', '無法連接到Google Sheets');
+    showToast('error', '更新失敗', '網路連線異常，請稍後再試');
   }
 }
 
@@ -6010,7 +6319,7 @@ function quickBooking(dateStr, location) {
         formElement.style.boxShadow = '';
       }, 2000);
       
-      showToast('success', '已自動填入', `場地：${location}\n日期：${dateStr}\n請填寫其他資訊後送出`);
+      showToast('success', '已選擇檔期', `📍 ${location}\n📅 ${dateStr}\n👉 請填寫餐車資訊後送出`);
       
       // 聚焦到餐車名稱輸入框
       setTimeout(() => {
@@ -6097,11 +6406,18 @@ function showToast(type, title, message) {
   }, 4000);
 }
 
-// 載入狀態控制
+// 載入狀態控制（支援HTML格式）
 function showLoading(message = '處理中...') {
   const overlay = document.getElementById('loadingOverlay');
   const messageEl = document.getElementById('loadingMessage');
-  messageEl.textContent = message;
+  
+  // 檢查是否包含HTML標籤
+  if (message.includes('<div') || message.includes('<span')) {
+    messageEl.innerHTML = message;
+  } else {
+    messageEl.textContent = message;
+  }
+  
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -6142,7 +6458,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   isSubmitting = true;
   
   // 顯示載入狀態
-  showLoading('正在檢查預約狀態...');
+  showLoading('🔍 檢查檔期可用性...');
   
   // 禁用提交按鈕
   const submitBtn = document.getElementById('submitBtn');
@@ -6207,7 +6523,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
   
   // 更新載入訊息
-  showLoading('正在提交預約...');
+  showLoading('📝 正在為您報名...');
   
   // 準備提交數據
   const formData = {
@@ -6233,7 +6549,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         console.log('Google Sheets提交成功:', result);
         
         // 顯示成功提示
-        showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
+        showToast('success', '報名成功！', `🎉 ${vendor} 已成功預約\n📍 場地：${loc}\n📅 日期：${date}\n💰 場地費：600元`);
         
         // Google Sheets提交成功後，等待並多次同步數據
         setTimeout(async () => {
@@ -6270,7 +6586,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       } else {
         // Google Sheets提交失敗
         hideLoading();
-        showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
+        showToast('error', '報名失敗', '網路連線異常，請稍後再試');
         
         // 恢復按鈕狀態
         submitBtn.innerHTML = originalText;
@@ -6339,7 +6655,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       // Google Sheets提交失敗
       console.error('提交失敗:', error);
       hideLoading();
-      showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
+      showToast('error', '報名失敗', '❌ 網路連線異常，請檢查網路後再試');
       
       // 恢復按鈕狀態
       submitBtn.innerHTML = originalText;
@@ -6443,7 +6759,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '2.4.0';
+const SYSTEM_VERSION = '2.7.0';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -6472,9 +6788,9 @@ function detectLineApp() {
       }
     }, 100);
     
-    // 顯示提示訊息
+    // 顯示提示訊息（美化訊息）
     setTimeout(() => {
-      showToast('info', '兼容模式', 'LINE瀏覽器兼容模式已啟用');
+      showToast('info', '歡迎光臨', '🎨 已優化顯示模式，為您呈現最佳體驗');
     }, 1000);
   } else {
     console.log('✅ 標準模式');
@@ -6519,7 +6835,7 @@ function checkVersionAndRefresh() {
     
     // 顯示更新提示
     setTimeout(() => {
-      showToast('success', '系統已更新', `已更新至 v${SYSTEM_VERSION}！清除舊數據，完全依賴Google Sheets`);
+      showToast('success', '系統已更新', `✨ 已更新至 v${SYSTEM_VERSION}\n🔄 已清除舊資料，重新整理排班`);
     }, 500);
     
     return true; // 表示已清除數據
@@ -6558,6 +6874,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   console.log('✅ 完全從 Google Sheets 同步數據');
   console.log('✅ 每次刷新都顯示 Google Sheets 最新資料');
   
+  // 顯示載入畫面（吉利語）
+  showLoading(`<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: #FF4B2B; letter-spacing: 2px;">🎊 好運降臨</div><div style="font-size: 0.85rem; color: #999; font-weight: 500;">系統啟動中...</div>`);
+  
   // 強制清空所有本地數據
   allEvents.length = 0;
   Object.keys(bookedSlots).forEach(location => {
@@ -6567,7 +6886,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   console.log('✅ 本地數據已清空');
   console.log('========================================');
   
-  // 初始化新行事曆（此時為空）
+  // 初始化新行事曆（此時為空，不顯示）
   initNewCalendar();
   
   // 設定預設場地
@@ -6597,16 +6916,48 @@ document.addEventListener('DOMContentLoaded', async function() {
   //   }, 1000);
   // }
   
-  // 初次載入時同步Google Sheets數據
+  // 初次載入時同步Google Sheets數據（帶進度提示）
   if (GOOGLE_SHEETS_CONFIG.enabled) {
-    setTimeout(async () => {
+    // 記錄開始時間
+    const startTime = Date.now();
+    
+    // 更新載入訊息（吉利語）
+    showLoading('🎊 好運降臨...');
+    
+    // 開始倒數計時顯示（吉利語輪播）
+    let countdown = 0;
+    const loadingMessages = [
+      '🧧 財源滾滾',
+      '🎉 生意興隆',
+      '💰 大發利市',
+      '🌟 好運連連',
+      '🎊 賓客滿門',
+      '🍜 客似雲來',
+      '✨ 圓滿順利',
+      '🎯 財運亨通'
+    ];
+    
+    const countdownInterval = setInterval(() => {
+      countdown++;
+      // 每2秒換一個吉利話
+      const messageIndex = Math.min(Math.floor(countdown / 2), loadingMessages.length - 1);
+      const message = loadingMessages[messageIndex];
+      showLoading(`<div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: #FF4B2B; letter-spacing: 2px;">${message}</div><div style="font-size: 0.85rem; color: #999; font-weight: 500;">載入排班資料 · ${countdown} 秒</div>`);
+    }, 1000);
+    
+    // 立即開始同步（不延遲）
+    (async () => {
       try {
-        console.log('初次載入，同步Google Sheets數據...');
+        const syncStartTime = Date.now();
+        console.log('⏱️ 開始同步 Google Sheets...');
+        
+        // 立即同步，不顯示中間過程訊息（太快看不到）
         // 同時獲取完整預約數據和已預約日期
         await Promise.all([
           fetchBookingsFromGoogleSheets(),
           fetchBookedDatesFromSheets()
         ]);
+        
         mergeSheetsDataToCalendar();
         
         // 重新生成當前場地的可用日期（排除已預約日期）
@@ -6616,10 +6967,48 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         console.log('✅ Google Sheets 初始化完成');
+        
+        // 清除倒數計時
+        clearInterval(countdownInterval);
+        
+        // 延遲一下再隱藏載入畫面，讓用戶看到「完成」狀態
+        const totalBookings = allEvents.length;
+        const successMessage = totalBookings > 0 
+          ? `<div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #28a745; letter-spacing: 2px;">🎉 萬事如意</div><div style="font-size: 0.9rem; color: #666; font-weight: 500;">已載入 ${totalBookings} 個排班 · 準備就緒</div>`
+          : `<div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #28a745; letter-spacing: 2px;">🎊 一切順利</div><div style="font-size: 0.9rem; color: #666; font-weight: 500;">目前無排班資料 · 準備就緒</div>`;
+        
+        showLoading(successMessage);
+        setTimeout(() => {
+          hideLoading();
+          // 顯示主要內容（淡入效果）
+          const mainContent = document.getElementById('mainContent');
+          if (mainContent) {
+            mainContent.style.opacity = '1';
+          }
+        }, 600);
+        
       } catch (error) {
         console.error('初次同步Google Sheets失敗:', error);
+        clearInterval(countdownInterval);
+        showLoading(`<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: #ffc107; letter-spacing: 2px;">🙏 稍安勿躁</div><div style="font-size: 0.85rem; color: #dc3545; font-weight: 500;">網路不穩 · 請稍後再試</div>`);
+        setTimeout(() => {
+          hideLoading();
+          // 即使失敗也要顯示主要內容
+          const mainContent = document.getElementById('mainContent');
+          if (mainContent) {
+            mainContent.style.opacity = '1';
+          }
+          showToast('warning', '請稍候', '🙏 網路連線不穩，建議稍後重新整理');
+        }, 1200);
       }
-    }, 2000);
+    })(); // 立即執行同步，不延遲
+  } else {
+    // 如果未啟用Google Sheets，直接隱藏載入畫面並顯示內容
+    hideLoading();
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) {
+      mainContent.style.opacity = '1';
+    }
   }
   
   // 圖片點擊放大功能
@@ -6745,7 +7134,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v2.4.0 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v2.7.0 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
