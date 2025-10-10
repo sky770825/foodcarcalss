@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>楊梅餐車排班報名系統</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>楊梅餐車排班報名系統 v2.3</title>
 
 
 <!-- Font Awesome -->
@@ -6450,22 +6453,80 @@ function fallbackCopyTextToClipboard(text) {
 // 設定最小日期為今天
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
+// 系統版本號
+const SYSTEM_VERSION = '2.3.0';
+
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
   const ua = navigator.userAgent.toLowerCase();
   const isLine = ua.indexOf('line') > -1;
   const isWebView = /(iphone|ipod|ipad).*applewebkit(?!.*safari)|android.*applewebkit/i.test(ua);
   
+  console.log('========================================');
+  console.log('🚚 楊梅餐車排班系統 v' + SYSTEM_VERSION);
+  console.log('========================================');
+  console.log('瀏覽器資訊:', ua);
+  console.log('是否為LINE:', isLine);
+  console.log('是否為WebView:', isWebView);
+  
   if (isLine || isWebView) {
     document.body.classList.add('line-browser');
-    console.log('檢測到LINE或WebView瀏覽器，啟用兼容模式');
+    console.log('✅ 已啟用 LINE/WebView 兼容模式');
+    console.log('- 餐車名稱：水平顯示（自動換行）');
+    console.log('- 字體大小：固定值（不使用動態縮放）');
+    
+    // 更新頁面底部顯示
+    setTimeout(() => {
+      const modeDisplay = document.getElementById('browserMode');
+      if (modeDisplay) {
+        modeDisplay.innerHTML = '<span style="color: #ffc107;">LINE兼容模式</span>';
+      }
+    }, 100);
+    
+    // 顯示提示訊息
+    setTimeout(() => {
+      showToast('info', '兼容模式', 'LINE瀏覽器兼容模式已啟用');
+    }, 1000);
+  } else {
+    console.log('✅ 標準模式');
+    console.log('- 餐車名稱：垂直顯示');
+    console.log('- 字體大小：自動縮放');
+    
+    // 更新頁面底部顯示
+    setTimeout(() => {
+      const modeDisplay = document.getElementById('browserMode');
+      if (modeDisplay) {
+        modeDisplay.innerHTML = '<span style="color: #2ecc71;">標準模式</span>';
+      }
+    }, 100);
   }
+  console.log('========================================');
   
   return isLine || isWebView;
 }
 
+// 檢查是否需要強制刷新緩存
+function checkVersionAndRefresh() {
+  const storedVersion = localStorage.getItem('system_version');
+  
+  if (storedVersion !== SYSTEM_VERSION) {
+    console.log('🔄 檢測到新版本，清除舊緩存...');
+    console.log('舊版本:', storedVersion || '未知');
+    console.log('新版本:', SYSTEM_VERSION);
+    
+    // 儲存新版本號
+    localStorage.setItem('system_version', SYSTEM_VERSION);
+    
+    // 顯示更新提示
+    setTimeout(() => {
+      showToast('success', '系統已更新', `已更新至版本 ${SYSTEM_VERSION}，優化LINE瀏覽器顯示`);
+    }, 500);
+  }
+}
+
 // 頁面載入時檢測
 detectLineApp();
+checkVersionAndRefresh();
 
 // 圖片放大功能
 document.addEventListener('DOMContentLoaded', async function() {
@@ -6650,10 +6711,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ffc107;">
       <i class="fas fa-exclamation-triangle"></i> 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
     </p>
-    <p style="margin: 0; font-size: 0.8rem;">
+    <p style="margin: 0 0 8px 0; font-size: 0.8rem;">
       <a href="https://foodcarshop.pages.dev/guide" target="_blank" style="color: #17a2b8; font-weight: bold; text-decoration: underline; transition: all 0.3s;">
         <i class="fas fa-shopping-cart"></i> 客製化餐車預購系統(示範)
       </a>
+    </p>
+    <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
+      <i class="fas fa-code-branch"></i> 系統版本：v2.3.0 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
