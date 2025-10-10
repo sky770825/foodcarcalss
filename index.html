@@ -1009,6 +1009,44 @@ footer a:hover {
   transform: translateY(-2px);
 }
 
+/* LINE瀏覽器兼容模式 - 強制水平顯示 */
+body.line-browser .event-item {
+  writing-mode: horizontal-tb !important;
+  -webkit-writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  -webkit-text-orientation: mixed !important;
+  max-width: 100% !important;
+  min-width: 40px !important;
+  white-space: normal !important;
+  word-break: break-all !important;
+  line-height: 1.2 !important;
+  padding: 3px 5px !important;
+  text-align: center !important;
+  /* 固定字體大小（不使用clamp） */
+  font-size: 0.6rem !important;
+}
+
+body.line-browser .payment-status {
+  font-size: 0.55rem !important;
+}
+
+body.line-browser .payment-status span {
+  font-size: 0.5rem !important;
+}
+
+body.line-browser .day-number {
+  font-size: 0.85rem !important;
+}
+
+body.line-browser .day-events {
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+body.line-browser .event-container {
+  width: 100% !important;
+}
+
 /* 中等螢幕優化（平板）- 餐車名稱垂直顯示 */
 @media(max-width:1024px){
   .event-item{
@@ -1193,16 +1231,24 @@ footer a:hover {
     font-size:clamp(0.5rem, 3vw, 0.65rem);
     padding:3px 4px;
     min-height:20px;
-    line-height:1.1;
+    line-height:1.2;
     border-radius:2px;
+    /* 垂直顯示優先（含WebKit前綴支援） */
     writing-mode:vertical-rl;
+    -webkit-writing-mode:vertical-rl;
+    -ms-writing-mode:tb-rl;
     text-orientation:upright;
+    -webkit-text-orientation:upright;
     letter-spacing:0.05em;
     display:flex;
     align-items:center;
     justify-content:center;
     margin:0 auto;
     max-width:25px;
+    /* 降級方案：不支援時自動換行 */
+    word-break:break-all;
+    white-space:normal;
+    text-align:center;
   }
   
   .day-events{
@@ -1550,12 +1596,21 @@ footer a:hover {
   .event-item{
     font-size:clamp(0.45rem, 3.5vw, 0.6rem);
     padding:3px 3px;
+    /* 垂直顯示（含前綴） */
     writing-mode:vertical-rl;
+    -webkit-writing-mode:vertical-rl;
+    -ms-writing-mode:tb-rl;
     text-orientation:upright;
+    -webkit-text-orientation:upright;
     letter-spacing:0.05em;
     min-height:18px;
     max-width:22px;
     margin:0 auto;
+    /* 降級方案 */
+    word-break:break-all;
+    white-space:normal;
+    text-align:center;
+    line-height:1.2;
   }
   
   .payment-status{
@@ -6394,6 +6449,23 @@ function fallbackCopyTextToClipboard(text) {
 
 // 設定最小日期為今天
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+// 檢測LINE瀏覽器並添加特殊類名
+function detectLineApp() {
+  const ua = navigator.userAgent.toLowerCase();
+  const isLine = ua.indexOf('line') > -1;
+  const isWebView = /(iphone|ipod|ipad).*applewebkit(?!.*safari)|android.*applewebkit/i.test(ua);
+  
+  if (isLine || isWebView) {
+    document.body.classList.add('line-browser');
+    console.log('檢測到LINE或WebView瀏覽器，啟用兼容模式');
+  }
+  
+  return isLine || isWebView;
+}
+
+// 頁面載入時檢測
+detectLineApp();
 
 // 圖片放大功能
 document.addEventListener('DOMContentLoaded', async function() {
