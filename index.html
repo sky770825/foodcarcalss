@@ -835,8 +835,13 @@ button.submit:hover{
   display:none;position:fixed;z-index:5000;left:0;top:0;
   width:100%;height:100%;background:rgba(0,0,0,0.8);
   justify-content:center;align-items:center;
+  backdrop-filter:blur(5px);
 }
-.password-modal.active{display:flex;}
+.password-modal.active{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
 .password-modal-content{
   background:white;border-radius:15px;padding:0;
   box-shadow:0 15px 35px rgba(0,0,0,0.3);
@@ -844,7 +849,7 @@ button.submit:hover{
   position:relative;
 }
 .password-header{
-  background:linear-gradient(135deg,#6c757d,#5a6268);
+  background:linear-gradient(135deg,#667eea,#764ba2);
   color:white;padding:20px;border-radius:15px 15px 0 0;
   display:flex;justify-content:space-between;align-items:center;
 }
@@ -852,11 +857,13 @@ button.submit:hover{
   margin:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;
 }
 .password-header .modal-close{
-  position:static;color:white;font-size:24px;cursor:pointer;
-  padding:5px;border-radius:50%;transition:background .3s;
+  position:static;color:white;font-size:28px;cursor:pointer;
+  padding:5px;border-radius:50%;transition:all .3s;
+  width:35px;height:35px;display:flex;align-items:center;justify-content:center;
 }
 .password-header .modal-close:hover{
-  background:rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.25);
+  transform:rotate(90deg);
 }
 .password-body{
   padding:30px;
@@ -872,22 +879,23 @@ button.submit:hover{
 }
 .password-input-group input{
   flex:1;padding:12px;border:2px solid #e9ecef;
-  border-radius:8px;font-size:1rem;transition:border-color .3s;
+  border-radius:8px;font-size:1rem;transition:all .3s;
 }
 .password-input-group input:focus{
-  outline:none;border-color:#6c757d;box-shadow:0 0 0 3px rgba(108,117,125,0.1);
+  outline:none;border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.15);
+  transform:scale(1.02);
 }
 .password-submit-btn{
-  background:linear-gradient(135deg,#28a745,#20c997);
+  background:linear-gradient(135deg,#667eea,#764ba2);
   color:white;border:none;padding:12px 20px;
   border-radius:8px;cursor:pointer;font-size:1rem;
   font-weight:bold;transition:all .3s;
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
 }
 .password-submit-btn:hover{
-  background:linear-gradient(135deg,#20c997,#17a2b8);
+  background:linear-gradient(135deg,#764ba2,#667eea);
   transform:translateY(-2px);
-  box-shadow:0 5px 15px rgba(40,167,69,0.3);
+  box-shadow:0 6px 20px rgba(102,126,234,0.4);
 }
 
 /* 同步狀態指示器 - 已隱藏 */
@@ -1338,19 +1346,35 @@ footer a:hover {
 
 <!-- 密碼輸入彈窗 -->
 <div id="passwordModal" class="password-modal">
-  <div class="password-modal-content">
-    <div class="password-header">
-      <h3><i class="fas fa-key"></i> 密碼驗證</h3>
+  <div class="password-modal-content" style="max-width: 420px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px;">
+      <h3 style="font-size: 1.4rem;"><i class="fas fa-shield-alt"></i> 密碼驗證</h3>
       <span class="modal-close" onclick="closePasswordModal()">&times;</span>
     </div>
-    <div class="password-body">
+    <div class="password-body" style="padding: 35px;">
       <div class="password-info">
-        <p>請輸入取消密碼以取消預約</p>
-        <div class="password-input-group">
-          <input type="password" id="passwordInput" placeholder="請輸入密碼" maxlength="10">
-          <button class="password-submit-btn" onclick="verifyPassword()">
-            <i class="fas fa-check"></i> 確認
+        <div style="text-align: center; margin-bottom: 25px;">
+          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+          </div>
+          <p style="font-size: 1.1rem; color: #333; margin: 0 0 8px 0; font-weight: bold;">請輸入取消密碼</p>
+          <p style="font-size: 0.9rem; color: #666; margin: 0;">驗證後即可取消預約</p>
+        </div>
+        
+        <div class="password-input-group" style="flex-direction: column; gap: 15px;">
+          <div style="position: relative;">
+            <i class="fas fa-key" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #667eea; font-size: 1.1rem;"></i>
+            <input type="password" id="passwordInput" placeholder="請輸入密碼" maxlength="10" style="padding-left: 45px; border: 2px solid #e0e0e0; font-size: 1.1rem; height: 50px; text-align: center; letter-spacing: 3px;">
+          </div>
+          <button class="password-submit-btn" onclick="verifyPassword()" style="width: 100%; height: 50px; font-size: 1.1rem; background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-check-circle"></i> 確認驗證
           </button>
+        </div>
+        
+        <div style="background: #f8f9fa; border-left: 3px solid #667eea; padding: 12px 15px; margin-top: 20px; border-radius: 4px;">
+          <p style="margin: 0; color: #666; font-size: 0.85rem; line-height: 1.5;">
+            <i class="fas fa-info-circle" style="color: #667eea;"></i> 如忘記密碼，請聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>
+          </p>
         </div>
       </div>
     </div>
@@ -1471,10 +1495,10 @@ footer a:hover {
 
 .payment-status span {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 5px;
+  padding: 2px 5px;
+  border-radius: 4px;
   font-weight: bold;
-  line-height: 1.3;
+  line-height: 1.2;
   font-size: 0.65rem;
   transition: all 0.3s;
 }
@@ -2211,16 +2235,11 @@ async function submitTakeover() {
   submitBtn.disabled = true;
   
   try {
-    // 並行提交到GitHub和Google Sheets
-    const results = await Promise.allSettled([
-      uploadToGitHub(formData),
-      submitToGoogleSheets(formData)
-    ]);
+    // 只提交到Google Sheets（GitHub已禁用）
+    const result = await submitToGoogleSheets(formData);
     
-    const [githubResult, sheetsResult] = results;
-    
-    // 檢查是否至少有一個成功
-    if (githubResult.status === 'fulfilled' || sheetsResult.status === 'fulfilled') {
+    // 檢查提交結果
+    if (result.success) {
       showToast('success', '接手成功！', `${newVendor} 已成功接手 ${takeoverData.location} ${takeoverData.formattedDate} 的預約`);
       
       // 更新本地事件
@@ -2256,47 +2275,59 @@ async function submitTakeover() {
       }, 500);
       
       // 多次同步Google Sheets確認更新（確保看到變化）
+      // 等待 Google Sheets 更新完成
       setTimeout(async () => {
         try {
-          console.log('接手後第1次同步...');
-          await fetchBookingsFromGoogleSheets();
-          mergeSheetsDataToCalendar();
-          console.log('接手後第1次同步完成');
-        } catch (error) {
-          console.error('接手後第1次同步失敗:', error);
-        }
-      }, 1000);
+          console.log('⏱️ 等待2秒讓 Google Sheets 完成更新...');
+        } catch (error) {}
+      }, 2000);
       
       setTimeout(async () => {
         try {
-          console.log('接手後第2次同步...');
+          console.log('接手後第1次同步（3秒後）...');
           await fetchBookingsFromGoogleSheets();
+          await fetchBookedDatesFromSheets();
           mergeSheetsDataToCalendar();
-          console.log('接手後第2次同步完成');
+          renderCalendar();
+          console.log('接手後第1次同步完成');
         } catch (error) {
-          console.error('接手後第2次同步失敗:', error);
+          console.error('接手後第1次同步失敗:', error);
         }
       }, 3000);
       
       setTimeout(async () => {
         try {
-          console.log('接手後第3次同步...');
+          console.log('接手後第2次同步（5秒後）...');
+          await fetchBookingsFromGoogleSheets();
+          await fetchBookedDatesFromSheets();
+          mergeSheetsDataToCalendar();
+          renderCalendar();
+          console.log('接手後第2次同步完成');
+        } catch (error) {
+          console.error('接手後第2次同步失敗:', error);
+        }
+      }, 5000);
+      
+      setTimeout(async () => {
+        try {
+          console.log('接手後第3次同步（7秒後）...');
           await fetchBookingsFromGoogleSheets();
           mergeSheetsDataToCalendar();
+          renderCalendar();
           console.log('接手後第3次同步完成 - 應該看到新餐車名稱');
         } catch (error) {
           console.error('接手後第3次同步失敗:', error);
         }
-      }, 5000);
+      }, 7000);
       
     } else {
-      throw new Error('所有提交都失敗了');
+      throw new Error('Google Sheets提交失敗');
     }
     
   } catch (error) {
     console.error('接手失敗:', error);
     showToast('error', '接手失敗', '無法完成接手操作，請稍後再試');
-  } finally {
+    
     // 恢復按鈕狀態
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
@@ -2409,24 +2440,48 @@ async function verifyPassword() {
     return;
   }
   
-  // 密碼正確，執行取消預約
+  // 密碼正確，直接執行取消預約（不再顯示二次確認）
   closePasswordModal();
   
-  const confirmMsg = `確定要取消 ${event.title} 在 ${event.location} 的預約嗎？\n日期：${dateStr}\n時間：14:00-20:00`;
-  
-  if (confirm(confirmMsg)) {
+  // 直接執行取消（密碼驗證已經是確認步驟）
+  if (true) {
     // 顯示載入提示
     showToast('info', '取消中...', '正在處理您的取消申請');
     
+    // 嘗試從Google Sheets刪除（無論來源，都嘗試刪除）
     try {
-      // 只上傳取消記錄到GitHub，不處理Google Sheets
-      console.log('開始上傳取消記錄到GitHub...');
-      const githubResult = await uploadCancellationToGitHub(event, dateStr);
-      console.log('GitHub上傳結果:', githubResult);
+      const deleteData = {
+        action: 'delete',
+        vendor: event.title,
+        location: event.location,
+        date: dateStr, // ISO格式，Google Apps Script會自動轉換
+        rowNumber: event.rowNumber, // 如果有的話
+        timestamp: event.timestamp // 可能需要用於查找
+      };
       
+      console.log('========== 刪除預約 ==========');
+      console.log('要刪除的餐車:', event.title);
+      console.log('要刪除的場地:', event.location);
+      console.log('要刪除的日期:', dateStr);
+      console.log('完整刪除數據:', deleteData);
+      console.log('事件來源:', event.source);
+      console.log('事件rowNumber:', event.rowNumber);
+      console.log('🎯 只會刪除符合以上三個條件（餐車+場地+日期）的那一筆');
+      console.log('===========================');
+      
+      const result = await submitToGoogleSheets(deleteData);
+      console.log('Google Sheets刪除API回應:', result);
+      
+      if (result.success) {
+        console.log('✅ Google Sheets刪除成功 - 整行已移除（包含所有9個欄位）');
+        showToast('success', '刪除成功', `已從 Google Sheets 完整刪除整行資料`);
+      } else {
+        console.warn('⚠️ Google Sheets刪除可能失敗，但繼續本地刪除');
+        showToast('warning', '刪除警告', 'Google Sheets刪除可能失敗，請手動檢查');
+      }
     } catch (error) {
-      console.error('取消操作失敗:', error);
-      // 即使遠端操作失敗，仍然繼續本地取消操作
+      console.error('❌ 從Google Sheets刪除失敗:', error);
+      // 即使Sheets刪除失敗，也繼續本地刪除
     }
     
     // 從 allEvents 中移除事件
@@ -2440,20 +2495,10 @@ async function verifyPassword() {
       allEvents.splice(eventIndex, 1);
     }
     
-    // 從 bookedSlots 中移除時段
-    if (bookedSlots[event.location] && bookedSlots[event.location][dateStr]) {
-      const slotIndex = bookedSlots[event.location][dateStr].indexOf('14:00-20:00');
-      if (slotIndex !== -1) {
-        bookedSlots[event.location][dateStr].splice(slotIndex, 1);
-        
-        // 如果該日期沒有其他時段，刪除整個日期
-        if (bookedSlots[event.location][dateStr].length === 0) {
-          delete bookedSlots[event.location][dateStr];
-        }
-      }
-    }
+    // 不再手動更新 bookedSlots，等待 Google Sheets 同步後自動重建
+    // bookedSlots 會在 mergeSheetsDataToCalendar 中清空並重建
     
-    // 保存到本地存儲
+    // 保存到本地存儲（只保存 allEvents）
     saveToLocalStorage();
     
     // 重新渲染行事曆
@@ -2473,17 +2518,116 @@ async function verifyPassword() {
       });
     }
     
-    showToast('success', '取消成功', `已取消 ${event.title} 的預約，並同步到GitHub`);
+    // 先不顯示成功訊息，等同步確認後再顯示
     
-    // 取消成功後立即觸發同步，讓其他用戶看到最新數據
+    // 多次同步Google Sheets確認刪除（確保刪除生效）
+    // Google Sheets API 可能需要2-3秒處理刪除操作
     setTimeout(async () => {
       try {
-        await syncWithGitHub();
-        console.log('取消後同步完成');
+        console.log('⏱️ 等待2秒讓 Google Sheets 完成刪除...');
       } catch (error) {
-        console.error('取消後同步失敗:', error);
+        console.error('延遲錯誤:', error);
       }
-    }, 500); // 0.5秒後同步，確保即時性
+    }, 2000);
+    
+    setTimeout(async () => {
+      try {
+        console.log('取消後第1次同步（3秒後）...');
+        await fetchBookingsFromGoogleSheets();
+        await fetchBookedDatesFromSheets();
+        mergeSheetsDataToCalendar();
+        renderCalendar();
+        console.log('取消後第1次同步完成');
+        
+        // 驗證刪除是否成功
+        console.log('🔍 驗證刪除：尋找', {
+          餐車: event.title,
+          場地: event.location,
+          日期: dateStr
+        });
+        
+        const stillExists = allEvents.some(e => {
+          const eventDateStr = e.start instanceof Date ? 
+            `${e.start.getFullYear()}-${String(e.start.getMonth() + 1).padStart(2, '0')}-${String(e.start.getDate()).padStart(2, '0')}` : 
+            (typeof e.start === 'string' ? e.start.split('T')[0] : '');
+          
+          const matches = e.title === event.title && 
+                          e.location === event.location && 
+                          eventDateStr === dateStr;
+          
+          if (matches) {
+            console.log('找到匹配:', {
+              餐車: e.title,
+              場地: e.location,
+              日期: eventDateStr
+            });
+          }
+          
+          return matches;
+        });
+        
+        console.log('當前 allEvents 總數:', allEvents.length);
+        console.log('該餐車同場地的所有預約:', allEvents.filter(e => 
+          e.title === event.title && e.location === event.location
+        ).map(e => ({
+          餐車: e.title,
+          日期: e.start instanceof Date ? e.start.toISOString().split('T')[0] : e.start.split('T')[0]
+        })));
+        
+        if (stillExists) {
+          console.warn('⚠️ 預約可能還存在，將進行第2次同步...');
+        } else {
+          console.log('✅ 確認刪除成功 - 指定日期的預約已移除');
+          showToast('success', '取消成功', `已取消 ${event.title} 在 ${dateStr} 的預約`);
+        }
+      } catch (error) {
+        console.error('取消後第1次同步失敗:', error);
+      }
+    }, 3000);
+    
+    setTimeout(async () => {
+      try {
+        console.log('取消後第2次同步（5秒後）...');
+        await fetchBookingsFromGoogleSheets();
+        await fetchBookedDatesFromSheets();
+        mergeSheetsDataToCalendar();
+        renderCalendar();
+        console.log('取消後第2次同步完成');
+        
+        // 最終驗證
+        const stillExists = allEvents.some(e => {
+          const eventDateStr = e.start instanceof Date ? 
+            `${e.start.getFullYear()}-${String(e.start.getMonth() + 1).padStart(2, '0')}-${String(e.start.getDate()).padStart(2, '0')}` : 
+            (typeof e.start === 'string' ? e.start.split('T')[0] : '');
+          
+          return e.title === event.title && 
+                 e.location === event.location && 
+                 eventDateStr === dateStr;
+        });
+        
+        if (stillExists) {
+          console.error('❌ 刪除可能失敗，預約仍存在');
+          showToast('warning', '刪除警告', '預約可能未完全刪除，請手動檢查 Google Sheets');
+        } else {
+          console.log('✅✅ 最終確認刪除成功');
+        }
+      } catch (error) {
+        console.error('取消後第2次同步失敗:', error);
+      }
+    }, 5000);
+    
+    // 第3次確認同步（7秒後）
+    setTimeout(async () => {
+      try {
+        console.log('取消後第3次同步（7秒後）...');
+        await fetchBookingsFromGoogleSheets();
+        mergeSheetsDataToCalendar();
+        renderCalendar();
+        console.log('取消後第3次同步完成 - 最終確認');
+      } catch (error) {
+        console.error('取消後第3次同步失敗:', error);
+      }
+    }, 7000);
   }
 }
 
@@ -2500,7 +2644,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbylYavrOAYvg2XhGkLqbQ38D_01knWvidyZkQOjWmAUDsLNtLq5pT9jiqaNUDVvpFQR/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbwHy1hGN08NB0P28GseerZYtG3UKCmqIw_v09hCA6HjW3wRI3bjoLajwcA1qZPDmSqB/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -3030,6 +3174,13 @@ async function submitToGoogleSheets(formData) {
       console.log('接手操作，行號:', formData.rowNumber);
     }
     
+    // 如果是刪除操作，添加額外參數
+    if (formData.action === 'delete') {
+      dataToSend.action = 'delete';
+      dataToSend.rowNumber = formData.rowNumber;
+      console.log('刪除操作，行號:', formData.rowNumber);
+    }
+    
     // 使用POST方式發送數據（適用於Google Apps Script接手操作）
     const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
       method: 'POST',
@@ -3115,6 +3266,12 @@ async function fetchBookingsFromGoogleSheets() {
 
 // 將Google Sheets數據合併到日曆（支援新增和更新）
 function mergeSheetsDataToCalendar() {
+  // 先清空 bookedSlots，從 Google Sheets 重建（避免髒數據）
+  console.log('清空 bookedSlots，準備從 Google Sheets 重建...');
+  Object.keys(bookedSlots).forEach(location => {
+    bookedSlots[location] = {};
+  });
+  
   if (!sheetsBookings || sheetsBookings.length === 0) {
     console.log('沒有Google Sheets數據需要合併');
     // 清空所有來自Sheets的事件
@@ -3623,7 +3780,12 @@ function handleDateChange() {
   
   // 檢查日曆上是否已有餐車名稱
   const hasEvent = allEvents.some(event => {
-    const eventDate = event.start.toISOString().split('T')[0];
+    let eventDate;
+    if (event.start instanceof Date) {
+      eventDate = event.start.toISOString().split('T')[0];
+    } else {
+      eventDate = event.start.split('T')[0];
+    }
     return eventDate === selectedDate && event.location === loc;
   });
   
@@ -3652,19 +3814,138 @@ function saveToLocalStorage() {
   }
 }
 
+// 清除本地緩存
+function clearLocalCache() {
+  localStorage.clear();
+  allEvents.length = 0;
+  Object.keys(bookedSlots).forEach(key => delete bookedSlots[key]);
+  console.log('✅ 本地緩存已清除');
+  showToast('success', '緩存已清除', '本地數據已清空，請重新整理頁面');
+}
+
+// 診斷所有預約數據
+function diagnoseAllBookings() {
+  console.log('========== 預約數據診斷 ==========');
+  
+  // 1. 檢查allEvents
+  console.log('\n【allEvents】共', allEvents.length, '個事件:');
+  allEvents.forEach((event, index) => {
+    let eventDate;
+    if (event.start instanceof Date) {
+      eventDate = event.start.toISOString().split('T')[0];
+    } else {
+      eventDate = event.start.split('T')[0];
+    }
+    console.log(`  ${index + 1}. ${event.title} - ${event.location} - ${eventDate} (來源: ${event.source || '未知'})`);
+  });
+  
+  // 2. 檢查bookedSlots
+  console.log('\n【bookedSlots】:');
+  Object.keys(bookedSlots).forEach(location => {
+    console.log(`  場地: ${location}`);
+    Object.keys(bookedSlots[location]).forEach(date => {
+      console.log(`    - ${date}: ${bookedSlots[location][date].join(', ')}`);
+    });
+  });
+  
+  // 3. 檢查sheetsBookedDates
+  console.log('\n【sheetsBookedDates】:');
+  Object.keys(sheetsBookedDates).forEach(location => {
+    console.log(`  場地: ${location}, 數量: ${sheetsBookedDates[location].length}`);
+    sheetsBookedDates[location].forEach(booking => {
+      console.log(`    - ${booking.standardDate}: ${booking.vendor || '無店名'}`);
+    });
+  });
+  
+  // 4. 檢查sheetsBookings
+  console.log('\n【sheetsBookings】共', sheetsBookings.length, '筆:');
+  sheetsBookings.forEach((booking, index) => {
+    console.log(`  ${index + 1}. ${booking.vendor} - ${booking.location} - ${booking.date}`);
+  });
+  
+  // 5. 檢查localStorage
+  console.log('\n【localStorage】:');
+  const localData = localStorage.getItem('foodtruck_bookings');
+  if (localData) {
+    const parsed = JSON.parse(localData);
+    console.log('  lastUpdate:', parsed.lastUpdate);
+    console.log('  allEvents數量:', parsed.allEvents?.length || 0);
+    console.log('  bookedSlots場地數:', Object.keys(parsed.bookedSlots || {}).length);
+  } else {
+    console.log('  無本地存儲數據');
+  }
+  
+  console.log('\n===================================');
+  
+  return {
+    allEvents: allEvents.length,
+    bookedSlots: Object.keys(bookedSlots).length,
+    sheetsBookedDates: Object.keys(sheetsBookedDates).length,
+    sheetsBookings: sheetsBookings.length
+  };
+}
+
+// 快速測試同步
+window.quickTest = async function() {
+  console.log('========== 快速測試 ==========');
+  
+  // 1. 檢查配置
+  console.log('Google Sheets URL:', GOOGLE_SHEETS_CONFIG.webAppUrl);
+  console.log('同步已啟用:', GOOGLE_SHEETS_CONFIG.enabled);
+  
+  // 2. 手動同步
+  console.log('\n正在同步 Google Sheets...');
+  try {
+    await fetchBookingsFromGoogleSheets();
+    console.log('同步後 sheetsBookings 數量:', sheetsBookings.length);
+    
+    await fetchBookedDatesFromSheets();
+    let totalBooked = 0;
+    Object.keys(sheetsBookedDates).forEach(loc => {
+      totalBooked += sheetsBookedDates[loc].length;
+    });
+    console.log('同步後已預約日期數量:', totalBooked);
+    
+    // 3. 合併到日曆
+    mergeSheetsDataToCalendar();
+    console.log('合併後 allEvents 數量:', allEvents.length);
+    
+    // 4. 重新渲染
+    renderCalendar();
+    
+    console.log('\n✅ 測試完成！如果數量為0，表示 Google Sheets 可能是空的');
+    console.log('請執行 diagnoseAllBookings() 查看詳細資料');
+    
+  } catch (error) {
+    console.error('❌ 測試失敗:', error);
+  }
+  
+  console.log('===========================');
+};
+
+// 暴露到全局供控制台使用
+window.clearLocalCache = clearLocalCache;
+window.diagnoseAllBookings = diagnoseAllBookings;
+
 function loadFromLocalStorage() {
   try {
     const data = localStorage.getItem('foodtruck_bookings');
     if (data) {
       const parsed = JSON.parse(data);
+      
+      // 只載入 allEvents，不載入 bookedSlots（避免髒數據）
+      // bookedSlots 會從 Google Sheets 和 allEvents 重建
       if (parsed.allEvents) {
         allEvents.length = 0;
         allEvents.push(...parsed.allEvents);
       }
-      if (parsed.bookedSlots) {
-        Object.assign(bookedSlots, parsed.bookedSlots);
-      }
-      console.log('從本地存儲載入數據成功');
+      
+      // 不再載入 bookedSlots，避免舊數據衝突
+      // if (parsed.bookedSlots) {
+      //   Object.assign(bookedSlots, parsed.bookedSlots);
+      // }
+      
+      console.log('從本地存儲載入數據成功（僅載入事件，不載入時段數據）');
       return true;
     }
   } catch (error) {
@@ -3867,121 +4148,121 @@ function showSyncStatus(message, type = 'default') {
   }, 5000);
 }
 
-// 檢查預約衝突（強化多用戶版本）
+// 檢查預約衝突（完全依賴Google Sheets）
 async function checkBookingConflict(location, date, timeSlot) {
   try {
     console.log(`檢查預約衝突: ${location} - ${date} - ${timeSlot}`);
     
-    // 1. 先檢查本地數據
+    // 1. 檢查本地數據
     if (bookedSlots[location] && bookedSlots[location][date]) {
       if (bookedSlots[location][date].includes(timeSlot)) {
         console.log('本地數據發現衝突');
-        return true; // 本地已有衝突
+        return true;
       }
     }
     
-    // 2. 強制同步最新數據（多用戶環境下必須）
-    console.log('強制同步最新數據...');
-    const githubBookings = await fetchBookingsFromGitHub();
-    
-    if (githubBookings.length > 0) {
-      // 3. 使用智能合併處理所有數據
-      const { mergedEvents, mergedBookedSlots } = mergeDataByTimestamp(githubBookings);
-      
-      // 4. 檢查合併後的數據是否有衝突
-      const hasConflict = mergedBookedSlots[location] && 
-                         mergedBookedSlots[location][date] && 
-                         mergedBookedSlots[location][date].includes(timeSlot);
+    // 2. 檢查Google Sheets已預約日期（最準確的來源）
+    if (sheetsBookedDates[location]) {
+      const hasConflict = sheetsBookedDates[location].some(booking => 
+        booking.standardDate === date
+      );
       
       if (hasConflict) {
-        console.log('GitHub數據發現衝突，更新本地數據');
-        // 更新本地數據以反映最新狀態
-        allEvents.length = 0;
-        allEvents.push(...mergedEvents);
-        Object.assign(bookedSlots, mergedBookedSlots);
-        saveToLocalStorage();
-        renderCalendar();
+        console.log('Google Sheets數據發現衝突');
         return true;
       }
-      
-      // 5. 即使沒有衝突，也更新本地數據以保持同步
-      console.log('更新本地數據以保持同步');
-      allEvents.length = 0;
-      allEvents.push(...mergedEvents);
-      Object.assign(bookedSlots, mergedBookedSlots);
-      saveToLocalStorage();
-      renderCalendar();
+    }
+    
+    // 3. 檢查allEvents中的預約
+    const hasEventConflict = allEvents.some(event => {
+      let eventDate;
+      if (event.start instanceof Date) {
+        eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
+      } else {
+        eventDate = event.start.split('T')[0];
+      }
+      return eventDate === date && event.location === location;
+    });
+    
+    if (hasEventConflict) {
+      console.log('日曆事件發現衝突');
+      return true;
     }
     
     console.log('沒有發現衝突');
     return false;
   } catch (error) {
     console.error('檢查預約衝突失敗:', error);
-    // 多用戶環境下，如果檢查失敗，應該阻止預約以避免衝突
-    return true; // 改為返回true，更安全
+    // 如果檢查失敗，返回false讓用戶可以繼續預約
+    return false;
   }
 }
 
-// 即時數據同步系統（優化版本）
+// 即時數據同步系統（暫時禁用GitHub同步）
 function startPeriodicSync() {
-  let lastSyncTime = 0;
-  const SYNC_INTERVAL = 5000; // 5秒同步間隔（更頻繁）
-  const MIN_SYNC_INTERVAL = 2000; // 最小同步間隔2秒（更即時）
-  const FAST_SYNC_INTERVAL = 1000; // 快速同步間隔1秒（用戶操作後）
+  console.log('GitHub定期同步已禁用，系統完全依賴Google Sheets');
   
-  // 智能同步函數
-  async function smartSync(force = false, fast = false) {
-    const now = Date.now();
-    const minInterval = fast ? FAST_SYNC_INTERVAL : MIN_SYNC_INTERVAL;
-    
-    // 如果不是強制同步且距離上次同步時間太短，則跳過
-    if (!force && (now - lastSyncTime) < minInterval) {
-      console.log('跳過同步：距離上次同步時間太短');
-      return;
-    }
-    
-    lastSyncTime = now;
-    showSyncStatus('同步中...', 'default');
-    await syncWithGitHub();
-  }
+  // 暫時禁用所有GitHub同步，避免401錯誤
+  // 系統主要依賴Google Sheets運作
   
-  // 定期同步（更頻繁）
-  setInterval(() => {
-    smartSync();
-  }, SYNC_INTERVAL);
+  // let lastSyncTime = 0;
+  // const SYNC_INTERVAL = 60000;
+  // const MIN_SYNC_INTERVAL = 30000;
+  // const FAST_SYNC_INTERVAL = 5000;
   
-  // 頁面可見性變化時立即同步
-  document.addEventListener('visibilitychange', async () => {
-    if (!document.hidden) {
-      await smartSync(true, true); // 強制快速同步
-    }
-  });
+  // async function smartSync(force = false, fast = false) {
+  //   const now = Date.now();
+  //   const minInterval = fast ? FAST_SYNC_INTERVAL : MIN_SYNC_INTERVAL;
+  //   
+  //   if (!force && (now - lastSyncTime) < minInterval) {
+  //     console.log('跳過GitHub同步：距離上次同步時間太短');
+  //     return;
+  //   }
+  //   
+  //   lastSyncTime = now;
+  //   showSyncStatus('同步中...', 'default');
+  //   await syncWithGitHub();
+  // }
   
-  // 用戶操作後快速同步
-  let syncTimeout;
-  document.addEventListener('click', () => {
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => {
-      smartSync(false, true); // 快速同步
-    }, 1000); // 1秒後快速同步
-  });
+  // setInterval(() => {
+  //   smartSync();
+  // }, SYNC_INTERVAL);
   
-  // 表單提交後立即同步
-  document.addEventListener('submit', () => {
-    setTimeout(() => {
-      smartSync(true, true); // 強制快速同步
-    }, 500);
-  });
+  // document.addEventListener('visibilitychange', async () => {
+  //   if (!document.hidden) {
+  //     await smartSync(true, true);
+  //   }
+  // });
   
-  // 窗口焦點時立即同步
-  window.addEventListener('focus', () => {
-    smartSync(true, true); // 強制快速同步
-  });
+  // 禁用用戶點擊觸發同步（避免過於頻繁）
+  // let syncTimeout;
+  // document.addEventListener('click', () => {
+  //   clearTimeout(syncTimeout);
+  //   syncTimeout = setTimeout(() => {
+  //     smartSync(false, true); // 快速同步
+  //   }, 1000); // 1秒後快速同步
+  // });
   
-  // 網絡狀態變化時同步
-  window.addEventListener('online', () => {
-    smartSync(true, true); // 強制快速同步
-  });
+  // 禁用表單提交觸發同步（已在提交成功後手動觸發）
+  // document.addEventListener('submit', () => {
+  //   setTimeout(() => {
+  //     smartSync(true, true); // 強制快速同步
+  //   }, 500);
+  // });
+  
+  // GitHub同步已禁用
+  // let lastFocusSync = 0;
+  // window.addEventListener('focus', () => {
+  //   const now = Date.now();
+  //   if (now - lastFocusSync > 60000) {
+  //     lastFocusSync = now;
+  //     smartSync(true, true);
+  //   }
+  // });
+  
+  // window.addEventListener('online', () => {
+  //   smartSync(true, true);
+  // });
   
   // 添加手動同步功能
   window.manualSync = async function() {
@@ -4309,26 +4590,26 @@ function startPeriodicSync() {
     }
   };
   
-  // 即時數據監聽器（模擬WebSocket效果）
-  let lastDataHash = '';
-  async function checkForDataChanges() {
-    try {
-      // 獲取當前數據的哈希值（使用簡單的字符串長度和內容檢查）
-      const currentData = JSON.stringify({ allEvents, bookedSlots });
-      const currentHash = currentData.length + '_' + currentData.slice(0, 50); // 簡單哈希
-      
-      if (currentHash !== lastDataHash) {
-        lastDataHash = currentHash;
-        // 數據有變化，觸發快速同步
-        await smartSync(false, true);
-      }
-    } catch (error) {
-      console.error('數據變化檢測失敗:', error);
-    }
-  }
-  
-  // 每2秒檢查一次數據變化
-  setInterval(checkForDataChanges, 2000);
+  // 即時數據監聽器（已禁用，避免無限循環）
+  // let lastDataHash = '';
+  // async function checkForDataChanges() {
+  //   try {
+  //     // 獲取當前數據的哈希值（使用簡單的字符串長度和內容檢查）
+  //     const currentData = JSON.stringify({ allEvents, bookedSlots });
+  //     const currentHash = currentData.length + '_' + currentData.slice(0, 50); // 簡單哈希
+  //     
+  //     if (currentHash !== lastDataHash) {
+  //       lastDataHash = currentHash;
+  //       // 數據有變化，觸發快速同步
+  //       await smartSync(false, true);
+  //     }
+  //   } catch (error) {
+  //     console.error('數據變化檢測失敗:', error);
+  //   }
+  // }
+  // 
+  // // 每2秒檢查一次數據變化
+  // setInterval(checkForDataChanges, 2000);
   
   // 監聽其他頁籤的數據變化（使用localStorage事件）
   window.addEventListener('storage', (e) => {
@@ -4524,8 +4805,12 @@ function renderCalendar() {
           const paymentStatus = document.createElement('div');
           paymentStatus.className = 'payment-status';
           
-          // 檢查付款狀態
-          if (event.payment === '已付款') {
+          // 日誌：診斷付款狀態
+          console.log(`📊 付款狀態檢查 - 餐車: ${event.title}, payment: "${event.payment}", bookedStatus: "${event.bookedStatus}"`);
+          
+          // 檢查付款狀態（包含「已付款」和「己繳款」）
+          if (event.payment === '已付款' || event.payment === '己繳款') {
+            console.log('  ✅ 已付款 - 隱藏倒計時');
             paymentStatus.innerHTML = '<span class="paid">✓ 已付款</span>';
             paymentStatus.classList.add('paid-status');
           } 
@@ -4543,11 +4828,16 @@ function renderCalendar() {
           } 
           // 一般未付款狀態
           else {
+            console.log('  ⏰ 未付款 - 顯示倒計時');
             // 計算24小時倒計時
+            console.log('計算倒計時 - 時間戳記:', event.timestamp);
             const bookingTime = new Date(event.timestamp);
+            console.log('計算倒計時 - 預約時間:', bookingTime.toISOString());
             const deadline = new Date(bookingTime.getTime() + 24 * 60 * 60 * 1000); // 24小時後
+            console.log('計算倒計時 - 截止時間:', deadline.toISOString());
             const now = new Date();
             const timeLeft = deadline - now;
+            console.log('計算倒計時 - 剩餘毫秒:', timeLeft);
             
             if (timeLeft > 0) {
               needsPayment = true;
@@ -4842,71 +5132,62 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
   submitBtn.disabled = true;
   
-  // 並行提交到GitHub和Google Sheets
-  Promise.allSettled([
-    uploadToGitHub(formData),
-    submitToGoogleSheets(formData)
-  ])
-    .then((results) => {
-      const [githubResult, sheetsResult] = results;
-      
-      // 檢查GitHub提交結果（靜默處理，不顯示錯誤）
-      if (githubResult.status === 'fulfilled') {
-        console.log('GitHub上傳成功:', githubResult.value);
-        // 不顯示GitHub成功消息，避免干擾用戶
-        
-        // GitHub上傳成功後，立即觸發同步讓其他用戶看到
-        setTimeout(async () => {
-          try {
-            await syncWithGitHub();
-            console.log('提交後同步完成');
-          } catch (error) {
-            console.error('提交後同步失敗:', error);
-          }
-        }, 1000);
-      } else {
-        console.log('GitHub上傳失敗（靜默處理）:', githubResult.reason?.message);
-        // 不顯示GitHub錯誤彈窗
-        
-        // 即使GitHub失敗，也嘗試同步以獲取最新數據
-        setTimeout(async () => {
-          try {
-            await syncWithGitHub();
-            console.log('GitHub失敗後同步完成');
-          } catch (error) {
-            console.error('GitHub失敗後同步失敗:', error);
-          }
-        }, 2000);
-      }
+  // 只提交到Google Sheets（GitHub已禁用）
+  submitToGoogleSheets(formData)
+    .then((result) => {
+      console.log('Google Sheets提交結果:', result);
       
       // 檢查Google Sheets提交結果
-      if (sheetsResult.status === 'fulfilled') {
-        console.log('Google Sheets提交成功:', sheetsResult.value);
-        // Google Sheets提交成功後，幾秒後同步數據
+      if (result.success) {
+        console.log('Google Sheets提交成功:', result);
+        
+        // 顯示成功提示
+        showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
+        
+        // Google Sheets提交成功後，等待並多次同步數據
         setTimeout(async () => {
           try {
-            await fetchBookingsFromGoogleSheets();
-            mergeSheetsDataToCalendar();
-            console.log('Google Sheets同步完成');
-          } catch (error) {
-            console.error('Google Sheets同步失敗:', error);
-          }
+            console.log('⏱️ 等待2秒讓 Google Sheets 完成新增...');
+          } catch (error) {}
         }, 2000);
+        
+        setTimeout(async () => {
+          try {
+            console.log('報名後第1次同步（3秒後）...');
+            await fetchBookingsFromGoogleSheets();
+            await fetchBookedDatesFromSheets();
+            mergeSheetsDataToCalendar();
+            renderCalendar();
+            console.log('報名後第1次同步完成');
+          } catch (error) {
+            console.error('報名後第1次同步失敗:', error);
+          }
+        }, 3000);
+        
+        setTimeout(async () => {
+          try {
+            console.log('報名後第2次同步（5秒後）...');
+            await fetchBookingsFromGoogleSheets();
+            await fetchBookedDatesFromSheets();
+            mergeSheetsDataToCalendar();
+            renderCalendar();
+            console.log('報名後第2次同步完成 - 日曆應該已更新');
+          } catch (error) {
+            console.error('報名後第2次同步失敗:', error);
+          }
+        }, 5000);
       } else {
-        console.log('Google Sheets提交失敗（靜默處理）:', sheetsResult.reason?.message);
-        // 不顯示Google Sheets錯誤彈窗
+        // Google Sheets提交失敗
+        showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
+        
+        // 恢復按鈕狀態
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
       }
       
-      // 只要有一個成功就繼續處理
-      if (githubResult.status === 'fulfilled' || sheetsResult.status === 'fulfilled') {
-        // 根據成功情況顯示不同提示
-        if (sheetsResult.status === 'fulfilled') {
-          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
-        } else if (githubResult.status === 'fulfilled') {
-          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
-        } else {
-          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
-        }
+      // Google Sheets提交成功，繼續處理
+      if (result.success) {
         
         // 添加到事件列表（直接寫入日曆）
         const newEvent = {
@@ -4926,20 +5207,11 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         // 立即重新渲染日曆，顯示新預約
         renderCalendar();
         
-        // 更新已預約時段
-        if (!bookedSlots[loc]) {
-          bookedSlots[loc] = {};
-        }
-        if (!bookedSlots[loc][date]) {
-          bookedSlots[loc][date] = [];
-        }
-        bookedSlots[loc][date].push('14:00-20:00');
+        // 不再手動更新 bookedSlots，等待 Google Sheets 同步後自動重建
+        // bookedSlots 會在 mergeSheetsDataToCalendar 中從 Sheets 重建
         
-        // 保存到本地存儲
+        // 保存到本地存儲（只保存 allEvents）
         saveToLocalStorage();
-        
-        // 重新渲染行事曆
-        renderCalendar();
         
         // 重置表單
         document.getElementById('vendorName').value = '';
@@ -4965,23 +5237,18 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         // 顯示繳費彈窗
         showPaymentModal();
         
-        // 提交成功後立即觸發同步，讓其他用戶看到最新數據
-        setTimeout(async () => {
-          try {
-            await syncWithGitHub();
-            console.log('提交後同步完成');
-          } catch (error) {
-            console.error('提交後同步失敗:', error);
-          }
-        }, 500); // 0.5秒後同步，確保即時性
-      } else {
-        // 兩個都失敗
-        showToast('error', '提交失敗', '無法連接到服務器，請稍後再試或聯繫管理員');
-        
-        // 恢復按鈕狀態
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+        // GitHub同步已禁用，依賴Google Sheets自動同步
+        console.log('報名成功，Google Sheets將自動同步');
       }
+    })
+    .catch((error) => {
+      // Google Sheets提交失敗
+      console.error('提交失敗:', error);
+      showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
+      
+      // 恢復按鈕狀態
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     });
 });
 
@@ -5084,6 +5351,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 先從本地存儲載入數據
   const hasLocalData = loadFromLocalStorage();
   
+  // 強制清空 bookedSlots，只依賴 Google Sheets 的數據
+  console.log('清空 bookedSlots，等待從 Google Sheets 重建...');
+  Object.keys(bookedSlots).forEach(key => {
+    bookedSlots[key] = {};
+  });
+  
   // 初始化新行事曆
   initNewCalendar();
   
@@ -5103,15 +5376,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 頁面載入時顯示同步狀態
   showSyncStatus('系統初始化中...', 'default');
   
-  // 如果沒有本地數據，立即同步GitHub
-  if (!hasLocalData) {
-    await syncWithGitHub();
-  } else {
-    // 即使有本地數據，也進行一次同步以確保最新
-    setTimeout(async () => {
-      await syncWithGitHub();
-    }, 1000);
-  }
+  // GitHub同步已禁用，系統完全依賴Google Sheets
+  console.log('系統完全依賴Google Sheets，GitHub同步已禁用');
+  
+  // if (!hasLocalData) {
+  //   await syncWithGitHub();
+  // } else {
+  //   setTimeout(async () => {
+  //     await syncWithGitHub();
+  //   }, 1000);
+  // }
   
   // 初次載入時同步Google Sheets數據
   if (GOOGLE_SHEETS_CONFIG.enabled) {

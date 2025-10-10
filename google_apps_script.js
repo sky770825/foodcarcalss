@@ -1,6 +1,44 @@
 // Google Apps Script 代碼 - 用於接收餐車報名數據
 // 請將此代碼複製到 Google Apps Script 中
 
+// 日期格式化函數（ISO格式 → Google Sheets格式）
+function formatDateForSheet(isoDate) {
+  try {
+    // 檢查輸入是否有效
+    if (!isoDate) {
+      console.log('日期為空，返回空字符串');
+      return '';
+    }
+    
+    // 轉換為字符串
+    const dateStr = String(isoDate);
+    
+    // 如果已經是 Google Sheets 格式（例如：10月13日(星期一)），直接返回
+    if (dateStr.includes('月') && dateStr.includes('日')) {
+      return dateStr;
+    }
+    
+    // 解析 ISO 格式日期（例如：2025-10-13）
+    const date = new Date(dateStr);
+    
+    // 檢查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.log('無效的日期格式:', dateStr);
+      return dateStr;
+    }
+    
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const dayName = dayNames[date.getDay()];
+    
+    return `${month}月${day}日(${dayName})`;
+  } catch (error) {
+    console.error('日期格式化失敗:', error);
+    return isoDate || ''; // 返回原始值或空字符串
+  }
+}
+
 function doGet(e) {
   // 檢查是否有獲取數據請求
   if (e.parameter.action === 'getBookings') {
@@ -114,6 +152,11 @@ function doPost(e) {
       return takeoverBooking(data);
     }
     
+    // 檢查是否有刪除預約請求
+    if (data.action === 'delete') {
+      return deleteBooking(data);
+    }
+    
     // 直接處理報名數據
     return addBookingToSheet(data);
       
@@ -179,13 +222,16 @@ function addBookingToSheet(bookingData) {
       return locationMap[locationName] || locationName || '未提供';
     }
     
+    // 準備完整的時間戳記（ISO格式，包含時分秒）
+    const fullTimestamp = new Date().toISOString();
+    
     // 準備要添加的數據行，匹配您 Google Sheets 第7行的格式
     const rowData = [
-      new Date(), // A: 時間戳記
+      fullTimestamp, // A: 時間戳記（完整ISO格式，包含時分秒）
       bookingData.vendor || '未提供', // B: 您的店名
       bookingData.foodType || '未提供', // C: 餐車類型
       getLocationAddress(bookingData.location), // D: 預約場地 - 顯示完整地址
-      formatDate(bookingData.date), // E: 預約日期 - 格式化為「10月16日(星期四)」
+      formatDate(bookingData.date), // E: 預約日期 - 格式化為「10月16日(星期一)」
       '己排班', // F: 己排（會由公式自動處理）
       bookingData.fee || '600', // G: 場地費
       '尚未付款', // H: 款項結清
@@ -193,32 +239,27 @@ function addBookingToSheet(bookingData) {
     ];
     
     console.log('準備添加的數據:', rowData);
+    console.log('完整時間戳記:', fullTimestamp);
     
-    // 尋找第一個空行（從第10行開始，跳過標題和示例）
-    let targetRow = 10;
+    // 始終插入到最後一行的下一行（不覆蓋現有資料）
     const lastRow = sheet.getLastRow();
+    let targetRow;
     
-    // 檢查是否有空行可以插入
-    for (let row = 10; row <= lastRow; row++) {
-      const vendorValue = sheet.getRange(row, 2).getValue(); // B欄：店名
-      if (!vendorValue || vendorValue === '') {
-        targetRow = row;
-        break;
-      }
-    }
-    
-    // 如果沒有找到空行，則添加新行
-    if (targetRow > lastRow) {
+    if (lastRow < 1) {
+      // 工作表是空的，插入到第1行（標題行）
+      targetRow = 1;
+      console.log('工作表是空的，插入標題行到第1行');
+    } else {
+      // 插入到最後一行的下一行
       targetRow = lastRow + 1;
+      console.log(`工作表最後一行: ${lastRow}，新資料將插入到第 ${targetRow} 行`);
     }
-    
-    console.log(`將數據插入到第 ${targetRow} 行`);
     
     // 插入數據到指定行
     sheet.getRange(targetRow, 1, 1, 9).setValues([rowData]);
     console.log('數據已成功插入到工作表');
     
-    // 設定時間戳記欄位（A欄）為文字格式，防止自動轉換
+    // 設定時間戳記欄位（A欄）為文字格式，保留完整ISO字符串
     sheet.getRange(targetRow, 1).setNumberFormat('@');
     
     // 設定日期欄位（E欄）為文字格式，防止自動轉換，並置中對齊
@@ -227,6 +268,22 @@ function addBookingToSheet(bookingData) {
     
     // 移除自動調整列寬功能，保持原有表格格式
     // sheet.autoResizeColumns(1, 9);
+    
+    // 自動排序：按照預約日期（E欄）遞增排序
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        // 獲取資料範圍（從第2行開始，包含所有9欄）
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        
+        // 按照第5欄（E欄：預約日期）遞增排序
+        dataRange.sort({column: 5, ascending: true});
+        
+        console.log('✅ 已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響新增）:', sortError);
+    }
     
     return ContentService
       .createTextOutput(JSON.stringify({ 
@@ -338,8 +395,8 @@ function cancelBookingFromSheet(cancelData) {
     
     let foundRow = -1;
     
-    // 從第8行開始搜尋（跳過標題行）
-    for (let i = 7; i < values.length; i++) {
+    // 從第2行開始搜尋（跳過標題行）
+    for (let i = 1; i < values.length; i++) {
       const row = values[i];
       const vendor = row[1]; // B欄：您的店名
       const location = row[3]; // D欄：預約場地
@@ -731,9 +788,9 @@ function getAllBookings() {
     
     console.log('工作表名稱:', sheet.getName());
     
-    // 獲取所有數據（從第8行開始，跳過標題行）
+    // 獲取所有數據（從第2行開始，跳過標題行）
     const lastRow = sheet.getLastRow();
-    if (lastRow < 8) {
+    if (lastRow < 2) {
       console.log('沒有數據行');
       return ContentService
         .createTextOutput(JSON.stringify({ 
@@ -745,22 +802,43 @@ function getAllBookings() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    const dataRange = sheet.getRange(8, 1, lastRow - 7, 9); // 從第8行開始，讀取9列
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9); // 從第2行開始，讀取9列
     const values = dataRange.getValues();
     
+    console.log(`========== 讀取 Google Sheets ==========`);
+    console.log(`總行數: ${lastRow}, 數據從第2行開始`);
     console.log(`讀取了 ${values.length} 行數據`);
     
     // 轉換為JSON格式
     const bookings = [];
     for (let i = 0; i < values.length; i++) {
       const row = values[i];
+      const actualRow = i + 2; // 實際行號（從第2行開始）
       
-      // 跳過空行
-      if (!row[1] || row[1] === '') continue;
+      // 診斷：顯示每一行的B欄內容
+      console.log(`第${actualRow}行 - B欄(店名): "${row[1]}", D欄(場地): "${row[3]}", E欄(日期): "${row[4]}"`);
+      console.log(`  A欄(時間戳記): "${row[0]}", F欄(己排): "${row[5]}"`);
+
+      
+      // 跳過空行（B欄店名為空）
+      if (!row[1] || row[1] === '') {
+        console.log(`  → 跳過（店名為空）`);
+        continue;
+      }
+      
+      // 處理時間戳記（確保是完整的ISO格式）
+      let timestamp = '';
+      if (row[0]) {
+        if (row[0] instanceof Date) {
+          timestamp = row[0].toISOString();
+        } else {
+          timestamp = row[0].toString();
+        }
+      }
       
       const booking = {
-        timestamp: row[0] ? (row[0] instanceof Date ? row[0].toISOString() : row[0].toString()) : '',
-        vendor: row[1] || '',           // B: 您的店名
+        timestamp: timestamp,            // A: 時間戳記（完整ISO格式）
+        vendor: row[1] || '',            // B: 您的店名
         foodType: row[2] || '',          // C: 餐車類型
         location: row[3] || '',          // D: 預約場地
         date: row[4] || '',              // E: 預約日期
@@ -769,8 +847,14 @@ function getAllBookings() {
         fee: row[6] || '',               // G: 場地費
         payment: row[7] || '',           // H: 款項結清
         note: row[8] || '',              // I: 備註
-        rowNumber: i + 8                 // 記錄在第幾行，方便後續更新
+        rowNumber: actualRow             // 記錄在第幾行，方便後續更新（使用actualRow變數）
       };
+      
+      // 日誌：顯示時間戳記和付款狀態以便診斷
+      if (i < 3) { // 只顯示前3筆以避免日誌過多
+        console.log(`預約 #${i+1}: ${booking.vendor}, 時間戳記: ${timestamp}`);
+        console.log(`  → H欄(款項結清): "${booking.payment}", F欄(己排): "${booking.bookedStatus}"`);
+      }
       
       bookings.push(booking);
     }
@@ -892,7 +976,7 @@ function getBookedDates() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    const dataRange = sheet.getRange(8, 1, lastRow - 7, 9);
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
     
     // 按場地整理已預約的日期
@@ -979,7 +1063,7 @@ function takeoverBooking(takeoverData) {
       const targetLocation = takeoverData.location;
       const targetDate = formatDateForSheet(takeoverData.date);
       
-      for (let i = 7; i < data.length; i++) { // 從第8行開始（索引7）
+      for (let i = 1; i < data.length; i++) { // 從第2行開始（索引1）
         const row = data[i];
         const location = row[3]; // D欄：預約場地
         const date = row[4];     // E欄：預約日期
@@ -993,7 +1077,7 @@ function takeoverBooking(takeoverData) {
         }
       }
       
-      if (!rowNumber || rowNumber < 8) {
+      if (!rowNumber || rowNumber < 2) {
         return ContentService
           .createTextOutput(JSON.stringify({
             success: false,
@@ -1010,7 +1094,7 @@ function takeoverBooking(takeoverData) {
     console.log(`準備更新第${rowNumber}行: 新餐車=${takeoverData.vendor}, 原餐車=${takeoverData.originalVendor}`);
     
     // 更新行數據
-    sheet.getRange(rowNumber, 1).setValue(newTimestamp); // A: 時間戳記
+    sheet.getRange(rowNumber, 1).setValue(newTimestamp); // A: 時間戳記（ISO格式）
     sheet.getRange(rowNumber, 2).setValue(takeoverData.vendor); // B: 店名
     sheet.getRange(rowNumber, 3).setValue(takeoverData.foodType); // C: 餐車類型
     sheet.getRange(rowNumber, 4).setValue(takeoverData.location); // D: 預約場地
@@ -1020,7 +1104,22 @@ function takeoverBooking(takeoverData) {
     sheet.getRange(rowNumber, 8).setValue('尚未付款'); // H: 款項結清
     sheet.getRange(rowNumber, 9).setValue(`接手自: ${takeoverData.originalVendor}`); // I: 備註
     
-    console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}`);
+    // 設定時間戳記為文字格式，保留完整ISO字符串
+    sheet.getRange(rowNumber, 1).setNumberFormat('@');
+    
+    console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);
+    
+    // 自動排序：按照預約日期（E欄）遞增排序
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        dataRange.sort({column: 5, ascending: true});
+        console.log('✅ 已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響接手）:', sortError);
+    }
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -1038,6 +1137,106 @@ function takeoverBooking(takeoverData) {
       .createTextOutput(JSON.stringify({
         success: false,
         message: '接手預約失敗: ' + error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 刪除預約函數
+function deleteBooking(deleteData) {
+  try {
+    console.log('========== deleteBooking 開始 ==========');
+    console.log('收到的刪除數據:', JSON.stringify(deleteData));
+    
+    const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('Form_Responses1');
+    
+    if (!sheet) {
+      console.error('找不到工作表');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: false,
+          message: '找不到工作表 Form_Responses1'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    let rowNumber = deleteData.rowNumber;
+    console.log('提供的行號:', rowNumber);
+    
+    // 如果沒有提供行號，通過場地、日期和店名查找
+    if (!rowNumber || rowNumber < 8) {
+      console.log('未提供行號，開始搜尋匹配的預約...');
+      const data = sheet.getDataRange().getValues();
+      const targetLocation = deleteData.location;
+      const targetDate = formatDateForSheet(deleteData.date);
+      const targetVendor = deleteData.vendor;
+      
+      for (let i = 1; i < data.length; i++) { // 從第2行開始
+        const row = data[i];
+        const vendor = row[1];   // B欄：店名
+        const location = row[3]; // D欄：預約場地
+        const date = row[4];     // E欄：預約日期
+        
+        console.log(`檢查第${i+1}行: 店名=${vendor}, 場地=${location}, 日期=${date}`);
+        
+        if (vendor === targetVendor && location === targetLocation && date === targetDate) {
+          rowNumber = i + 1;
+          console.log(`找到匹配預約在第${rowNumber}行`);
+          break;
+        }
+      }
+      
+      if (!rowNumber || rowNumber < 2) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false,
+            message: '找不到對應的預約記錄'
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // 刪除該行
+    console.log(`準備刪除第${rowNumber}行`);
+    console.log(`刪除前工作表行數: ${sheet.getLastRow()}`);
+    
+    sheet.deleteRow(rowNumber);
+    
+    console.log(`刪除後工作表行數: ${sheet.getLastRow()}`);
+    console.log(`✅ 成功刪除第${rowNumber}行的預約`);
+    console.log('===================================');
+    
+    // 自動排序：按照預約日期（E欄）遞增排序
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        dataRange.sort({column: 5, ascending: true});
+        console.log('✅ 已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響刪除）:', sortError);
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        message: '成功刪除預約',
+        deletedRow: rowNumber,
+        vendor: deleteData.vendor,
+        location: deleteData.location,
+        date: deleteData.date
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('刪除預約失敗:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        message: '刪除預約失敗: ' + error.toString()
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
