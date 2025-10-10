@@ -17,8 +17,8 @@ a{text-decoration:none;color:inherit;}
 /* Hero 區塊 */
 .hero{
   background:linear-gradient(135deg,#FF8A00,#FF4B2B);
-  color:white;text-align:center;padding:80px 20px;
-  position:relative;overflow:hidden;min-height:40vh;
+  color:white;text-align:center;padding:50px 20px;
+  position:relative;overflow:hidden;min-height:30vh;
 }
 .hero::before{
   content:'';position:absolute;top:0;left:0;right:0;bottom:0;
@@ -30,25 +30,25 @@ a{text-decoration:none;color:inherit;}
   50%{transform:translateY(-10px) rotate(1deg);}
 }
 .hero-content{position:relative;z-index:1;}
-.hero h1{font-size:2.5rem;margin-bottom:15px;text-shadow:2px 2px 4px rgba(0,0,0,0.3);}
-.hero p{font-size:1.2rem;margin-bottom:30px;opacity:0.95;}
+.hero h1{font-size:2rem;margin-bottom:12px;text-shadow:2px 2px 4px rgba(0,0,0,0.3);}
+.hero p{font-size:1rem;margin-bottom:20px;opacity:0.95;}
 .hero button{
-  background:white;color:#FF4B2B;padding:15px 35px;
-  border:none;border-radius:30px;font-size:1.1rem;font-weight:bold;
+  background:white;color:#FF4B2B;padding:12px 28px;
+  border:none;border-radius:30px;font-size:1rem;font-weight:bold;
   cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,0.2);
 }
 .hero button:hover{background:#ffe1d1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
 
 /* 主內容 */
-.container{max-width:1200px;margin:50px auto;padding:0 20px;}
+.container{max-width:1200px;margin:30px auto;padding:0 20px;}
 .card{
-  background:white;padding:30px;border-radius:15px;
-  box-shadow:0 8px 25px rgba(0,0,0,.1);margin-bottom:40px;
+  background:white;padding:20px;border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);margin-bottom:25px;
   border:1px solid rgba(255,139,0,0.1);
 }
 h2.section-title{
-  margin-bottom:25px;text-align:center;color:#FF4B2B;
-  font-size:1.8rem;position:relative;
+  margin-bottom:18px;text-align:center;color:#FF4B2B;
+  font-size:1.5rem;position:relative;
 }
 h2.section-title::after{
   content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
@@ -58,13 +58,13 @@ h2.section-title::after{
 
 /* 場地分頁 */
 .location-tabs{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:10px;margin-bottom:25px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:8px;margin-bottom:18px;
 }
 .location-tab{
-  background:white;border:2px solid #e9ecef;border-radius:10px;
-  padding:15px;text-align:center;cursor:pointer;transition:all .3s;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
+  background:white;border:2px solid #e9ecef;border-radius:8px;
+  padding:10px;text-align:center;cursor:pointer;transition:all .3s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
   position:relative;overflow:hidden;
 }
 .location-tab::before{
@@ -83,27 +83,36 @@ h2.section-title::after{
   box-shadow:0 4px 15px rgba(255,75,43,0.4);
   transform:scale(1.02);
 }
-.location-tab i{font-size:1.5rem;margin-bottom:5px;}
-.location-tab span{font-weight:bold;font-size:1rem;}
-.location-tab small{font-size:0.8rem;opacity:0.8;}
+.location-tab i{font-size:1.3rem;margin-bottom:4px;}
+.location-tab span{font-weight:bold;font-size:0.9rem;}
+.location-tab small{font-size:0.75rem;opacity:0.8;}
 
 /* 場地資訊卡片 */
 .location-info{
   background:linear-gradient(135deg,#fff5f0,#ffe8e0);
-  border-left:4px solid #FF8A00;padding:20px;margin-bottom:25px;
+  border-left:4px solid #FF8A00;padding:15px;margin-bottom:18px;
   border-radius:8px;transition:all .3s;
 }
-.location-info h3{color:#FF4B2B;margin-bottom:15px;font-size:1.3rem;}
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;}
-.info-item{display:flex;align-items:center;gap:10px;}
-.info-item i{color:#FF8A00;width:20px;}
+.location-info h3{color:#FF4B2B;margin-bottom:12px;font-size:1.1rem;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+.info-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:0.9rem;
+}
+.info-item i{
+  color:#FF8A00;
+  width:18px;
+  font-size:0.95rem;
+}
 
 /* 表單樣式 */
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
-label{display:block;margin-top:20px;font-weight:bold;color:#555;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;}
+label{display:block;margin-top:15px;font-weight:bold;color:#555;font-size:0.95rem;}
 input,select,textarea{
-  width:100%;padding:12px;margin-top:8px;
-  border:2px solid #e9ecef;border-radius:8px;font-size:1rem;
+  width:100%;padding:10px;margin-top:6px;
+  border:2px solid #e9ecef;border-radius:6px;font-size:0.95rem;
   transition:border-color .3s,box-shadow .3s;
 }
 input:focus,select:focus,textarea:focus{
@@ -120,36 +129,30 @@ input:focus,select:focus,textarea:focus{
 }
 .date-info small{color:#1976d2;font-size:0.85rem;}
 
-/* 時段顯示樣式 */
-.fee-info {
-  grid-column: 1 / -1; /* 跨越所有列 */
-  margin-top: 10px;
+/* 場地費固定欄位樣式 */
+.fee-input-group {
+  position: relative;
 }
 
-.fee-display {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
-
-.fee-display i {
-  font-size: 1.2rem;
-  margin-right: 8px;
-}
-
-.fee-display span {
-  font-size: 1.1rem;
+.fee-input-group input {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  color: #2e7d32;
   font-weight: bold;
-  display: block;
-  margin-bottom: 4px;
+  cursor: not-allowed;
+  border: 2px solid #4caf50;
 }
 
-.fee-display small {
-  font-size: 0.9rem;
-  opacity: 0.9;
+.fee-input-group i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2e7d32;
+  font-size: 1rem;
+}
+
+.fee-input-group input {
+  padding-left: 35px;
 }
 
 /* 特殊提示樣式 */
@@ -167,7 +170,7 @@ input:focus,select:focus,textarea:focus{
 
 button.submit{
   background:linear-gradient(135deg,#FF4B2B,#FF8A00);color:white;border:none;
-  margin-top:30px;padding:15px 30px;font-size:1.1rem;font-weight:bold;
+  margin-top:20px;padding:12px 25px;font-size:1rem;font-weight:bold;
   border-radius:8px;cursor:pointer;transition:all .3s;
   box-shadow:0 4px 15px rgba(255,75,43,0.3);
 }
@@ -178,10 +181,22 @@ button.submit:hover{
 /* 注意事項 */
 .notice-box{
   background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;
-  padding:15px;margin-top:20px;
+  padding:12px 15px;margin-top:18px;
 }
-.notice-box h4{color:#856404;margin-bottom:10px;}
-.notice-box ul{color:#856404;padding-left:20px;}
+.notice-box h4{
+  color:#856404;
+  margin-bottom:8px;
+  font-size:1rem;
+}
+.notice-box ul{
+  color:#856404;
+  padding-left:20px;
+  font-size:0.9rem;
+  line-height:1.5;
+}
+.notice-box li{
+  margin-bottom:4px;
+}
 
 /* 日曆控制器 */
 .calendar-controls{
@@ -248,18 +263,18 @@ button.submit:hover{
 /* 新行事曆樣式 */
 .calendar-container {
   background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 12px;
 }
 
 .calendar-nav {
@@ -272,11 +287,11 @@ button.submit:hover{
   background: #FF8A00;
   border: none;
   color: white;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 14px;
+  font-size: 0.85rem;
 }
 
 .nav-btn:hover, .today-btn:hover {
@@ -293,10 +308,10 @@ button.submit:hover{
 }
 
 .month-display {
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: bold;
   color: #333;
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
 }
 
@@ -320,16 +335,16 @@ button.submit:hover{
 }
 
 .location-filter .filter-btn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 2px solid #e0e0e0;
-  border-radius: 20px;
+  border-radius: 16px;
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 13px;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
 }
 
@@ -361,17 +376,17 @@ button.submit:hover{
 
 .calendar-day-header {
   background: #f8f9fa;
-  padding: 12px 8px;
+  padding: 8px 6px;
   text-align: center;
   font-weight: bold;
   color: #333;
-  font-size: 14px;
+  font-size: 0.8rem;
 }
 
 .calendar-day {
   background: white;
-  min-height: 100px;
-  padding: 8px;
+  min-height: 85px;
+  padding: 6px;
   border: none;
   cursor: pointer;
   transition: all 0.3s;
@@ -438,7 +453,7 @@ button.submit:hover{
 .day-number {
   font-weight: bold;
   margin-bottom: 2px;
-  font-size: 16px;
+  font-size: 0.9rem;
   padding-top: 2px;
 }
 
@@ -451,9 +466,9 @@ button.submit:hover{
 .event-item {
   background: #FF8A00;
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.7rem;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -502,9 +517,9 @@ button.submit:hover{
 
 /* 場地縮圖 */
 .location-thumbnail{
-  width:100%;height:120px;object-fit:cover;
-  border-radius:8px;cursor:pointer;transition:transform .3s;
-  margin-top:10px;
+  width:100%;height:90px;object-fit:cover;
+  border-radius:6px;cursor:pointer;transition:transform .3s;
+  margin-top:6px;
 }
 .location-thumbnail:hover{transform:scale(1.05);}
 
@@ -898,6 +913,61 @@ button.submit:hover{
   box-shadow:0 6px 20px rgba(102,126,234,0.4);
 }
 
+/* 載入狀態指示器 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+  backdrop-filter: blur(3px);
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.loading-spinner {
+  background: white;
+  border-radius: 15px;
+  padding: 30px 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.loading-spinner .spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #FF8A00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+.loading-spinner p {
+  color: #333;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 /* 同步狀態指示器 - 已隱藏 */
 .sync-status{
   position:fixed;bottom:20px;right:20px;z-index:1000;
@@ -931,10 +1001,6 @@ button.submit:hover{
 .sync-status.error i{
   animation:none;
 }
-@keyframes spin{
-  from{transform:rotate(0deg);}
-  to{transform:rotate(360deg);}
-}
 
 
 /* Footer 連結 hover 效果 */
@@ -945,76 +1011,474 @@ footer a:hover {
 
 /* 手機友善 */
 @media(max-width:768px){
-  .hero h1{font-size:2rem;}
-  .hero p{font-size:1rem;}
-  .hero{padding:60px 20px;}
+  .hero h1{font-size:1.6rem;}
+  .hero p{font-size:0.9rem;}
+  .hero{padding:35px 15px;min-height:25vh;}
+  .hero button{padding:10px 20px;font-size:0.95rem;}
+  
+  .container{padding:0 10px;margin:20px auto;}
+  .card{padding:15px;margin-bottom:20px;border-radius:10px;}
+  
   .form-grid{grid-template-columns:1fr;gap:15px;}
   .info-grid{grid-template-columns:1fr;}
-  .calendar-controls{
-    flex-direction:column;align-items:stretch;gap:15px;
-  }
-  .month-navigation{justify-content:center;}
-  .filter-section{flex-direction:column;align-items:stretch;}
-  .location-filters{justify-content:center;}
-  .filter-btn{font-size:0.8rem;padding:5px 10px;}
-  .location-filter{flex-direction:column;align-items:stretch;gap:8px;}
-  .location-filter-buttons{justify-content:center;}
-  .location-filter .filter-btn{font-size:0.8rem;padding:6px 10px;}
-  .view-toggle{justify-content:center;}
   
-  /* 行事曆手機優化 */
-  .fc-daygrid-day{min-height:80px;}
-  .fc-daygrid-day-number{font-size:0.9rem;padding:4px;}
-  .fc-daygrid-event{font-size:10px;padding:1px 4px;}
-  .fc-toolbar-title{font-size:1.2rem;}
-  .fc-button{font-size:0.8rem;padding:6px 12px;}
+  /* 標題優化 */
+  h2.section-title{font-size:1.3rem;margin-bottom:15px;}
+  h2.section-title::after{width:50px;height:2px;}
+  
+  /* 場地分頁手機優化 - 改為2列網格 */
+  .location-tabs{
+    grid-template-columns:repeat(2,1fr);
+    gap:6px;
+  }
+  .location-tab{
+    padding:6px;
+    min-height:auto;
+  }
+  .location-tab i{font-size:1.1rem;margin-bottom:2px;}
+  .location-tab span{font-size:0.8rem;}
+  .location-tab small{display:none;} /* 手機版隱藏地址 */
+  .location-thumbnail{height:50px;margin-top:2px;border-radius:4px;}
+  
+  /* 場地資訊手機優化 */
+  .location-info{padding:12px;}
+  .location-info h3{font-size:1rem;margin-bottom:8px;}
+  .info-item{font-size:0.85rem;gap:8px;}
+  .info-item i{font-size:0.9rem;}
+  .special-notice{padding:8px;font-size:0.8rem;}
+  
+  /* 新日曆系統手機優化 */
+  .calendar-container{padding:12px;border-radius:8px;}
+  
+  .calendar-header{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+  }
+  
+  .calendar-nav{
+    justify-content:center;
+    gap:6px;
+  }
+  
+  .nav-btn,.today-btn{
+    padding:6px 8px;
+    font-size:0.8rem;
+    min-width:32px;
+    height:32px;
+  }
+  
+  .month-display{
+    font-size:1rem;
+    min-width:90px;
+  }
+  
+  /* 場地篩選按鈕 - 可滾動水平列表 */
+  .location-filter{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  
+  .location-filter label{
+    font-size:0.85rem;
+    text-align:center;
+    margin:0;
+  }
+  
+  .location-filter-buttons{
+    display:flex;
+    overflow-x:auto;
+    gap:5px;
+    padding:3px 0;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; /* Firefox */
+  }
+  
+  .location-filter-buttons::-webkit-scrollbar{
+    display:none; /* Chrome/Safari */
+  }
+  
+  .location-filter .filter-btn{
+    font-size:0.7rem;
+    padding:5px 8px;
+    white-space:nowrap;
+    flex-shrink:0;
+    border-radius:12px;
+  }
+  
+  .location-filter .filter-btn i{
+    font-size:0.65rem;
+  }
+  
+  /* 日曆網格手機優化 - 緊湊但清晰 */
+  .calendar-grid{
+    gap:1px;
+    font-size:0.8rem;
+    border-radius:6px;
+  }
+  
+  .calendar-day-header{
+    padding:6px 2px;
+    font-size:0.7rem;
+  }
+  
+  .calendar-day{
+    min-height:70px;
+    padding:3px 2px;
+  }
+  
+  .day-number{
+    font-size:0.85rem;
+    padding-top:0;
+    margin-bottom:1px;
+  }
+  
+  .event-item{
+    font-size:0.6rem;
+    padding:2px 3px;
+    min-height:16px;
+    line-height:1.1;
+    border-radius:2px;
+  }
+  
+  /* 付款狀態手機優化 - 更小更精簡 */
+  .payment-status{
+    top:4px;
+    font-size:0.55rem;
+  }
+  
+  .payment-status span{
+    font-size:0.5rem;
+    padding:1px 2px;
+  }
+  
+  /* 按鈕手機優化 - 確保44x44觸控區域 */
+  .cancel-btn{
+    width:20px;
+    height:20px;
+    font-size:10px;
+    top:-3px;
+    right:-3px;
+  }
+  
+  .takeover-btn,.calendar-payment-btn{
+    width:18px;
+    height:18px;
+    font-size:9px;
+    top:-3px;
+    left:-3px;
+  }
+  
+  /* 特殊標記手機優化 */
+  .holiday-badge{
+    font-size:0.55rem;
+    padding:1px 3px;
+    margin-top:1px;
+  }
   
   /* 表單手機優化 */
-  .form-group{margin-bottom:15px;}
-  .form-group label{font-size:0.9rem;margin-bottom:5px;}
-  .form-group input,.form-group select,.form-group textarea{
-    padding:10px;font-size:0.9rem;
+  label{
+    font-size:0.9rem;
+    margin-top:12px;
   }
-  .btn{width:100%;padding:12px;font-size:1rem;}
+  label i{
+    font-size:0.85rem;
+  }
   
-  /* 場地卡片手機優化 */
-  .location-tab{flex-direction:column;text-align:center;padding:10px;}
-  .location-tab span{font-size:0.9rem;}
-  .location-tab small{font-size:0.7rem;}
-  .location-thumbnail{height:80px;margin-top:5px;}
+  input,select,textarea{
+    padding:9px;
+    font-size:0.9rem;
+    border-radius:6px;
+  }
   
-  /* 繳費彈窗手機優化 */
-  .payment-modal-content{width:95%;max-width:none;}
-  .payment-body{padding:20px;}
-  .payment-btn{padding:12px 15px;font-size:1rem;}
-  .payment-btn i{font-size:1.3rem;}
+  button.submit{
+    padding:12px 20px;
+    font-size:1rem;
+    margin-top:20px;
+    width:100%;
+  }
   
-  /* 銀行轉帳彈窗手機優化 */
-  .bank-modal-content{width:95%;max-width:none;}
-  .bank-body{padding:20px;}
-  .bank-item{flex-direction:column;align-items:flex-start;gap:5px;}
-  .bank-item label{min-width:auto;margin-bottom:5px;}
+  /* 提示訊息手機優化 */
+  .notice-box{
+    padding:10px;
+    font-size:0.85rem;
+    border-radius:6px;
+    margin-top:15px;
+  }
+  .notice-box h4{
+    font-size:0.95rem;
+    margin-bottom:8px;
+  }
+  .notice-box ul{
+    font-size:0.8rem;
+    line-height:1.4;
+    padding-left:18px;
+  }
+  .notice-box li{
+    margin-bottom:5px;
+  }
+  
+  .special-notice{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .special-notice i{
+    font-size:0.9rem;
+  }
+  .special-notice span{
+    font-size:0.8rem;
+  }
+  
+  /* 所有彈窗統一優化 */
+  .payment-modal-content,
+  .bank-modal-content,
+  .cancel-modal-content,
+  .password-modal-content{
+    width:96%;
+    max-width:none;
+    max-height:85vh;
+  }
+  
+  /* 彈窗標題 */
+  .payment-header,
+  .bank-header,
+  .cancel-header,
+  .password-header{
+    padding:15px !important;
+  }
+  
+  .payment-header h3,
+  .bank-header h3,
+  .cancel-header h3,
+  .password-header h3{
+    font-size:1.1rem !important;
+  }
+  
+  /* 彈窗內容 */
+  .payment-body,
+  .bank-body,
+  .cancel-body,
+  .password-body{
+    padding:18px !important;
+  }
+  
+  /* 繳費按鈕 */
+  .payment-btn{
+    padding:12px 15px;
+    font-size:0.95rem;
+  }
+  .payment-btn i{
+    font-size:1.2rem;
+  }
+  
+  /* 銀行資訊 */
+  .bank-item{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    padding:8px;
+  }
+  .bank-item label{
+    min-width:auto;
+    margin:0 0 3px 0;
+    font-size:0.85rem;
+  }
   .account-number{width:100%;}
-  .account-number span{font-size:1rem;}
-  .copy-btn{padding:6px 10px;font-size:0.8rem;}
+  .account-number span{
+    font-size:0.95rem;
+    padding:8px;
+  }
+  .copy-btn{
+    padding:8px;
+    font-size:0.8rem;
+    width:100%;
+    margin-top:5px;
+  }
   
-  /* 取消預約彈窗手機優化 */
-  .cancel-modal-content{width:95%;max-width:none;}
-  .cancel-body{padding:20px;}
-  .booking-details{padding:15px;}
-  .detail-item{flex-direction:column;align-items:flex-start;gap:5px;}
-  .detail-item label{min-width:auto;margin-bottom:5px;}
-  .contact-support-btn,.password-cancel-btn{padding:12px 15px;font-size:1rem;}
+  /* 預約詳情 */
+  .booking-details{
+    padding:12px;
+    border-radius:6px;
+  }
+  .booking-details h4{
+    font-size:0.95rem;
+  }
+  .detail-item{
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+    padding:6px 0;
+  }
+  .detail-item label{
+    min-width:65px;
+    margin:0;
+    font-size:0.85rem;
+  }
+  .detail-item span{
+    font-size:0.9rem;
+  }
   
-  /* 密碼輸入彈窗手機優化 */
-  .password-modal-content{width:95%;max-width:none;}
-  .password-body{padding:20px;}
-  .password-input-group{flex-direction:column;gap:10px;}
-  .password-submit-btn{width:100%;justify-content:center;}
+  /* 操作按鈕 */
+  .contact-support-btn,
+  .password-cancel-btn{
+    padding:12px 15px;
+    font-size:0.95rem;
+  }
+  
+  /* 密碼輸入 */
+  .password-input-group{
+    flex-direction:column;
+    gap:10px;
+  }
+  .password-input-group input{
+    padding:12px;
+    padding-left:40px;
+    font-size:0.95rem;
+    height:45px;
+  }
+  .password-submit-btn{
+    width:100%;
+    justify-content:center;
+    padding:12px;
+    font-size:1rem;
+    height:45px;
+  }
+  
+  /* 逾期接手/排班釋出彈窗 */
+  #takeoverModal .payment-body,
+  #transferModal .password-body{
+    padding:15px !important;
+  }
+  #takeoverModal label,
+  #transferModal label{
+    margin-top:8px;
+    font-size:0.85rem;
+  }
+  #takeoverModal input,
+  #takeoverModal select,
+  #transferModal input,
+  #transferModal select{
+    font-size:0.9rem;
+    padding:8px;
+  }
+  
+  /* Toast 提示手機優化 */
+  .toast-container{
+    top:8px;
+    right:8px;
+    left:8px;
+  }
+  .toast{
+    min-width:auto;
+    max-width:100%;
+    padding:12px 15px;
+  }
+  .toast-header{
+    margin-bottom:4px;
+  }
+  .toast-icon{
+    font-size:1rem;
+  }
+  .toast-title{
+    font-size:0.9rem;
+  }
+  .toast-message{
+    font-size:0.8rem;
+    line-height:1.3;
+  }
   
   /* Footer 手機優化 */
-  footer{padding:20px 15px;margin-top:30px;}
-  footer p{font-size:0.85rem !important;}
+  footer{
+    padding:20px 12px;
+    margin-top:30px;
+  }
+  footer p{
+    font-size:0.8rem !important;
+    line-height:1.5;
+    margin-bottom:6px;
+  }
+  footer a{
+    display:inline-block;
+    margin:3px 0;
+  }
+  
+  /* 費用欄位手機優化 */
+  .fee-input-group input{
+    font-size:0.85rem;
+    padding:8px;
+    padding-left:35px;
+  }
+  .fee-input-group i{
+    font-size:0.9rem;
+    left:10px;
+  }
+  
+  /* 日期資訊手機優化 */
+  .date-info{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .date-info small{
+    font-size:0.75rem;
+  }
+  
+  /* 載入動畫手機優化 */
+  .loading-spinner{
+    padding:25px 30px;
+  }
+  .loading-spinner .spinner{
+    width:40px;
+    height:40px;
+    margin-bottom:12px;
+  }
+  .loading-spinner p{
+    font-size:0.9rem;
+  }
+  
+  /* 避免手機橫向滾動 */
+  body{
+    overflow-x:hidden;
+  }
+  .container{
+    max-width:100%;
+  }
+  
+  /* 確保所有文字可選擇（改善用戶體驗） */
+  *{
+    -webkit-tap-highlight-color:rgba(255,139,0,0.1);
+  }
+}
+
+/* 極小螢幕優化（320px-480px）*/
+@media(max-width:480px){
+  .hero h1{font-size:1.4rem;}
+  .hero p{font-size:0.85rem;}
+  .hero{padding:30px 12px;min-height:22vh;}
+  
+  .container{padding:0 8px;margin:15px auto;}
+  .card{padding:12px;margin-bottom:15px;}
+  
+  h2.section-title{font-size:1.2rem;margin-bottom:12px;}
+  
+  .location-tab i{font-size:1rem;}
+  .location-tab span{font-size:0.75rem;}
+  .location-thumbnail{height:45px;}
+  
+  .calendar-day{min-height:65px;}
+  .day-number{font-size:0.8rem;}
+  .event-item{font-size:0.55rem;padding:2px;}
+  
+  .payment-status span{font-size:0.48rem;}
+  
+  input,select,textarea{
+    padding:8px;
+    font-size:0.85rem;
+  }
+  
+  button.submit{
+    padding:11px 18px;
+    font-size:0.95rem;
+  }
 }
 </style>
 </head>
@@ -1025,17 +1489,66 @@ footer a:hover {
   <div class="hero-content">
     <h1>🚚 楊梅餐車排班報名</h1>
   <p>立即預約您的餐車出攤檔期，隨時查看最新排班日曆</p>
-  <button onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">
-      <i class="fas fa-calendar-plus"></i> 立即報名
+  <button onclick="document.querySelector('.calendar-container').scrollIntoView({behavior:'smooth'})">
+      <i class="fas fa-calendar-check"></i> 查看排班
   </button>
   </div>
 </section>
 
 <div class="container">
 
+  <!-- 排班行事曆 -->
+  <div class="card">
+  <h2 class="section-title">📅 排班行事曆</h2>
+    
+    <!-- 新的行事曆容器 -->
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <div class="calendar-nav">
+          <button id="prevMonth" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+          <span id="currentMonth" class="month-display">2025年10月</span>
+          <button id="nextMonth" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+          <button id="todayBtn" class="today-btn">今天</button>
+        </div>
+        <div class="location-filter">
+          <label><i class="fas fa-filter"></i> 篩選場地：</label>
+          <div class="location-filter-buttons">
+            <button class="filter-btn active" data-location="四維路59號">
+              <i class="fas fa-map-marker-alt"></i> 四維路59號
+            </button>
+            <button class="filter-btn" data-location="四維路60號">
+              <i class="fas fa-map-marker-alt"></i> 四維路60號
+            </button>
+            <button class="filter-btn" data-location="漢堡大亨">
+              <i class="fas fa-store"></i> 漢堡大亨
+            </button>
+            <button class="filter-btn" data-location="自由風">
+              <i class="fas fa-store"></i> 自由風
+            </button>
+            <button class="filter-btn" data-location="蔬蒔">
+              <i class="fas fa-leaf"></i> 蔬蒔
+            </button>
+            <button class="filter-btn" data-location="金正好吃">
+              <i class="fas fa-utensils"></i> 金正好吃
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 行事曆內容將由JavaScript生成 -->
+      </div>
+    </div>
+  </div>
+
   <!-- 場地選擇 -->
   <div class="card">
     <h2 class="section-title">📍 選擇場地</h2>
+    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px;">
+      <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+        <i class="fas fa-lightbulb"></i> 💡 <strong>小提示：</strong>您可以直接點擊上方日曆的空白日期快速預約，或在此選擇場地查看詳細資訊
+      </p>
+    </div>
     <div class="location-tabs">
       <button class="location-tab active" data-location="四維路59號">
         <i class="fas fa-map-marker-alt"></i>
@@ -1145,73 +1658,30 @@ footer a:hover {
       </select>
       </div>
       <div class="fee-info">
-        <div class="fee-display">
-          <i class="fas fa-dollar-sign"></i>
-          <span>場地費：600元/天</span>
-          <small>營業時段：14:00-20:00</small>
+        <label><i class="fas fa-dollar-sign"></i> 場地費</label>
+        <div class="fee-input-group">
+          <i class="fas fa-coins"></i>
+          <input type="text" value="600元/天 (14:00-20:00)" disabled readonly>
         </div>
       </div>
   </div>
     
-    <div class="notice-box">
+    <div class="notice-box" id="noticeBox">
       <h4><i class="fas fa-exclamation-triangle"></i> 重要注意事項</h4>
       <ul>
         <li>不供水、不供電，需自行清潔環境及垃圾處理</li>
         <li>禁止油炸落地攤，其他可以不限，禁煙霧太大</li>
         <li>禁止飲料及飲料車</li>
         <li>餐車高度限制，請特別注意</li>
-        <li>地點優勢：本路段生意最好的早餐店，超過十年以上老顧客母數大</li>
+        <li>房東很注重地板要記得鋪地墊</li>
+        <li>桶仔雞煙霧太大不行</li>
+        <li>發電機老式太吵不行</li>
       </ul>
     </div>
     
     <button class="submit" id="submitBtn">
       <i class="fas fa-paper-plane"></i> 送出報名
     </button>
-  </div>
-
-
-  <!-- 日曆區塊 -->
-  <div class="card">
-  <h2 class="section-title">📅 排班行事曆</h2>
-    
-    <!-- 新的行事曆容器 -->
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <div class="calendar-nav">
-          <button id="prevMonth" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-          <span id="currentMonth" class="month-display">2025年10月</span>
-          <button id="nextMonth" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-          <button id="todayBtn" class="today-btn">今天</button>
-        </div>
-        <div class="location-filter">
-          <label><i class="fas fa-filter"></i> 篩選場地：</label>
-          <div class="location-filter-buttons">
-            <button class="filter-btn active" data-location="四維路59號">
-              <i class="fas fa-map-marker-alt"></i> 四維路59號
-            </button>
-            <button class="filter-btn" data-location="四維路60號">
-              <i class="fas fa-map-marker-alt"></i> 四維路60號
-            </button>
-            <button class="filter-btn" data-location="漢堡大亨">
-              <i class="fas fa-store"></i> 漢堡大亨
-            </button>
-            <button class="filter-btn" data-location="自由風">
-              <i class="fas fa-store"></i> 自由風
-            </button>
-            <button class="filter-btn" data-location="蔬蒔">
-              <i class="fas fa-leaf"></i> 蔬蒔
-            </button>
-            <button class="filter-btn" data-location="金正好吃">
-              <i class="fas fa-utensils"></i> 金正好吃
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <div class="calendar-grid" id="calendarGrid">
-        <!-- 行事曆內容將由JavaScript生成 -->
-      </div>
-    </div>
   </div>
 
 </div>
@@ -1381,6 +1851,76 @@ footer a:hover {
   </div>
 </div>
 
+<!-- 排班釋出彈窗 -->
+<div id="transferModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 450px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
+      <h3><i class="fas fa-exchange-alt"></i> 排班釋出</h3>
+      <span class="modal-close" onclick="closeTransferModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px;">
+      <div class="transfer-info">
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px;">
+          <p style="margin: 0; color: #856404; font-size: 0.9rem; line-height: 1.5;">
+            <i class="fas fa-info-circle"></i> <strong>釋出說明：</strong>請先與接手餐車私下完成場租交易，確認無誤後再填寫此表單
+          </p>
+        </div>
+        
+        <div class="original-booking-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+          <h4 style="margin-bottom: 10px; color: #FF4B2B; font-size: 1rem;">原預約資訊</h4>
+          <div class="detail-item" style="margin-bottom: 8px;">
+            <label style="margin: 0;">原餐車：</label>
+            <span id="transferOriginalVendor" style="font-weight: bold; color: #dc3545;"></span>
+          </div>
+          <div class="detail-item" style="margin-bottom: 8px;">
+            <label style="margin: 0;">場地：</label>
+            <span id="transferLocation"></span>
+          </div>
+          <div class="detail-item">
+            <label style="margin: 0;">日期：</label>
+            <span id="transferDate"></span>
+          </div>
+        </div>
+        
+        <div class="transfer-form">
+          <h4 style="margin-bottom: 12px; color: #FF4B2B; font-size: 1rem;">接手餐車資訊</h4>
+          
+          <label style="margin-top: 10px; font-size: 0.9rem;">新店名 <span style="color: red;">*</span></label>
+          <input type="text" id="transferVendorName" placeholder="請輸入接手的餐車名稱" required>
+          
+          <label style="margin-top: 10px; font-size: 0.9rem;">餐車類型 <span style="color: red;">*</span></label>
+          <select id="transferFoodType" required>
+            <option value="">請選擇</option>
+            <option value="主食類">主食類</option>
+            <option value="甜點類">甜點類</option>
+            <option value="小點類">小點類</option>
+            <option value="中式餐點">中式餐點</option>
+            <option value="烤腿套餐">烤腿套餐</option>
+            <option value="甜品類">甜品類</option>
+            <option value="小吃類型">小吃類型</option>
+          </select>
+          
+          <label style="margin-top: 10px; font-size: 0.9rem;">換班密碼 <span style="color: red;">*</span></label>
+          <div style="position: relative;">
+            <i class="fas fa-key" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #FF8A00; font-size: 1rem;"></i>
+            <input type="password" id="transferPassword" placeholder="請輸入換班密碼" maxlength="20" style="padding-left: 40px;">
+          </div>
+          
+          <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 12px; margin-top: 15px;">
+            <p style="margin: 0; color: #1976d2; font-size: 0.85rem; line-height: 1.5;">
+              <i class="fas fa-exclamation-circle"></i> 釋出後將替換為新餐車資訊，原餐車需自行與接手方完成場租交易
+            </p>
+          </div>
+          
+          <button class="password-submit-btn" onclick="submitTransfer()" style="width: 100%; margin-top: 15px; background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
+            <i class="fas fa-exchange-alt"></i> 確認釋出換班
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 逾期接手彈窗 -->
 <div id="takeoverModal" class="payment-modal">
   <div class="payment-modal-content">
@@ -1418,8 +1958,11 @@ footer a:hover {
           </select>
           
           <div class="locked-info" style="margin-top: 8px;">
-            <label style="margin: 0;">場地費</label>
-            <input type="text" value="600元" disabled style="background: #e9ecef; cursor: not-allowed; margin-top: 4px;">
+            <label style="margin: 0;"><i class="fas fa-dollar-sign"></i> 場地費</label>
+            <div class="fee-input-group" style="margin-top: 4px;">
+              <i class="fas fa-coins"></i>
+              <input type="text" value="600元/天 (14:00-20:00)" disabled readonly style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; font-weight: bold; cursor: not-allowed; border: 2px solid #4caf50; padding-left: 35px;">
+            </div>
           </div>
           
           <div class="takeover-notice" style="padding: 8px; margin-top: 10px;">
@@ -1777,6 +2320,11 @@ footer a:hover {
 </style>
 
 <script>
+// 時間戳記格式化函數（只到秒數，不含毫秒）
+function formatTimestamp(date = new Date()) {
+  return date.toISOString().split('.')[0] + 'Z'; // 移除毫秒，保留Z
+}
+
 // 多場地規則配置
 const locationConfigs = {
   "四維路59號": {
@@ -1794,7 +2342,16 @@ const locationConfigs = {
       limit: "僅限1車，餐車高度限制",
       ban: "油炸落地攤、煙霧太大、飲料車",
       special: "整月都可排班"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "禁止油炸落地攤，其他可以不限，禁煙霧太大",
+      "禁止飲料及飲料車",
+      "餐車高度限制，請特別注意",
+      "房東很注重地板要記得鋪地墊",
+      "桶仔雞煙霧太大不行",
+      "發電機老式太吵不行"
+    ]
   },
   "四維路60號": {
     name: "楊梅區四維路60號",
@@ -1811,7 +2368,14 @@ const locationConfigs = {
       limit: "僅限1車",
       ban: "油炸落地攤、煙霧太大",
       special: "該場地週一~週三營業，國定假日休息"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "要靠左邊直停為主",
+      "使用面積較小的餐車可以橫放",
+      "落地攤也可以橫放",
+      "禁止油炸落地攤、煙霧太大"
+    ]
   },
   "漢堡大亨": {
     name: "漢堡大亨",
@@ -1825,10 +2389,17 @@ const locationConfigs = {
     info: {
       hours: "14:00-20:00",
       fee: "600元/天",
-      limit: "僅限1車，需配合店面營業",
+      limit: "僅限1車、不要把車開上磁磚",
       ban: "油煙霧太大、飲料車",
       special: "該場地週日休息"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "僅限1車，請勿把車開上磁磚",
+      "禁止油煙霧太大的餐車",
+      "禁止飲料車",
+      "需配合店面營業時間"
+    ]
   },
   "自由風": {
     name: "自由風",
@@ -1845,7 +2416,14 @@ const locationConfigs = {
       limit: "僅限1車，需配合店面營業",
       ban: "煙霧太大、飲料車",
       special: "週三週六不排"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "僅限1車，需配合店面營業",
+      "禁止煙霧太大的餐車",
+      "禁止飲料車",
+      "週三、週六不開放排班"
+    ]
   },
   "蔬蒔": {
     name: "蔬蒔",
@@ -1862,7 +2440,13 @@ const locationConfigs = {
       limit: "僅限1車，不要跟店面強碰商品",
       ban: "高糖飲料",
       special: "只有週三、週六可排班"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "僅限1車，請勿與店面商品強碰",
+      "只有週三、週六可排班",
+      "建議健康蔬食類型餐車"
+    ]
   },
   "金正好吃": {
     name: "金正好吃",
@@ -1879,7 +2463,14 @@ const locationConfigs = {
       limit: "僅限1車",
       ban: "煙霧太大、噪音過大",
       special: "該場地僅限週二營業"
-    }
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "僅限1車",
+      "禁止煙霧太大的餐車",
+      "禁止噪音過大的設備",
+      "僅限週二營業"
+    ]
   }
 };
 
@@ -1969,6 +2560,18 @@ function updateLocationInfo(location) {
       </div>
     </div>
   `;
+  
+  // 更新注意事項
+  const noticeBox = document.getElementById('noticeBox');
+  if (noticeBox && config.notices) {
+    const noticesList = config.notices.map(notice => `<li>${notice}</li>`).join('');
+    noticeBox.innerHTML = `
+      <h4><i class="fas fa-exclamation-triangle"></i> 重要注意事項</h4>
+      <ul>
+        ${noticesList}
+      </ul>
+    `;
+  }
 }
 
 // 2025年主要國定假日列表
@@ -2026,19 +2629,10 @@ function generateAvailableDates(location) {
       // 條件3：檢查是否為該場地的營業日
       if (!locationConfig.days.includes(dayOfWeek)) continue;
       
-      // 條件4：特別處理四維路60號的國定假日
+      // 條件4：特別處理四維路60號的國定假日（直接跳過，不可選擇）
       if (location === '四維路60號' && nationalHolidays2025.includes(dateStr)) {
-        // 不跳過國定假日，而是添加備註
-        const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-        const holidayName = getHolidayName(dateStr);
-        const displayDate = `${month}月${day}日(${dayNames[dayOfWeek]})`;
-        availableDates.push({
-          value: dateStr,
-          text: `${displayDate} - ${holidayName}國定假日`,
-          dayOfWeek: dayOfWeek,
-          isHoliday: true
-        });
-        continue; // 跳過後續處理，因為已經添加了
+        console.log(`四維路60號國定假日不可預約: ${dateStr} (${getHolidayName(dateStr)})`);
+        continue; // 國定假日直接跳過，不添加到可選日期
       }
       
       // 條件5：檢查日曆上是否已有餐車預約（包含本地和Google Sheets）
@@ -2134,6 +2728,185 @@ function closePasswordModal() {
   document.getElementById('passwordInput').value = '';
 }
 
+// 顯示排班釋出彈窗
+function showTransferModal(event, dateStr) {
+  console.log('========== 開啟排班釋出彈窗 ==========');
+  console.log('事件資訊:', event);
+  
+  // 填充原預約資訊
+  document.getElementById('transferOriginalVendor').textContent = event.title;
+  document.getElementById('transferLocation').textContent = event.location;
+  
+  // 格式化日期顯示
+  const date = new Date(dateStr);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const dayName = dayNames[date.getDay()];
+  const formattedDate = `${month}月${day}日(${dayName})`;
+  
+  document.getElementById('transferDate').textContent = formattedDate;
+  
+  // 儲存釋出資訊供後續使用
+  window.currentTransferEvent = {
+    originalEvent: event,
+    dateStr: dateStr,
+    formattedDate: formattedDate,
+    location: event.location,
+    rowNumber: event.rowNumber
+  };
+  
+  console.log('保存的釋出資訊:', window.currentTransferEvent);
+  
+  // 清空表單
+  document.getElementById('transferVendorName').value = '';
+  document.getElementById('transferFoodType').value = '';
+  document.getElementById('transferPassword').value = '';
+  
+  // 顯示彈窗
+  const modal = document.getElementById('transferModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// 關閉排班釋出彈窗
+function closeTransferModal() {
+  const modal = document.getElementById('transferModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+  
+  // 清空表單
+  document.getElementById('transferVendorName').value = '';
+  document.getElementById('transferFoodType').value = '';
+  document.getElementById('transferPassword').value = '';
+}
+
+// 提交排班釋出
+async function submitTransfer() {
+  const newVendor = document.getElementById('transferVendorName').value.trim();
+  const newFoodType = document.getElementById('transferFoodType').value;
+  const password = document.getElementById('transferPassword').value;
+  
+  // 驗證表單
+  if (!newVendor || !newFoodType || !password) {
+    showToast('error', '表單錯誤', '請完整填寫所有欄位');
+    return;
+  }
+  
+  // 驗證密碼
+  if (password !== 'sky36990') {
+    showToast('error', '密碼錯誤', '換班密碼不正確');
+    document.getElementById('transferPassword').value = '';
+    return;
+  }
+  
+  if (!window.currentTransferEvent) {
+    showToast('error', '錯誤', '無法獲取釋出資訊');
+    return;
+  }
+  
+  const transferData = window.currentTransferEvent;
+  
+  console.log('========== 釋出操作詳細資訊 ==========');
+  console.log('原事件資訊:', transferData.originalEvent);
+  console.log('原事件 rowNumber:', transferData.originalEvent.rowNumber);
+  console.log('transferData rowNumber:', transferData.rowNumber);
+  console.log('===================================');
+  
+  // 確保使用正確的行號
+  const targetRowNumber = transferData.originalEvent.rowNumber || transferData.rowNumber;
+  
+  // 準備釋出數據
+  const formData = {
+    vendor: newVendor,
+    foodType: newFoodType,
+    location: transferData.location,
+    date: transferData.dateStr,
+    timeSlot: '14:00-20:00',
+    fee: '600',
+    rowNumber: targetRowNumber, // 使用正確的行號
+    action: 'transfer', // 標記為釋出操作
+    originalVendor: transferData.originalEvent.title // 記錄原餐車
+  };
+  
+  console.log('========== 準備提交的釋出數據 ==========');
+  console.log('完整數據:', formData);
+  console.log('行號 rowNumber:', formData.rowNumber);
+  console.log('action:', formData.action);
+  console.log('===================================');
+  
+  // 顯示載入提示
+  showLoading('正在處理排班釋出...');
+  
+  try {
+    // 提交到Google Sheets
+    const result = await submitToGoogleSheets(formData);
+    
+    // 檢查提交結果
+    if (result.success) {
+      hideLoading();
+      showToast('success', '釋出成功！', `已將 ${transferData.originalEvent.title} 的班釋出給 ${newVendor}`);
+      
+      // 更新本地事件
+      const eventIndex = allEvents.findIndex(e => 
+        e === transferData.originalEvent ||
+        (e.location === transferData.location && e.start.split('T')[0] === transferData.dateStr)
+      );
+      
+      if (eventIndex >= 0) {
+        allEvents[eventIndex] = {
+          ...allEvents[eventIndex],
+          title: newVendor,
+          foodType: newFoodType,
+          payment: '已付款', // 保持已付款狀態
+          note: `轉出自: ${transferData.originalEvent.title}`
+        };
+      }
+      
+      // 重新渲染日曆
+      renderCalendar();
+      saveToLocalStorage();
+      
+      // 關閉彈窗
+      closeTransferModal();
+      
+      // 多次同步確認更新
+      setTimeout(async () => {
+        try {
+          console.log('釋出後第1次同步（2秒後）...');
+          await fetchBookingsFromGoogleSheets();
+          await fetchBookedDatesFromSheets();
+          mergeSheetsDataToCalendar();
+          renderCalendar();
+          console.log('釋出後第1次同步完成');
+        } catch (error) {
+          console.error('釋出後同步失敗:', error);
+        }
+      }, 2000);
+      
+      setTimeout(async () => {
+        try {
+          console.log('釋出後第2次同步（4秒後）...');
+          await fetchBookingsFromGoogleSheets();
+          mergeSheetsDataToCalendar();
+          renderCalendar();
+          console.log('釋出後第2次同步完成');
+        } catch (error) {
+          console.error('釋出後同步失敗:', error);
+        }
+      }, 4000);
+      
+    } else {
+      throw new Error('Google Sheets提交失敗');
+    }
+    
+  } catch (error) {
+    console.error('釋出失敗:', error);
+    hideLoading();
+    showToast('error', '釋出失敗', '無法完成釋出操作，請稍後再試');
+  }
+}
+
 // 顯示逾期接手彈窗
 function showTakeoverModal(event, dateStr) {
   console.log('========== 開啟接手彈窗 ==========');
@@ -2217,7 +2990,7 @@ async function submitTakeover() {
     date: takeoverData.dateStr,
     timeSlot: '14:00-20:00',
     fee: '600',
-    timestamp: new Date().toISOString(),
+    timestamp: formatTimestamp(),
     rowNumber: takeoverData.rowNumber || takeoverData.originalEvent.rowNumber, // 用於覆蓋更新
     action: 'takeover', // 標記為接手操作
     originalVendor: takeoverData.originalEvent.title // 記錄原餐車
@@ -2253,7 +3026,7 @@ async function submitTakeover() {
           ...allEvents[eventIndex],
           title: newVendor,
           foodType: newFoodType,
-          timestamp: new Date().toISOString(),
+          timestamp: formatTimestamp(),
           payment: '尚未付款',
           source: 'takeover' // 標記為接手的預約
         };
@@ -2353,8 +3126,8 @@ async function uploadCancellationToGitHub(event, dateStr) {
       location: event.location,
       date: dateStr,
       timeSlot: '14:00-20:00',
-      cancelledAt: new Date().toISOString(),
-      timestamp: new Date().toISOString(), // 添加時間戳用於排序
+      cancelledAt: formatTimestamp(),
+      timestamp: formatTimestamp(), // 添加時間戳用於排序
       uploadTime: Date.now(), // 毫秒級時間戳
       reason: 'user_cancellation'
     };
@@ -2434,7 +3207,7 @@ async function verifyPassword() {
     return;
   }
   
-  if (password !== '0825') {
+  if (password !== 'sky36990') {
     showToast('error', '密碼錯誤', '取消密碼不正確，無法取消預約');
     document.getElementById('passwordInput').value = '';
     return;
@@ -2644,7 +3417,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbwHy1hGN08NB0P28GseerZYtG3UKCmqIw_v09hCA6HjW3wRI3bjoLajwcA1qZPDmSqB/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycby0y5vRW3f3vQ7Yzg_1WCGwoZxJ0-MU_1WUBuJmAWlfhM1p58vmoaDqgcw1is8CuXy7/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -2718,7 +3491,7 @@ async function uploadToGitHub(data, retryCount = 0) {
     // 確保數據包含精確的時間戳
     const dataWithTimestamp = {
       ...data,
-      timestamp: new Date().toISOString(),
+      timestamp: formatTimestamp(),
       uploadTime: Date.now() // 毫秒級時間戳，用於精確排序
     };
     
@@ -2928,7 +3701,7 @@ async function updateRealtimeDataFile() {
     
     // 準備即時數據
     const realtimeData = {
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: formatTimestamp(),
       stats: stats,
       bookings: allBookings,
       summary: {
@@ -3163,7 +3936,7 @@ async function submitToGoogleSheets(formData) {
       timeSlot: formData.timeSlot || '14:00-20:00',
       foodType: formData.foodType,
       fee: formData.fee || '600',
-      timestamp: formData.timestamp || new Date().toISOString()
+      timestamp: formData.timestamp || formatTimestamp()
     };
     
     // 如果是接手操作，添加額外參數
@@ -3172,6 +3945,14 @@ async function submitToGoogleSheets(formData) {
       dataToSend.rowNumber = formData.rowNumber;
       dataToSend.originalVendor = formData.originalVendor;
       console.log('接手操作，行號:', formData.rowNumber);
+    }
+    
+    // 如果是排班釋出操作，添加額外參數
+    if (formData.action === 'transfer') {
+      dataToSend.action = 'transfer';
+      dataToSend.rowNumber = formData.rowNumber;
+      dataToSend.originalVendor = formData.originalVendor;
+      console.log('釋出操作，行號:', formData.rowNumber);
     }
     
     // 如果是刪除操作，添加額外參數
@@ -3248,7 +4029,7 @@ async function fetchBookingsFromGoogleSheets() {
     
     if (result.success && result.bookings) {
       sheetsBookings = result.bookings;
-      lastSheetsSyncTime = new Date().toISOString();
+      lastSheetsSyncTime = formatTimestamp();
       console.log(`成功獲取 ${sheetsBookings.length} 條預約記錄`);
       return sheetsBookings;
     } else {
@@ -3329,6 +4110,10 @@ function mergeSheetsDataToCalendar() {
         console.log(`更新付款狀態: ${existingEvent.payment} → ${booking.payment}`);
         hasChanges = true;
       }
+      if (existingEvent.bookedStatus !== booking.bookedStatus) {
+        console.log(`更新己排狀態: ${existingEvent.bookedStatus} → ${booking.bookedStatus}`);
+        hasChanges = true;
+      }
       if (existingEvent.note !== booking.note) {
         console.log(`更新備註: ${existingEvent.note} → ${booking.note}`);
         hasChanges = true;
@@ -3341,6 +4126,7 @@ function mergeSheetsDataToCalendar() {
           foodType: booking.foodType,
           fee: booking.fee,
           payment: booking.payment,
+          bookedStatus: booking.bookedStatus, // 新增：己排狀態
           note: booking.note,
           timestamp: booking.timestamp,
           rowNumber: booking.rowNumber,
@@ -3359,6 +4145,7 @@ function mergeSheetsDataToCalendar() {
         foodType: booking.foodType,
         fee: booking.fee,
         payment: booking.payment,
+        bookedStatus: booking.bookedStatus, // 新增：己排狀態
         note: booking.note,
         source: 'google_sheets', // 標記來源
         rowNumber: booking.rowNumber // 保存行號，用於後續更新
@@ -3572,7 +4359,7 @@ async function fetchBookedDatesFromSheets() {
     
     if (result.success && result.bookedDates) {
       sheetsBookedDates = result.bookedDates;
-      lastBookedDatesSyncTime = new Date().toISOString();
+      lastBookedDatesSyncTime = formatTimestamp();
       
       // 計算總預約數
       let totalBooked = 0;
@@ -3710,7 +4497,7 @@ document.getElementById('location').addEventListener('change', async () => {
     // 更新場地資訊顯示
     updateLocationInfo(loc);
     
-    // 重新渲染行事曆
+    // 立即重新渲染行事曆（不等待）
     renderCalendar();
   }
   
@@ -3731,24 +4518,13 @@ document.getElementById('location').addEventListener('change', async () => {
     return;
   }
   
-  // 先從Google Sheets獲取最新的已預約日期
-  if (GOOGLE_SHEETS_CONFIG.enabled && GOOGLE_SHEETS_CONFIG.webAppUrl !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-    try {
-      await fetchBookedDatesFromSheets();
-      console.log(`✅ 已更新場地 ${loc} 的已預約日期`);
-    } catch (error) {
-      console.error('獲取已預約日期失敗:', error);
-      // 即使失敗也繼續，使用本地數據
-    }
-  }
+  // 先用本地數據快速生成選項（立即響應）
+  const quickAvailableDates = generateAvailableDates(loc);
   
-  // 所有場地都使用下拉選單（此時會排除Sheets中已預約的日期）
-  const availableDates = generateAvailableDates(loc);
-  
-  if (availableDates.length > 0) {
-    // 更新選項
+  if (quickAvailableDates.length > 0) {
+    // 立即更新選項（使用本地數據）
     dateSelect.innerHTML = '<option value="">選擇可用日期</option>';
-    availableDates.forEach(date => {
+    quickAvailableDates.forEach(date => {
       const opt = document.createElement('option');
       opt.value = date.value;
       opt.textContent = date.text;
@@ -3765,6 +4541,35 @@ document.getElementById('location').addEventListener('change', async () => {
     }
   } else {
     dateInfo.innerHTML = '<small><i class="fas fa-exclamation-triangle"></i> 該場地近期無可用日期</small>';
+  }
+  
+  // 在背景從Google Sheets獲取最新數據並更新（異步，不阻塞UI）
+  if (GOOGLE_SHEETS_CONFIG.enabled && GOOGLE_SHEETS_CONFIG.webAppUrl !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    // 延遲執行，不阻塞UI
+    setTimeout(async () => {
+      try {
+        await fetchBookedDatesFromSheets();
+        console.log(`✅ 已更新場地 ${loc} 的已預約日期`);
+        
+        // 重新生成選項（使用最新數據）
+        const updatedAvailableDates = generateAvailableDates(loc);
+        
+        // 只有在選項有變化時才更新
+        if (JSON.stringify(updatedAvailableDates) !== JSON.stringify(quickAvailableDates)) {
+          dateSelect.innerHTML = '<option value="">選擇可用日期</option>';
+          updatedAvailableDates.forEach(date => {
+            const opt = document.createElement('option');
+            opt.value = date.value;
+            opt.textContent = date.text;
+            dateSelect.appendChild(opt);
+          });
+          console.log('📅 日期選項已更新（來自Google Sheets最新數據）');
+        }
+      } catch (error) {
+        console.error('背景獲取已預約日期失敗:', error);
+        // 失敗不影響，已有本地數據顯示
+      }
+    }, 100); // 延遲100ms執行，讓UI先響應
   }
 });
 
@@ -3805,7 +4610,7 @@ function saveToLocalStorage() {
     const data = {
       allEvents: allEvents,
       bookedSlots: bookedSlots,
-      lastUpdate: new Date().toISOString()
+      lastUpdate: formatTimestamp()
     };
     localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
     console.log('數據已保存到本地存儲');
@@ -4347,7 +5152,7 @@ function startPeriodicSync() {
         date: new Date().toISOString().split('T')[0],
         timeSlot: '14:00-20:00',
         fee: '600',
-        timestamp: new Date().toISOString(),
+        timestamp: formatTimestamp(),
         uploadTime: Date.now()
       };
       
@@ -4367,11 +5172,11 @@ function startPeriodicSync() {
       const testData = {
         vendor: '測試更新',
         location: '四維路60號',
-        date: new Date().toISOString(),
+        date: formatTimestamp().split('T')[0],
         timeSlot: '14:00-20:00',
         foodType: '測試類型',
         fee: '600',
-        timestamp: new Date().toISOString(),
+        timestamp: formatTimestamp(),
         uploadTime: Date.now()
       };
       
@@ -4529,7 +5334,7 @@ function startPeriodicSync() {
       console.log('測試4: 創建測試文件...');
       const testContent = JSON.stringify({
         test: true,
-        timestamp: new Date().toISOString(),
+        timestamp: formatTimestamp(),
         message: 'GitHub連接測試'
       }, null, 2);
       
@@ -4792,7 +5597,12 @@ function renderCalendar() {
         eventElement.textContent = event.title;
         eventElement.title = `${event.title} - ${event.location}`;
         eventElement.addEventListener('click', () => {
-          showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
+          // 如果是己付款的預約，顯示釋出選項
+          if (event.payment === '已付款' || event.payment === '己繳款') {
+            showTransferModal(event, dateStr);
+          } else {
+            showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
+          }
         });
         
         eventContainer.appendChild(eventElement);
@@ -4810,9 +5620,16 @@ function renderCalendar() {
           
           // 檢查付款狀態（包含「已付款」和「己繳款」）
           if (event.payment === '已付款' || event.payment === '己繳款') {
-            console.log('  ✅ 已付款 - 隱藏倒計時');
+            console.log('  ✅ 已付款 - 顯示可釋出');
             paymentStatus.innerHTML = '<span class="paid">✓ 已付款</span>';
             paymentStatus.classList.add('paid-status');
+            // 已付款的預約可以點擊釋出
+            paymentStatus.style.cursor = 'pointer';
+            paymentStatus.title = '點擊釋出排班';
+            paymentStatus.addEventListener('click', (e) => {
+              e.stopPropagation();
+              showTransferModal(event, dateStr);
+            });
           } 
           // 檢查是否為逾繳可排狀態（來自Google Sheets）
           else if (event.bookedStatus === '逾繳可排') {
@@ -4968,8 +5785,90 @@ function renderCalendar() {
       dayElement.appendChild(paymentStatusElement);
     }
     
+    // 為空白且可預約的日期添加點擊預約功能
+    const isEmptyDay = dayEvents.length === 0 || !dayEvents.some(e => e.location === currentFilter);
+    const isCurrentMonth = date.getMonth() === month;
+    const isFuture = dateForComparison >= todayForComparison;
+    const isOperating = !dayElement.classList.contains('non-operating');
+    
+    if (isEmptyDay && isCurrentMonth && isFuture && isOperating) {
+      dayElement.style.cursor = 'pointer';
+      dayElement.title = '點擊快速預約';
+      
+      // 添加hover效果
+      dayElement.addEventListener('mouseenter', () => {
+        if (!dayElement.classList.contains('booked') && !dayElement.classList.contains('non-operating')) {
+          dayElement.style.backgroundColor = '#fff5f0';
+        }
+      });
+      
+      dayElement.addEventListener('mouseleave', () => {
+        if (!dayElement.classList.contains('booked') && !dayElement.classList.contains('non-operating')) {
+          dayElement.style.backgroundColor = '';
+        }
+      });
+      
+      // 點擊事件 - 快速預約
+      dayElement.addEventListener('click', (e) => {
+        // 檢查是否點擊的是按鈕或事件
+        if (e.target.closest('.cancel-btn') || 
+            e.target.closest('.takeover-btn') || 
+            e.target.closest('.calendar-payment-btn') ||
+            e.target.closest('.event-item') ||
+            e.target.closest('.payment-status')) {
+          return; // 不處理按鈕和事件的點擊
+        }
+        
+        // 快速預約功能
+        quickBooking(dateStr, currentFilter);
+      });
+    }
+    
     calendarGrid.appendChild(dayElement);
   }
+}
+
+// 快速預約功能
+function quickBooking(dateStr, location) {
+  console.log('快速預約:', dateStr, location);
+  
+  // 自動填入場地
+  const locationSelect = document.getElementById('location');
+  locationSelect.value = location;
+  locationSelect.dispatchEvent(new Event('change'));
+  
+  // 等待場地選擇器更新後，再設定日期
+  setTimeout(() => {
+    const dateSelect = document.getElementById('availableDates');
+    
+    // 檢查日期是否在選項中
+    const dateOption = Array.from(dateSelect.options).find(opt => opt.value === dateStr);
+    
+    if (dateOption) {
+      dateSelect.value = dateStr;
+      
+      // 滾動到表單
+      const formElement = document.getElementById('form');
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+      // 高亮表單並提示
+      formElement.style.transition = 'all 0.3s ease';
+      formElement.style.boxShadow = '0 0 0 3px rgba(255, 139, 0, 0.3)';
+      
+      setTimeout(() => {
+        formElement.style.boxShadow = '';
+      }, 2000);
+      
+      showToast('success', '已自動填入', `場地：${location}\n日期：${dateStr}\n請填寫其他資訊後送出`);
+      
+      // 聚焦到餐車名稱輸入框
+      setTimeout(() => {
+        document.getElementById('vendorName').focus();
+      }, 500);
+    } else {
+      showToast('warning', '日期不可用', '該日期可能已被預約或不在可選範圍內，請重新選擇');
+    }
+  }, 300);
 }
 
 // 設定行事曆事件
@@ -5047,16 +5946,37 @@ function showToast(type, title, message) {
   }, 4000);
 }
 
+// 載入狀態控制
+function showLoading(message = '處理中...') {
+  const overlay = document.getElementById('loadingOverlay');
+  const messageEl = document.getElementById('loadingMessage');
+  messageEl.textContent = message;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+// 防止重複提交的標記
+let isSubmitting = false;
+
 // 表單提交
 document.getElementById('submitBtn').addEventListener('click', async () => {
   console.log('表單提交按鈕被點擊');
   
+  // 防止重複提交
+  if (isSubmitting) {
+    showToast('warning', '請稍候', '正在處理您的預約，請勿重複提交');
+    return;
+  }
+  
   const vendor = document.getElementById('vendorName').value.trim();
   const loc = document.getElementById('location').value;
-  
-  // 取得選擇的日期
   const date = document.getElementById('availableDates').value;
-  
   const foodType = document.getElementById('foodType').value;
   
   console.log('表單數據:', { vendor, loc, date, foodType });
@@ -5067,8 +5987,17 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     return;
   }
   
-  // 顯示載入提示
-  showToast('info', '檢查中...', '正在檢查預約狀態');
+  // 設置提交中狀態
+  isSubmitting = true;
+  
+  // 顯示載入狀態
+  showLoading('正在檢查預約狀態...');
+  
+  // 禁用提交按鈕
+  const submitBtn = document.getElementById('submitBtn');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+  submitBtn.disabled = true;
   
   // 多用戶環境下的預約鎖定機制
   const bookingKey = `${loc}_${date}_14:00-20:00`;
@@ -5076,7 +6005,11 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   
   // 檢查是否正在處理中
   if (sessionStorage.getItem(lockKey)) {
+    hideLoading();
     showToast('error', '處理中', '該時段正在處理中，請稍後再試');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    isSubmitting = false;
     return;
   }
   
@@ -5084,13 +6017,19 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   sessionStorage.setItem(lockKey, 'true');
   
   try {
-    // 檢查預約衝突（包含最新GitHub數據）
+    // 檢查預約衝突
     const hasConflict = await checkBookingConflict(loc, date, '14:00-20:00');
     
     if (hasConflict) {
+      hideLoading();
       showToast('error', '預約衝突', '該時段已被預約，請選擇其他日期或重新整理頁面查看最新狀態');
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      isSubmitting = false;
       return;
     }
+  } catch (error) {
+    console.error('檢查預約衝突失敗:', error);
   } finally {
     // 清除處理鎖定
     sessionStorage.removeItem(lockKey);
@@ -5108,34 +6047,35 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   });
   
   if (hasEvent) {
+    hideLoading();
     showToast('error', '日期衝突', '該日期已有餐車排班，請選擇其他日期');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    isSubmitting = false;
     return;
   }
   
-  // 顯示載入提示
-  showToast('info', '提交中...', '正在處理您的報名申請');
+  // 更新載入訊息
+  showLoading('正在提交預約...');
   
-  // 準備提交數據 - 簡化為主要欄位
+  // 準備提交數據
   const formData = {
-    vendor,           // 餐車名稱
-    foodType,         // 餐車類型
-    location: loc,    // 選擇場地
-    date,             // 選擇日期
-    timeSlot: '14:00-20:00',  // 固定營業時段
-    fee: '600',       // 固定場地費
-    timestamp: new Date().toISOString()
+    vendor,
+    foodType,
+    location: loc,
+    date,
+    timeSlot: '14:00-20:00',
+    fee: '600',
+    timestamp: formatTimestamp()
   };
-  
-  // 顯示載入狀態
-  const submitBtn = document.getElementById('submitBtn');
-  const originalText = submitBtn.innerHTML;
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
-  submitBtn.disabled = true;
   
   // 只提交到Google Sheets（GitHub已禁用）
   submitToGoogleSheets(formData)
     .then((result) => {
       console.log('Google Sheets提交結果:', result);
+      
+      // 隱藏載入狀態
+      hideLoading();
       
       // 檢查Google Sheets提交結果
       if (result.success) {
@@ -5178,11 +6118,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         }, 5000);
       } else {
         // Google Sheets提交失敗
+        hideLoading();
         showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
         
         // 恢復按鈕狀態
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        isSubmitting = false;
         return;
       }
       
@@ -5195,7 +6137,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
           start: date,
           location: loc,
           color: '#28a745',
-          timestamp: new Date().toISOString(),
+          timestamp: formatTimestamp(),
           foodType: foodType,
           fee: '600',
           payment: '尚未付款', // 初始付款狀態
@@ -5233,6 +6175,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         // 恢復按鈕狀態
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        isSubmitting = false;
         
         // 顯示繳費彈窗
         showPaymentModal();
@@ -5244,11 +6187,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     .catch((error) => {
       // Google Sheets提交失敗
       console.error('提交失敗:', error);
+      hideLoading();
       showToast('error', '提交失敗', '無法連接到Google Sheets，請稍後再試');
       
       // 恢復按鈕狀態
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
+      isSubmitting = false;
     });
 });
 
@@ -5446,6 +6391,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('bankModal').classList.remove('active');
       document.getElementById('cancelModal').classList.remove('active');
       document.getElementById('passwordModal').classList.remove('active');
+      document.getElementById('transferModal').classList.remove('active');
+      document.getElementById('takeoverModal').classList.remove('active');
       document.body.style.overflow = 'auto';
     }
   });
@@ -5484,11 +6431,33 @@ document.addEventListener('DOMContentLoaded', async function() {
       verifyPassword();
     }
   });
+  
+  // 點擊背景關閉排班釋出彈窗
+  document.getElementById('transferModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeTransferModal();
+    }
+  });
+  
+  // 釋出彈窗密碼輸入框Enter鍵支援
+  document.getElementById('transferPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      submitTransfer();
+    }
+  });
 });
 </script>
 
 <!-- Toast 容器 -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- 載入狀態指示器 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p id="loadingMessage">處理中...</p>
+  </div>
+</div>
 
 <!-- 同步狀態指示器 -->
 <div id="syncStatus" class="sync-status">
@@ -5497,15 +6466,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 </div>
 
 <!-- 版權警語 -->
-<footer style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 30px 20px; text-align: center; margin-top: 50px; border-top: 3px solid #FF8A00;">
+<footer style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 20px 15px; text-align: center; margin-top: 30px; border-top: 3px solid #FF8A00;">
   <div style="max-width: 1200px; margin: 0 auto;">
-    <p style="margin: 0 0 10px 0; font-size: 1rem;">
+    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">
       系統開發：<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: none; transition: all 0.3s;">快閃餐車小幫手</a> © 2025
     </p>
-    <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #ffc107;">
+    <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ffc107;">
       <i class="fas fa-exclamation-triangle"></i> 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
     </p>
-    <p style="margin: 0; font-size: 0.9rem;">
+    <p style="margin: 0; font-size: 0.8rem;">
       <a href="https://foodcarshop.pages.dev/guide" target="_blank" style="color: #17a2b8; font-weight: bold; text-decoration: underline; transition: all 0.3s;">
         <i class="fas fa-shopping-cart"></i> 客製化餐車預購系統(示範)
       </a>
