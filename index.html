@@ -401,11 +401,10 @@ button.submit:hover{
 .calendar-day.booked::after {
   content: '🚫';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  opacity: 0.7;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .calendar-day.non-operating {
@@ -438,8 +437,9 @@ button.submit:hover{
 
 .day-number {
   font-weight: bold;
-  margin-bottom: 4px;
-  font-size: 14px;
+  margin-bottom: 2px;
+  font-size: 16px;
+  padding-top: 2px;
 }
 
 .day-events {
@@ -929,6 +929,12 @@ button.submit:hover{
 }
 
 
+/* Footer 連結 hover 效果 */
+footer a:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
 /* 手機友善 */
 @media(max-width:768px){
   .hero h1{font-size:2rem;}
@@ -997,6 +1003,10 @@ button.submit:hover{
   .password-body{padding:20px;}
   .password-input-group{flex-direction:column;gap:10px;}
   .password-submit-btn{width:100%;justify-content:center;}
+  
+  /* Footer 手機優化 */
+  footer{padding:20px 15px;margin-top:30px;}
+  footer p{font-size:0.85rem !important;}
 }
 </style>
 </head>
@@ -1231,7 +1241,7 @@ button.submit:hover{
         </button>
       </div>
       <div class="payment-notice">
-        <p><i class="fas fa-info-circle"></i> 繳費完成後，請將截圖或訊息傳至官方帳號</p>
+        <p><i class="fas fa-info-circle"></i> 繳費完成後，請將截圖或訊息傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline; cursor: pointer;">官方小幫手</a></p>
       </div>
     </div>
   </div>
@@ -1269,9 +1279,9 @@ button.submit:hover{
         </div>
       </div>
       <div class="bank-notice">
-        <p><i class="fas fa-exclamation-triangle"></i> 轉帳完成後，請將轉帳截圖或訊息傳至官方帳號</p>
+        <p><i class="fas fa-exclamation-triangle"></i> 轉帳完成後，請將轉帳截圖或訊息傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></p>
         <button class="official-account-btn" onclick="openOfficialAccount()">
-          <i class="fab fa-line"></i> 傳送至官方帳號
+          <i class="fab fa-line"></i> 傳送至官方小幫手
         </button>
       </div>
     </div>
@@ -1310,7 +1320,7 @@ button.submit:hover{
       
       <div class="cancel-options">
         <div class="cancel-notice">
-          <p><i class="fas fa-exclamation-triangle"></i> 無法自行取消預約，請洽官方小幫手</p>
+          <p><i class="fas fa-exclamation-triangle"></i> 無法自行取消預約，請洽<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></p>
         </div>
         
         <div class="cancel-buttons">
@@ -1346,6 +1356,401 @@ button.submit:hover{
     </div>
   </div>
 </div>
+
+<!-- 逾期接手彈窗 -->
+<div id="takeoverModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <div class="payment-header">
+      <h3><i class="fas fa-hand-holding-usd"></i> 接手預約</h3>
+      <span class="modal-close" onclick="closeTakeoverModal()">&times;</span>
+    </div>
+    <div class="payment-body" style="padding: 20px;">
+      <div class="takeover-info">
+        <div class="alert-warning" style="padding: 8px 12px; margin-bottom: 12px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p style="font-size: 0.85rem;">此預約已逾期，可接手</p>
+        </div>
+        
+        <div class="original-booking-info" style="padding: 10px; margin-bottom: 12px;">
+          <h4 style="margin-bottom: 8px; font-size: 0.95rem;">原預約：<span id="originalVendor" style="color: #dc3545;"></span> | <span id="takeoverLocation"></span> | <span id="takeoverDate"></span></h4>
+        </div>
+        
+        <div class="takeover-form">
+          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">您的資訊</h4>
+          
+          <label style="margin-top: 8px;">店名 <span style="color: red;">*</span></label>
+          <input type="text" id="takeoverVendorName" placeholder="請輸入餐車名稱" required style="margin-top: 4px;">
+          
+          <label style="margin-top: 8px;">類型 <span style="color: red;">*</span></label>
+          <select id="takeoverFoodType" required style="margin-top: 4px;">
+            <option value="">請選擇</option>
+            <option value="主食類">主食類</option>
+            <option value="甜點類">甜點類</option>
+            <option value="小點類">小點類</option>
+            <option value="中式餐點">中式餐點</option>
+            <option value="烤腿套餐">烤腿套餐</option>
+            <option value="甜品類">甜品類</option>
+            <option value="小吃類型">小吃類型</option>
+          </select>
+          
+          <div class="locked-info" style="margin-top: 8px;">
+            <label style="margin: 0;">場地費</label>
+            <input type="text" value="600元" disabled style="background: #e9ecef; cursor: not-allowed; margin-top: 4px;">
+          </div>
+          
+          <div class="takeover-notice" style="padding: 8px; margin-top: 10px;">
+            <p style="font-size: 0.85rem;"><i class="fas fa-clock"></i> 接手後需在24小時內付款</p>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+            <button id="takeoverSubmitBtn" class="submit" onclick="submitTakeover()" style="background: linear-gradient(135deg,#ffc107,#ff9800); margin: 0;">
+              <i class="fas fa-hand-holding"></i> 確認接手
+            </button>
+            <button class="submit" onclick="closeTakeoverModal(); showPaymentModal();" style="background: linear-gradient(135deg,#28a745,#20c997); margin: 0;">
+              <i class="fas fa-credit-card"></i> 原班繳費
+            </button>
+          </div>
+          
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 10px; margin-top: 12px;">
+            <p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.4;">
+              <i class="fas fa-exclamation-triangle"></i> <strong>原班繳費提醒：</strong><span style="color: #dc3545; font-weight: bold;">遲繳</span>仍有可能<span style="color: #dc3545; font-weight: bold;">被其它人排班</span>，請補繳完快通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">小幫手</a>確認並更正
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 國定假日標記樣式 - 僅用於四維路60號 */
+.holiday-badge {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.calendar-day.holiday-date {
+  border: 2px solid #dc3545 !important;
+  background: linear-gradient(135deg, #fff5f5, #ffe6e6) !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* 付款狀態樣式 - 與日期數字水平對齊，可點擊 */
+.payment-status {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  text-align: center;
+  z-index: 5;
+  white-space: nowrap;
+  max-width: 100%;
+  line-height: 1.2;
+  background: transparent;
+  cursor: pointer; /* 可點擊 */
+}
+
+.payment-status span {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+  line-height: 1.3;
+  font-size: 0.65rem;
+  transition: all 0.3s;
+}
+
+.payment-status span:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.payment-status .paid {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.payment-status .unpaid {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.payment-status .unpaid.urgent {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  animation: blink 1s ease-in-out infinite;
+}
+
+.payment-status .unpaid.overdue {
+  background: #dc3545;
+  color: white;
+  border: 1px solid #bd2130;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* 日曆事件容器樣式調整 */
+.event-container {
+  position: relative;
+  padding: 2px;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 垂直置中 */
+  width: 100%;
+}
+
+.event-item {
+  cursor: pointer;
+  padding: 5px 7px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-align: center;
+  background: #FF8A00; /* 明確的背景色 */
+  color: white;
+  min-height: 22px;
+  /* 移除 margin-top，讓它自然置中 */
+}
+
+.event-item:hover {
+  opacity: 0.8;
+}
+
+/* 取消按鈕樣式優化 - 右上角 */
+.cancel-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  background: rgba(220, 53, 69, 0.95);
+  border: 1px solid white;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 16;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.cancel-btn:hover {
+  background: #dc3545;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 逾期接手按鈕 - 左上方（避免和取消按鈕重疊） */
+.takeover-btn {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 14px;
+  height: 14px;
+  background: #ffc107;
+  color: #000;
+  border: 1px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 15;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.takeover-btn:hover {
+  background: #ff9800;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 日曆繳費按鈕 - 左上方（綠色，避免和彈窗按鈕重複） */
+.calendar-payment-btn {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 14px;
+  height: 14px;
+  background: rgba(40, 167, 69, 0.95);
+  color: white;
+  border: 1px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 15;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.calendar-payment-btn:hover {
+  background: #28a745;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 逾期接手彈窗樣式 */
+.alert-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-warning i {
+  color: #856404;
+  font-size: 1.5rem;
+}
+
+.alert-warning p {
+  color: #856404;
+  font-weight: 600;
+  margin: 0;
+}
+
+.original-booking-info {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.original-booking-info h4 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item label {
+  font-weight: bold;
+  color: #6c757d;
+  min-width: 100px;
+}
+
+.detail-item span {
+  color: #212529;
+}
+
+.takeover-form {
+  margin-top: 20px;
+}
+
+.takeover-form h4 {
+  color: #FF4B2B;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.takeover-form label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #555;
+}
+
+.takeover-form input,
+.takeover-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.takeover-form input:focus,
+.takeover-form select:focus {
+  border-color: #FF8A00;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 139, 0, 0.1);
+}
+
+.locked-info {
+  margin-top: 15px;
+}
+
+.takeover-notice {
+  background: #e7f3ff;
+  border: 1px solid #2196f3;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 15px;
+}
+
+.takeover-notice p {
+  color: #1976d2;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.takeover-submit-btn {
+  width: 100%;
+  margin-top: 20px;
+}
+</style>
 
 <script>
 // 多場地規則配置
@@ -1455,81 +1860,14 @@ const locationConfigs = {
 };
 
 // 已預約的日期和時段 - 根據Google Sheets 10月份實際排班資料
+// 已預約時段 - 現在完全從 Google Sheets 動態載入
 const bookedSlots = {
-  "四維路59號": {
-    "2025-10-01": ["14:00-20:00"], // 向陽坡刈包
-    "2025-10-02": ["14:00-20:00"], // 餓食鬼美味販売所
-    "2025-10-03": ["14:00-20:00"], // 麥米食小米甜甜圈
-    "2025-10-07": ["14:00-20:00"], // 腸新
-    "2025-10-08": ["14:00-20:00"], // 滷拉拉冷滷味
-    "2025-10-09": ["14:00-20:00"], // 懶貓窯烤披薩
-    "2025-10-13": ["14:00-20:00"], // 好嗜拾光
-    "2025-10-14": ["14:00-20:00"], // 黃佳香碳烤玉米
-    "2025-10-15": ["14:00-20:00"], // 露露姐水果攤鹹水雞
-    "2025-10-16": ["14:00-20:00"], // 輪見輪愛-旗魚黑輪
-    "2025-10-17": ["14:00-20:00"], // 阿賢油飯
-    "2025-10-20": ["14:00-20:00"], // 寶嘉-烤肉飯/義大利麵
-    "2025-10-21": ["14:00-20:00"], // 沖天炮燒烤
-    "2025-10-22": ["14:00-20:00"], // 露露姐水果攤鹹水雞
-    "2025-10-23": ["14:00-20:00"], // 安德尼斯烘焙坊
-    "2025-10-24": ["14:00-20:00"], // 菲揚煙燻滷味
-    "2025-10-27": ["14:00-20:00"], // 麵線杜
-    "2025-10-28": ["14:00-20:00"], // 豆豆哥專業毛豆
-    "2025-10-29": ["14:00-20:00"], // 天昱坊_客家蔬食
-    "2025-10-30": ["14:00-20:00"], // 巧味豆乳雞
-    "2025-10-31": ["14:00-20:00"]  // 喵喵雞蛋糕、甘草芭樂、楊桃冰
-  },
-  "四維路60號": {
-    "2025-10-01": ["14:00-20:00"], // 旺喜屋
-    "2025-10-07": ["14:00-20:00"], // 鄭老爹肉燥乾麵
-    "2025-10-08": ["14:00-20:00"], // 眾品餚創意料理
-    "2025-10-13": ["14:00-20:00"], // 熊國王滷味
-    "2025-10-14": ["14:00-20:00"], // 阿騰火烤楓糖甜甜圈
-    "2025-10-15": ["14:00-20:00"], // 基隆三明治
-    "2025-10-20": ["14:00-20:00"], // Gogo烤飛雞
-    "2025-10-21": ["14:00-20:00"], // 宇宙雞蛋糕
-    "2025-10-22": ["14:00-20:00"], // 滷拉拉冷滷味
-    "2025-10-27": ["14:00-20:00"], // 旺喜屋
-    "2025-10-28": ["14:00-20:00"], // 港灣與貓韓式街邊小吃
-    "2025-10-29": ["14:00-20:00"]  // 天昱坊_客家蔬食
-  },
-  "漢堡大亨": {
-    "2025-10-01": ["14:00-20:00"], // 臧記排骨酥
-    "2025-10-02": ["14:00-20:00"], // 那個彩色地瓜球
-    "2025-10-07": ["14:00-20:00"], // 三寶爸排骨酥/涼拌海鮮
-    "2025-10-08": ["14:00-20:00"], // 臧記排骨酥
-    "2025-10-09": ["14:00-20:00"], // 極品鹽水雞
-    "2025-10-13": ["14:00-20:00"], // 芙玉軒
-    "2025-10-14": ["14:00-20:00"], // 小饅魚造型饅頭
-    "2025-10-15": ["14:00-20:00"], // 朱記川滷
-    "2025-10-16": ["14:00-20:00"], // 萬兆香萬巒豬腳
-    "2025-10-17": ["14:00-20:00"], // 酷媽胖卡
-    "2025-10-20": ["14:00-20:00"], // 蔬孟園
-    "2025-10-21": ["14:00-20:00"], // 饞了找我
-    "2025-10-22": ["14:00-20:00"], // 臧記排骨酥
-    "2025-10-23": ["14:00-20:00"], // 法國道地吉拿棒
-    "2025-10-24": ["14:00-20:00"], // 起來車輪肉蛋堡
-    "2025-10-27": ["14:00-20:00"], // 蒜老爹六蒜包
-    "2025-10-29": ["14:00-20:00"], // 臧記排骨酥
-    "2025-10-30": ["14:00-20:00"], // 諸大爺脆皮烤豬 + 鄭姐美食
-    "2025-10-31": ["14:00-20:00"]  // 羽朵甜小米甜甜圈
-  },
-  "自由風": {
-    "2025-10-02": ["14:00-20:00"], // 方人也鮮奶麻糬
-    "2025-10-07": ["14:00-20:00"], // 小鳥吃吐司
-    "2025-10-20": ["14:00-20:00"]  // A happiness手作奶酪
-  },
-  "蔬蒔": {
-    "2025-10-04": ["14:00-20:00"], // 台東放山豬石板烤肉
-    "2025-10-08": ["14:00-20:00"], // 台東放山豬石板烤肉
-    "2025-10-15": ["14:00-20:00"], // 抓餅工程行
-    "2025-10-18": ["14:00-20:00"], // 台東放山豬石板烤肉
-    "2025-10-22": ["14:00-20:00"], // 台東放山豬石板烤肉
-    "2025-10-29": ["14:00-20:00"]  // 滷拉拉冷滷味
-  },
-  "金正好吃": {
-    "2025-10-07": ["14:00-20:00"]  // 國家雞蜜 (週二)
-  }
+  "四維路59號": {},
+  "四維路60號": {},
+  "漢堡大亨": {},
+  "自由風": {},
+  "蔬蒔": {},
+  "金正好吃": {}
 };
 
 // 當前選中的場地
@@ -1679,7 +2017,7 @@ function generateAvailableDates(location) {
         continue; // 跳過後續處理，因為已經添加了
       }
       
-      // 條件5：檢查日曆上是否已有餐車預約
+      // 條件5：檢查日曆上是否已有餐車預約（包含本地和Google Sheets）
       const hasEvent = allEvents.some(event => {
         let eventDate;
         if (event.start instanceof Date) {
@@ -1690,13 +2028,17 @@ function generateAvailableDates(location) {
         return eventDate === dateStr && event.location === location;
       });
       
+      // 條件5.5：檢查Google Sheets中是否已有預約
+      const hasSheetBooking = sheetsBookedDates[location] && 
+        sheetsBookedDates[location].some(booking => booking.standardDate === dateStr);
+      
       // 條件6：時間控制檢查（獨立條件）- 顯示3個月
       const currentDay = today.getDate();
       const isTimeControlled = true; // 顯示3個月的排班日期
       // const isTimeControlled = checkTimeControl(year, month, currentYear, currentMonth, currentDay);
       
-      // 只有通過所有條件的日期才加入選項
-      if (!hasEvent && isTimeControlled) {
+      // 只有通過所有條件的日期才加入選項（排除本地預約和Sheets預約）
+      if (!hasEvent && !hasSheetBooking && isTimeControlled) {
         const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
         const displayDate = `${month}月${day}日(${dayNames[dayOfWeek]})`;
         availableDates.push({
@@ -1766,6 +2108,199 @@ function closePasswordModal() {
   
   // 清空密碼輸入框
   document.getElementById('passwordInput').value = '';
+}
+
+// 顯示逾期接手彈窗
+function showTakeoverModal(event, dateStr) {
+  console.log('========== 開啟接手彈窗 ==========');
+  console.log('事件資訊:', event);
+  console.log('事件rowNumber:', event.rowNumber);
+  console.log('事件source:', event.source);
+  
+  // 填充原預約資訊
+  document.getElementById('originalVendor').textContent = event.title;
+  document.getElementById('takeoverLocation').textContent = event.location;
+  
+  // 格式化日期顯示
+  const date = new Date(dateStr);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const dayName = dayNames[date.getDay()];
+  const formattedDate = `${month}月${day}日(${dayName})`;
+  
+  document.getElementById('takeoverDate').textContent = formattedDate;
+  
+  // 儲存接手資訊供後續使用
+  window.currentTakeoverEvent = {
+    originalEvent: event,
+    dateStr: dateStr,
+    formattedDate: formattedDate,
+    location: event.location,
+    rowNumber: event.rowNumber // 保存行號用於更新
+  };
+  
+  console.log('保存的接手資訊:', window.currentTakeoverEvent);
+  console.log('===================================');
+  
+  // 清空表單
+  document.getElementById('takeoverVendorName').value = '';
+  document.getElementById('takeoverFoodType').value = '';
+  
+  // 顯示彈窗
+  const modal = document.getElementById('takeoverModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// 關閉逾期接手彈窗
+function closeTakeoverModal() {
+  const modal = document.getElementById('takeoverModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+  
+  // 清空表單
+  document.getElementById('takeoverVendorName').value = '';
+  document.getElementById('takeoverFoodType').value = '';
+}
+
+// 提交接手預約
+async function submitTakeover() {
+  const newVendor = document.getElementById('takeoverVendorName').value.trim();
+  const newFoodType = document.getElementById('takeoverFoodType').value;
+  
+  // 驗證表單
+  if (!newVendor || !newFoodType) {
+    showToast('error', '表單錯誤', '請完整填寫必要欄位');
+    return;
+  }
+  
+  if (!window.currentTakeoverEvent) {
+    showToast('error', '錯誤', '無法獲取接手資訊');
+    return;
+  }
+  
+  const takeoverData = window.currentTakeoverEvent;
+  
+  console.log('接手操作 - 原事件資訊:', takeoverData.originalEvent);
+  console.log('接手操作 - rowNumber:', takeoverData.rowNumber);
+  
+  // 準備接手數據
+  const formData = {
+    vendor: newVendor,
+    foodType: newFoodType,
+    location: takeoverData.location,
+    date: takeoverData.dateStr,
+    timeSlot: '14:00-20:00',
+    fee: '600',
+    timestamp: new Date().toISOString(),
+    rowNumber: takeoverData.rowNumber || takeoverData.originalEvent.rowNumber, // 用於覆蓋更新
+    action: 'takeover', // 標記為接手操作
+    originalVendor: takeoverData.originalEvent.title // 記錄原餐車
+  };
+  
+  console.log('接手操作 - 提交數據:', formData);
+  
+  // 顯示載入提示
+  showToast('info', '提交中...', '正在處理接手預約');
+  
+  // 禁用按鈕
+  const submitBtn = document.getElementById('takeoverSubmitBtn');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+  submitBtn.disabled = true;
+  
+  try {
+    // 並行提交到GitHub和Google Sheets
+    const results = await Promise.allSettled([
+      uploadToGitHub(formData),
+      submitToGoogleSheets(formData)
+    ]);
+    
+    const [githubResult, sheetsResult] = results;
+    
+    // 檢查是否至少有一個成功
+    if (githubResult.status === 'fulfilled' || sheetsResult.status === 'fulfilled') {
+      showToast('success', '接手成功！', `${newVendor} 已成功接手 ${takeoverData.location} ${takeoverData.formattedDate} 的預約`);
+      
+      // 更新本地事件
+      const eventIndex = allEvents.findIndex(e => 
+        e === takeoverData.originalEvent ||
+        (e.location === takeoverData.location && e.start.split('T')[0] === takeoverData.dateStr)
+      );
+      
+      if (eventIndex >= 0) {
+        allEvents[eventIndex] = {
+          ...allEvents[eventIndex],
+          title: newVendor,
+          foodType: newFoodType,
+          timestamp: new Date().toISOString(),
+          payment: '尚未付款',
+          source: 'takeover' // 標記為接手的預約
+        };
+      }
+      
+      // 重新渲染日曆
+      renderCalendar();
+      saveToLocalStorage();
+      
+      // 關閉彈窗
+      closeTakeoverModal();
+      
+      // 立即重新渲染日曆，顯示本地更新
+      renderCalendar();
+      
+      // 顯示繳費彈窗
+      setTimeout(() => {
+        showPaymentModal();
+      }, 500);
+      
+      // 多次同步Google Sheets確認更新（確保看到變化）
+      setTimeout(async () => {
+        try {
+          console.log('接手後第1次同步...');
+          await fetchBookingsFromGoogleSheets();
+          mergeSheetsDataToCalendar();
+          console.log('接手後第1次同步完成');
+        } catch (error) {
+          console.error('接手後第1次同步失敗:', error);
+        }
+      }, 1000);
+      
+      setTimeout(async () => {
+        try {
+          console.log('接手後第2次同步...');
+          await fetchBookingsFromGoogleSheets();
+          mergeSheetsDataToCalendar();
+          console.log('接手後第2次同步完成');
+        } catch (error) {
+          console.error('接手後第2次同步失敗:', error);
+        }
+      }, 3000);
+      
+      setTimeout(async () => {
+        try {
+          console.log('接手後第3次同步...');
+          await fetchBookingsFromGoogleSheets();
+          mergeSheetsDataToCalendar();
+          console.log('接手後第3次同步完成 - 應該看到新餐車名稱');
+        } catch (error) {
+          console.error('接手後第3次同步失敗:', error);
+        }
+      }, 5000);
+      
+    } else {
+      throw new Error('所有提交都失敗了');
+    }
+    
+  } catch (error) {
+    console.error('接手失敗:', error);
+    showToast('error', '接手失敗', '無法完成接手操作，請稍後再試');
+  } finally {
+    // 恢復按鈕狀態
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
 }
 
 // 注意：已移除 cancelBookingFromGoogleSheets 函數
@@ -1954,11 +2489,29 @@ async function verifyPassword() {
 
 // GitHub配置
 const GITHUB_CONFIG = {
-  token: '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',
+  token: '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',
   owner: 'sky770825',
   repo: 'foodcarcalss',
   branch: 'main'
 };
+
+// Google Sheets配置
+// 請將此URL替換為您的Google Apps Script Web App URL
+// 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
+const GOOGLE_SHEETS_CONFIG = {
+  // 將Google Apps Script部署為Web App後，將URL貼在這裡
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbylYavrOAYvg2XhGkLqbQ38D_01knWvidyZkQOjWmAUDsLNtLq5pT9jiqaNUDVvpFQR/exec',
+  enabled: true, // 設為false可停用Google Sheets同步
+  autoSync: true, // 自動同步
+  syncInterval: 30000 // 同步間隔（毫秒），預設30秒
+};
+
+// 全局變數：儲存從Google Sheets讀取的數據
+let sheetsBookings = [];
+let sheetsBookedDates = {}; // 儲存從Sheets讀取的已預約日期
+let lastSheetsSyncTime = null;
+let lastBookedDatesSyncTime = null;
+let isSyncingWithSheets = false;
 
 // 安全的Base64編碼函數（支援中文字符）
 function safeBase64Encode(str) {
@@ -2439,73 +2992,458 @@ async function fetchBookingsFromGitHub() {
   }
 }
 
-// 提交到n8n Webhook
-async function submitToN8n(formData) {
-  // n8n Webhook URL
-  const N8N_WEBHOOK_URL = 'https://sky770825.zeabur.app/webhook/foodcalss';
+// =============== Google Sheets 同步功能 ===============
+
+// 提交預約到Google Sheets
+async function submitToGoogleSheets(formData) {
+  // 檢查是否啟用Google Sheets同步
+  if (!GOOGLE_SHEETS_CONFIG.enabled) {
+    console.log('Google Sheets同步未啟用');
+    return { success: false, message: 'Google Sheets同步未啟用' };
+  }
   
-  // 準備要發送的數據
-  const dataToSend = {
-    vendor: formData.vendor,
-    location: formData.location,
-    date: formData.date,
-    timeSlot: formData.timeSlot,
-    foodType: formData.foodType,
-    fee: formData.fee,
-    timestamp: formData.timestamp,
-    action: 'booking' // 標記為預約操作
-  };
+  // 檢查是否配置了Web App URL
+  if (GOOGLE_SHEETS_CONFIG.webAppUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    console.warn('請先配置Google Apps Script Web App URL');
+    return { success: false, message: '未配置Google Sheets URL' };
+  }
   
   try {
-    console.log('發送數據到n8n:', dataToSend);
+    console.log('提交數據到Google Sheets:', formData);
     
-    const response = await fetch(N8N_WEBHOOK_URL, {
+    // 準備要發送的數據
+    const dataToSend = {
+      vendor: formData.vendor,
+      location: formData.location,
+      date: formData.date,
+      timeSlot: formData.timeSlot || '14:00-20:00',
+      foodType: formData.foodType,
+      fee: formData.fee || '600',
+      timestamp: formData.timestamp || new Date().toISOString()
+    };
+    
+    // 如果是接手操作，添加額外參數
+    if (formData.action === 'takeover') {
+      dataToSend.action = 'takeover';
+      dataToSend.rowNumber = formData.rowNumber;
+      dataToSend.originalVendor = formData.originalVendor;
+      console.log('接手操作，行號:', formData.rowNumber);
+    }
+    
+    // 使用POST方式發送數據（適用於Google Apps Script接手操作）
+    const response = await fetch(GOOGLE_SHEETS_CONFIG.webAppUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(dataToSend)
+      body: JSON.stringify(dataToSend),
+      mode: 'no-cors' // Google Apps Script需要no-cors模式
     });
     
-    console.log('n8n回應狀態:', response.status, response.statusText);
+    console.log('Google Sheets回應:', response);
     
-    if (response.ok) {
-      const result = await response.json();
-      console.log('n8n提交成功:', result);
-      return { success: true, data: result };
-    } else {
-      const errorText = await response.text();
-      console.error('n8n提交失敗 - 狀態:', response.status);
-      console.error('n8n提交失敗 - 回應:', errorText);
-      
-      let errorMessage = 'n8n提交失敗';
-      if (response.status === 404) {
-        errorMessage = 'n8n Webhook不存在，請檢查URL';
-      } else if (response.status === 500) {
-        errorMessage = 'n8n服務器錯誤，請稍後再試';
-      } else if (response.status >= 400) {
-        errorMessage = `n8n請求失敗 (${response.status})`;
+    // 由於是no-cors模式，無法讀取回應內容，只能假設成功
+    return { success: true, message: '已提交到Google Sheets' };
+    
+  } catch (error) {
+    console.error('Google Sheets提交失敗:', error);
+    throw new Error('無法連接到Google Sheets: ' + error.message);
+  }
+}
+
+// 從Google Sheets讀取所有預約數據
+async function fetchBookingsFromGoogleSheets() {
+  // 檢查是否啟用Google Sheets同步
+  if (!GOOGLE_SHEETS_CONFIG.enabled) {
+    console.log('Google Sheets同步未啟用');
+    return [];
+  }
+  
+  // 檢查是否配置了Web App URL
+  if (GOOGLE_SHEETS_CONFIG.webAppUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    console.warn('請先配置Google Apps Script Web App URL');
+    return [];
+  }
+  
+  // 防止重複同步
+  if (isSyncingWithSheets) {
+    console.log('正在同步中，跳過本次請求');
+    return sheetsBookings;
+  }
+  
+  isSyncingWithSheets = true;
+  
+  try {
+    console.log('從Google Sheets讀取預約數據...');
+    
+    // 構建請求URL
+    const url = new URL(GOOGLE_SHEETS_CONFIG.webAppUrl);
+    url.searchParams.append('action', 'getBookings');
+    url.searchParams.append('_t', Date.now()); // 防止緩存
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
       }
-      
-      throw new Error(errorMessage);
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('Google Sheets回應:', result);
+    
+    if (result.success && result.bookings) {
+      sheetsBookings = result.bookings;
+      lastSheetsSyncTime = new Date().toISOString();
+      console.log(`成功獲取 ${sheetsBookings.length} 條預約記錄`);
+      return sheetsBookings;
+    } else {
+      console.warn('Google Sheets回應格式異常:', result);
+      return [];
     }
     
   } catch (error) {
-    console.error('發送到n8n失敗:', error);
-    
-    // 提供更詳細的錯誤信息
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('網絡連接失敗，請檢查網絡連接');
-    } else if (error.message.includes('404')) {
-      throw new Error('n8n Webhook不存在，請檢查URL設置');
-    } else if (error.message.includes('500')) {
-      throw new Error('n8n服務器錯誤，請稍後再試');
-    }
-    
-    throw error;
+    console.error('從Google Sheets讀取失敗:', error);
+    return [];
+  } finally {
+    isSyncingWithSheets = false;
   }
 }
+
+// 將Google Sheets數據合併到日曆（支援新增和更新）
+function mergeSheetsDataToCalendar() {
+  if (!sheetsBookings || sheetsBookings.length === 0) {
+    console.log('沒有Google Sheets數據需要合併');
+    // 清空所有來自Sheets的事件
+    allEvents = allEvents.filter(e => e.source !== 'google_sheets');
+    renderCalendar();
+    return;
+  }
+  
+  console.log(`開始合併 ${sheetsBookings.length} 條Google Sheets記錄到日曆`);
+  
+  let mergedCount = 0;
+  let updatedCount = 0;
+  
+  // 先標記所有來自Sheets的事件
+  const sheetsEventIds = new Set();
+  
+  sheetsBookings.forEach(booking => {
+    // 解析日期格式（例如：10月16日(星期四)）
+    const dateMatch = booking.date.match(/(\d+)月(\d+)日/);
+    if (!dateMatch) {
+      console.warn('無法解析日期格式:', booking.date);
+      return;
+    }
+    
+    const month = parseInt(dateMatch[1]);
+    const day = parseInt(dateMatch[2]);
+    const year = new Date().getFullYear(); // 假設為當年
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    const eventId = `${dateStr}_${booking.location}_${booking.vendor}`;
+    sheetsEventIds.add(eventId);
+    
+    // 查找是否已存在相同的預約
+    const existingEventIndex = allEvents.findIndex(event => {
+      let eventDate;
+      if (event.start instanceof Date) {
+        eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
+      } else {
+        eventDate = event.start.split('T')[0];
+      }
+      return eventDate === dateStr && 
+             event.location === booking.location;
+    });
+    
+    if (existingEventIndex >= 0) {
+      // 更新現有事件（檢查是否有變更）
+      const existingEvent = allEvents[existingEventIndex];
+      let hasChanges = false;
+      
+      if (existingEvent.title !== booking.vendor) {
+        console.log(`更新店名: ${existingEvent.title} → ${booking.vendor}`);
+        hasChanges = true;
+      }
+      if (existingEvent.payment !== booking.payment) {
+        console.log(`更新付款狀態: ${existingEvent.payment} → ${booking.payment}`);
+        hasChanges = true;
+      }
+      if (existingEvent.note !== booking.note) {
+        console.log(`更新備註: ${existingEvent.note} → ${booking.note}`);
+        hasChanges = true;
+      }
+      
+      if (hasChanges) {
+        allEvents[existingEventIndex] = {
+          ...existingEvent,
+          title: booking.vendor,
+          foodType: booking.foodType,
+          fee: booking.fee,
+          payment: booking.payment,
+          note: booking.note,
+          timestamp: booking.timestamp,
+          rowNumber: booking.rowNumber,
+          source: 'google_sheets'
+        };
+        updatedCount++;
+      }
+    } else {
+      // 添加新事件到日曆
+      const newEvent = {
+        title: booking.vendor,
+        start: dateStr,
+        location: booking.location,
+        color: '#17a2b8', // 用不同顏色標示來自Sheets的數據
+        timestamp: booking.timestamp,
+        foodType: booking.foodType,
+        fee: booking.fee,
+        payment: booking.payment,
+        note: booking.note,
+        source: 'google_sheets', // 標記來源
+        rowNumber: booking.rowNumber // 保存行號，用於後續更新
+      };
+      
+      allEvents.push(newEvent);
+      
+      // 更新bookedSlots
+      if (!bookedSlots[booking.location]) {
+        bookedSlots[booking.location] = {};
+      }
+      if (!bookedSlots[booking.location][dateStr]) {
+        bookedSlots[booking.location][dateStr] = [];
+      }
+      bookedSlots[booking.location][dateStr].push('14:00-20:00');
+      
+      mergedCount++;
+    }
+  });
+  
+  // 刪除Sheets中已不存在的事件
+  const removedEvents = allEvents.filter(event => {
+    if (event.source !== 'google_sheets') return false;
+    
+    let eventDate;
+    if (event.start instanceof Date) {
+      eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
+    } else {
+      eventDate = event.start.split('T')[0];
+    }
+    
+    const eventId = `${eventDate}_${event.location}_${event.title}`;
+    return !sheetsEventIds.has(eventId);
+  });
+  
+  if (removedEvents.length > 0) {
+    console.log(`移除 ${removedEvents.length} 個已刪除的預約`);
+    allEvents = allEvents.filter(event => !removedEvents.includes(event));
+  }
+  
+  if (mergedCount > 0 || updatedCount > 0 || removedEvents.length > 0) {
+    console.log(`✅ 同步完成 - 新增: ${mergedCount}, 更新: ${updatedCount}, 刪除: ${removedEvents.length}`);
+    renderCalendar(); // 重新渲染日曆
+    saveToLocalStorage(); // 保存到本地存儲
+  } else {
+    console.log('沒有變更需要同步');
+  }
+}
+
+// 定期從Google Sheets同步數據
+let sheetsSyncInterval = null;
+let paymentCountdownInterval = null;
+
+function startSheetsSyncInterval() {
+  if (!GOOGLE_SHEETS_CONFIG.enabled || !GOOGLE_SHEETS_CONFIG.autoSync) {
+    console.log('Google Sheets自動同步未啟用');
+    return;
+  }
+  
+  // 清除舊的同步計時器
+  if (sheetsSyncInterval) {
+    clearInterval(sheetsSyncInterval);
+  }
+  
+  // 設置新的同步計時器
+  sheetsSyncInterval = setInterval(async () => {
+    console.log('定期同步Google Sheets數據...');
+    try {
+      // 同時同步完整預約數據和已預約日期
+      await Promise.all([
+        fetchBookingsFromGoogleSheets(),
+        fetchBookedDatesFromSheets()
+      ]);
+      mergeSheetsDataToCalendar();
+      console.log('✅ 定期同步完成');
+    } catch (error) {
+      console.error('定期同步失敗:', error);
+    }
+  }, GOOGLE_SHEETS_CONFIG.syncInterval);
+  
+  console.log(`已啟動Google Sheets定期同步，間隔: ${GOOGLE_SHEETS_CONFIG.syncInterval/1000}秒`);
+  
+  // 啟動付款倒計時更新器（每分鐘更新一次）
+  if (paymentCountdownInterval) {
+    clearInterval(paymentCountdownInterval);
+  }
+  
+  paymentCountdownInterval = setInterval(() => {
+    // 只更新日曆顯示，不重新fetch數據
+    renderCalendar();
+  }, 60000); // 每60秒更新一次倒計時
+  
+  console.log('已啟動付款倒計時更新器');
+}
+
+// 手動觸發Google Sheets同步
+async function syncGoogleSheets() {
+  console.log('手動同步Google Sheets...');
+  showToast('info', '同步中', '正在從Google Sheets獲取最新數據...');
+  
+  try {
+    // 同時同步完整預約數據和已預約日期
+    await Promise.all([
+      fetchBookingsFromGoogleSheets(),
+      fetchBookedDatesFromSheets()
+    ]);
+    mergeSheetsDataToCalendar();
+    
+    // 計算已預約總數
+    let totalBooked = 0;
+    for (const location in sheetsBookedDates) {
+      totalBooked += sheetsBookedDates[location].length;
+    }
+    
+    showToast('success', '同步成功', `已同步 ${sheetsBookings.length} 條記錄，${totalBooked} 個已預約日期`);
+    
+    // 重新生成當前場地的可用日期
+    const currentLoc = document.getElementById('location').value;
+    if (currentLoc) {
+      document.getElementById('location').dispatchEvent(new Event('change'));
+    }
+    
+    // 檢查是否有逾期未付款的預約
+    checkOverduePayments();
+  } catch (error) {
+    console.error('同步失敗:', error);
+    showToast('error', '同步失敗', '無法連接到Google Sheets');
+  }
+}
+
+// 檢查逾期未付款的預約
+function checkOverduePayments() {
+  if (!allEvents || allEvents.length === 0) return;
+  
+  const now = new Date();
+  const overdueEvents = [];
+  const urgentEvents = [];
+  
+  allEvents.forEach(event => {
+    // 只檢查尚未付款的預約
+    if (event.payment !== '已付款' && event.timestamp) {
+      const bookingTime = new Date(event.timestamp);
+      const deadline = new Date(bookingTime.getTime() + 24 * 60 * 60 * 1000);
+      const timeLeft = deadline - now;
+      
+      if (timeLeft < 0) {
+        // 已逾期
+        overdueEvents.push(event);
+      } else if (timeLeft < 6 * 60 * 60 * 1000) {
+        // 少於6小時
+        urgentEvents.push(event);
+      }
+    }
+  });
+  
+  // 顯示提醒
+  if (overdueEvents.length > 0) {
+    console.warn(`⚠️ 發現 ${overdueEvents.length} 個逾期未付款的預約：`);
+    overdueEvents.forEach(e => {
+      console.warn(`  - ${e.title} (${e.location})`);
+    });
+  }
+  
+  if (urgentEvents.length > 0) {
+    console.warn(`⏰ 發現 ${urgentEvents.length} 個即將逾期的預約：`);
+    urgentEvents.forEach(e => {
+      const bookingTime = new Date(e.timestamp);
+      const deadline = new Date(bookingTime.getTime() + 24 * 60 * 60 * 1000);
+      const timeLeft = deadline - new Date();
+      const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+      console.warn(`  - ${e.title} (${e.location}) - 剩餘 ${hoursLeft} 小時`);
+    });
+  }
+}
+
+// 從Google Sheets獲取已預約日期
+async function fetchBookedDatesFromSheets() {
+  // 檢查是否啟用Google Sheets同步
+  if (!GOOGLE_SHEETS_CONFIG.enabled) {
+    console.log('Google Sheets同步未啟用');
+    return {};
+  }
+  
+  // 檢查是否配置了Web App URL
+  if (GOOGLE_SHEETS_CONFIG.webAppUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    console.warn('請先配置Google Apps Script Web App URL');
+    return {};
+  }
+  
+  try {
+    console.log('從Google Sheets讀取已預約日期...');
+    
+    // 構建請求URL
+    const url = new URL(GOOGLE_SHEETS_CONFIG.webAppUrl);
+    url.searchParams.append('action', 'getBookedDates');
+    url.searchParams.append('_t', Date.now()); // 防止緩存
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('Google Sheets已預約日期回應:', result);
+    
+    if (result.success && result.bookedDates) {
+      sheetsBookedDates = result.bookedDates;
+      lastBookedDatesSyncTime = new Date().toISOString();
+      
+      // 計算總預約數
+      let totalBooked = 0;
+      for (const location in sheetsBookedDates) {
+        totalBooked += sheetsBookedDates[location].length;
+      }
+      
+      console.log(`✅ 成功獲取已預約日期，共 ${totalBooked} 個預約`);
+      return sheetsBookedDates;
+    } else {
+      console.warn('Google Sheets回應格式異常:', result);
+      return {};
+    }
+    
+  } catch (error) {
+    console.error('從Google Sheets讀取已預約日期失敗:', error);
+    return {};
+  }
+}
+
+// 暴露到全局，供控制台調試使用
+window.syncGoogleSheets = syncGoogleSheets;
+window.fetchBookingsFromGoogleSheets = fetchBookingsFromGoogleSheets;
+window.fetchBookedDatesFromSheets = fetchBookedDatesFromSheets;
+window.sheetsBookings = () => sheetsBookings;
+window.sheetsBookedDates = () => sheetsBookedDates;
+
+// =============== End of Google Sheets 同步功能 ===============
 
 // 獲取國定假日名稱
 function getHolidayName(dateStr) {
@@ -2586,7 +3524,7 @@ function checkTimeControl(targetYear, targetMonth, currentYear, currentMonth, cu
 }
 
 // 場地選擇事件
-document.getElementById('location').addEventListener('change', () => {
+document.getElementById('location').addEventListener('change', async () => {
   const loc = document.getElementById('location').value;
   const dateInput = document.getElementById('date');
   const dateSelect = document.getElementById('availableDates');
@@ -2636,7 +3574,18 @@ document.getElementById('location').addEventListener('change', () => {
     return;
   }
   
-  // 所有場地都使用下拉選單
+  // 先從Google Sheets獲取最新的已預約日期
+  if (GOOGLE_SHEETS_CONFIG.enabled && GOOGLE_SHEETS_CONFIG.webAppUrl !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    try {
+      await fetchBookedDatesFromSheets();
+      console.log(`✅ 已更新場地 ${loc} 的已預約日期`);
+    } catch (error) {
+      console.error('獲取已預約日期失敗:', error);
+      // 即使失敗也繼續，使用本地數據
+    }
+  }
+  
+  // 所有場地都使用下拉選單（此時會排除Sheets中已預約的日期）
   const availableDates = generateAvailableDates(loc);
   
   if (availableDates.length > 0) {
@@ -2918,38 +3867,58 @@ function showSyncStatus(message, type = 'default') {
   }, 5000);
 }
 
-// 檢查預約衝突（優化版本）
+// 檢查預約衝突（強化多用戶版本）
 async function checkBookingConflict(location, date, timeSlot) {
   try {
-    // 先檢查本地數據
+    console.log(`檢查預約衝突: ${location} - ${date} - ${timeSlot}`);
+    
+    // 1. 先檢查本地數據
     if (bookedSlots[location] && bookedSlots[location][date]) {
       if (bookedSlots[location][date].includes(timeSlot)) {
+        console.log('本地數據發現衝突');
         return true; // 本地已有衝突
       }
     }
     
-    // 快速同步檢查（不重新渲染）
+    // 2. 強制同步最新數據（多用戶環境下必須）
+    console.log('強制同步最新數據...');
     const githubBookings = await fetchBookingsFromGitHub();
+    
     if (githubBookings.length > 0) {
-      // 只檢查是否有衝突，不更新UI
-      const hasConflict = githubBookings.some(booking => 
-        booking.location === location && 
-        booking.date === date && 
-        (booking.timeSlot || '14:00-20:00') === timeSlot &&
-        booking.action !== 'cancelled'
-      );
+      // 3. 使用智能合併處理所有數據
+      const { mergedEvents, mergedBookedSlots } = mergeDataByTimestamp(githubBookings);
+      
+      // 4. 檢查合併後的數據是否有衝突
+      const hasConflict = mergedBookedSlots[location] && 
+                         mergedBookedSlots[location][date] && 
+                         mergedBookedSlots[location][date].includes(timeSlot);
       
       if (hasConflict) {
-        // 有衝突時才進行完整同步
-        await syncWithGitHub();
+        console.log('GitHub數據發現衝突，更新本地數據');
+        // 更新本地數據以反映最新狀態
+        allEvents.length = 0;
+        allEvents.push(...mergedEvents);
+        Object.assign(bookedSlots, mergedBookedSlots);
+        saveToLocalStorage();
+        renderCalendar();
         return true;
       }
+      
+      // 5. 即使沒有衝突，也更新本地數據以保持同步
+      console.log('更新本地數據以保持同步');
+      allEvents.length = 0;
+      allEvents.push(...mergedEvents);
+      Object.assign(bookedSlots, mergedBookedSlots);
+      saveToLocalStorage();
+      renderCalendar();
     }
     
+    console.log('沒有發現衝突');
     return false;
   } catch (error) {
     console.error('檢查預約衝突失敗:', error);
-    return false; // 如果檢查失敗，允許預約（避免阻塞用戶）
+    // 多用戶環境下，如果檢查失敗，應該阻止預約以避免衝突
+    return true; // 改為返回true，更安全
   }
 }
 
@@ -3185,33 +4154,6 @@ function startPeriodicSync() {
     return true;
   };
   
-  // 添加n8n連接測試
-  window.testN8nConnection = async function() {
-    console.log('🧪 開始測試n8n連接...');
-    
-    try {
-      const testData = {
-        vendor: '測試餐車',
-        location: '測試場地',
-        date: '2025-01-01',
-        timeSlot: '14:00-20:00',
-        foodType: '測試',
-        fee: '600',
-        timestamp: new Date().toISOString(),
-        action: 'test'
-      };
-      
-      console.log('發送測試數據到n8n:', testData);
-      
-      const result = await submitToN8n(testData);
-      console.log('✅ n8n連接測試成功:', result);
-      showToast('success', 'n8n連接測試成功', 'n8n Webhook正常運作');
-      
-    } catch (error) {
-      console.error('❌ n8n連接測試失敗:', error);
-      showToast('error', 'n8n連接測試失敗', error.message);
-    }
-  };
   
   // 添加日曆數據同步測試
   window.testCalendarSync = async function() {
@@ -3371,9 +4313,9 @@ function startPeriodicSync() {
   let lastDataHash = '';
   async function checkForDataChanges() {
     try {
-      // 獲取當前數據的哈希值
+      // 獲取當前數據的哈希值（使用簡單的字符串長度和內容檢查）
       const currentData = JSON.stringify({ allEvents, bookedSlots });
-      const currentHash = btoa(currentData).slice(0, 16); // 簡單哈希
+      const currentHash = currentData.length + '_' + currentData.slice(0, 50); // 簡單哈希
       
       if (currentHash !== lastDataHash) {
         lastDataHash = currentHash;
@@ -3468,82 +4410,8 @@ function startPeriodicSync() {
 }
 
 // 所有場地的預約事件 - 根據Google Sheets 10月份實際排班資料更新
-const allEvents = [
-  // 四維路59號 - 根據Google Sheets實際排班資料
-  { title: '向陽坡刈包', start: '2025-10-01', location: '四維路59號', color: '#FF8A00' },
-  { title: '餓食鬼美味販売所', start: '2025-10-02', location: '四維路59號', color: '#FF8A00' },
-  { title: '麥米食小米甜甜圈', start: '2025-10-03', location: '四維路59號', color: '#FF8A00' },
-  { title: '腸新', start: '2025-10-07', location: '四維路59號', color: '#FF8A00' },
-  { title: '滷拉拉冷滷味', start: '2025-10-08', location: '四維路59號', color: '#FF8A00' },
-  { title: '懶貓窯烤披薩', start: '2025-10-09', location: '四維路59號', color: '#FF8A00' },
-  { title: '好嗜拾光', start: '2025-10-13', location: '四維路59號', color: '#FF8A00' },
-  { title: '黃佳香碳烤玉米', start: '2025-10-14', location: '四維路59號', color: '#FF8A00' },
-  { title: '露露姐水果攤鹹水雞', start: '2025-10-15', location: '四維路59號', color: '#FF8A00' },
-  { title: '輪見輪愛-旗魚黑輪', start: '2025-10-16', location: '四維路59號', color: '#FF8A00' },
-  { title: '阿賢油飯', start: '2025-10-17', location: '四維路59號', color: '#FF8A00' },
-  { title: '寶嘉-烤肉飯/義大利麵', start: '2025-10-20', location: '四維路59號', color: '#FF8A00' },
-  { title: '沖天炮燒烤', start: '2025-10-21', location: '四維路59號', color: '#FF8A00' },
-  { title: '露露姐水果攤鹹水雞', start: '2025-10-22', location: '四維路59號', color: '#FF8A00' },
-  { title: '安德尼斯烘焙坊', start: '2025-10-23', location: '四維路59號', color: '#FF8A00' },
-  { title: '菲揚煙燻滷味', start: '2025-10-24', location: '四維路59號', color: '#FF8A00' },
-  { title: '麵線杜', start: '2025-10-27', location: '四維路59號', color: '#FF8A00' },
-  { title: '豆豆哥專業毛豆', start: '2025-10-28', location: '四維路59號', color: '#FF8A00' },
-  { title: '天昱坊_客家蔬食', start: '2025-10-29', location: '四維路59號', color: '#FF8A00' },
-  { title: '巧味豆乳雞', start: '2025-10-30', location: '四維路59號', color: '#FF8A00' },
-  { title: '喵喵雞蛋糕、甘草芭樂、楊桃冰', start: '2025-10-31', location: '四維路59號', color: '#FF8A00' },
-
-  // 四維路60號 - 根據Google Sheets實際排班資料
-  { title: '旺喜屋', start: '2025-10-01', location: '四維路60號', color: '#28a745' },
-  { title: '鄭老爹肉燥乾麵', start: '2025-10-07', location: '四維路60號', color: '#17a2b8' },
-  { title: '眾品餚創意料理', start: '2025-10-08', location: '四維路60號', color: '#6f42c1' },
-  { title: '熊國王滷味', start: '2025-10-13', location: '四維路60號', color: '#fd7e14' },
-  { title: '阿騰火烤楓糖甜甜圈', start: '2025-10-14', location: '四維路60號', color: '#20c997' },
-  { title: '基隆三明治', start: '2025-10-15', location: '四維路60號', color: '#e83e8c' },
-  { title: 'Gogo烤飛雞', start: '2025-10-20', location: '四維路60號', color: '#6c757d' },
-  { title: '宇宙雞蛋糕', start: '2025-10-21', location: '四維路60號', color: '#343a40' },
-  { title: '滷拉拉冷滷味', start: '2025-10-22', location: '四維路60號', color: '#dc3545' },
-  { title: '旺喜屋', start: '2025-10-27', location: '四維路60號', color: '#ffc107' },
-  { title: '港灣與貓韓式街邊小吃', start: '2025-10-28', location: '四維路60號', color: '#6f42c1' },
-  { title: '天昱坊_客家蔬食', start: '2025-10-29', location: '四維路60號', color: '#fd7e14' },
-
-  // 漢堡大亨 (四維路70號) - 根據Google Sheets實際排班資料
-  { title: '臧記排骨酥', start: '2025-10-01', location: '漢堡大亨', color: '#6f42c1' },
-  { title: '那個彩色地瓜球', start: '2025-10-02', location: '漢堡大亨', color: '#fd7e14' },
-  { title: '三寶爸排骨酥/涼拌海鮮', start: '2025-10-07', location: '漢堡大亨', color: '#20c997' },
-  { title: '臧記排骨酥', start: '2025-10-08', location: '漢堡大亨', color: '#e83e8c' },
-  { title: '極品鹽水雞', start: '2025-10-09', location: '漢堡大亨', color: '#6c757d' },
-  { title: '芙玉軒', start: '2025-10-13', location: '漢堡大亨', color: '#343a40' },
-  { title: '小饅魚造型饅頭', start: '2025-10-14', location: '漢堡大亨', color: '#dc3545' },
-  { title: '朱記川滷', start: '2025-10-15', location: '漢堡大亨', color: '#ffc107' },
-  { title: '萬兆香萬巒豬腳', start: '2025-10-16', location: '漢堡大亨', color: '#6f42c1' },
-  { title: '酷媽胖卡', start: '2025-10-17', location: '漢堡大亨', color: '#fd7e14' },
-  { title: '蔬孟園', start: '2025-10-20', location: '漢堡大亨', color: '#20c997' },
-  { title: '饞了找我', start: '2025-10-21', location: '漢堡大亨', color: '#e83e8c' },
-  { title: '臧記排骨酥', start: '2025-10-22', location: '漢堡大亨', color: '#6c757d' },
-  { title: '法國道地吉拿棒', start: '2025-10-23', location: '漢堡大亨', color: '#343a40' },
-  { title: '起來車輪肉蛋堡', start: '2025-10-24', location: '漢堡大亨', color: '#dc3545' },
-  { title: '蒜老爹六蒜包', start: '2025-10-27', location: '漢堡大亨', color: '#ffc107' },
-  { title: '臧記排骨酥', start: '2025-10-29', location: '漢堡大亨', color: '#6f42c1' },
-  { title: '諸大爺脆皮烤豬', start: '2025-10-30', location: '漢堡大亨', color: '#fd7e14' },
-  { title: '鄭姐美食', start: '2025-10-30', location: '漢堡大亨', color: '#20c997' },
-  { title: '羽朵甜小米甜甜圈', start: '2025-10-31', location: '漢堡大亨', color: '#e83e8c' },
-
-  // 自由風 (四維路190號) - 根據Google Sheets實際排班資料
-  { title: '方人也鮮奶麻糬', start: '2025-10-02', location: '自由風', color: '#20c997' },
-  { title: '小鳥吃吐司', start: '2025-10-07', location: '自由風', color: '#e83e8c' },
-  { title: 'A happiness手作奶酪', start: '2025-10-20', location: '自由風', color: '#6c757d' },
-
-  // 蔬蒔 (四維路216號) - 根據Google Sheets實際排班資料
-  { title: '台東放山豬石板烤肉', start: '2025-10-04', location: '蔬蒔', color: '#20c997' },
-  { title: '台東放山豬石板烤肉', start: '2025-10-08', location: '蔬蒔', color: '#20c997' },
-  { title: '抓餅工程行', start: '2025-10-15', location: '蔬蒔', color: '#20c997' },
-  { title: '台東放山豬石板烤肉', start: '2025-10-18', location: '蔬蒔', color: '#20c997' },
-  { title: '台東放山豬石板烤肉', start: '2025-10-22', location: '蔬蒔', color: '#20c997' },
-  { title: '滷拉拉冷滷味', start: '2025-10-29', location: '蔬蒔', color: '#20c997' },
-
-  // 金正好吃 (四維路218號) - 僅週二
-  { title: '國家雞蜜', start: '2025-10-07', location: '金正好吃', color: '#dc3545' }
-];
+// 所有事件 - 現在完全從 Google Sheets 動態載入
+let allEvents = [];
 
 // 新行事曆系統
 let currentDate = new Date(); // 當前日期
@@ -3630,6 +4498,8 @@ function renderCalendar() {
       return eventDate === dateStr;
     });
     
+    let paymentStatusElement = null; // 保存付款狀態元素
+    
     dayEvents.forEach(event => {
       // 只顯示當前篩選場地的事件
       if (event.location === currentFilter) {
@@ -3644,6 +4514,78 @@ function renderCalendar() {
           showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
         });
         
+        eventContainer.appendChild(eventElement);
+        
+        // 添加付款狀態和倒計時
+        let isOverdue = false;
+        let needsPayment = false;
+        
+        if (event.payment || event.timestamp || event.bookedStatus) {
+          const paymentStatus = document.createElement('div');
+          paymentStatus.className = 'payment-status';
+          
+          // 檢查付款狀態
+          if (event.payment === '已付款') {
+            paymentStatus.innerHTML = '<span class="paid">✓ 已付款</span>';
+            paymentStatus.classList.add('paid-status');
+          } 
+          // 檢查是否為逾繳可排狀態（來自Google Sheets）
+          else if (event.bookedStatus === '逾繳可排') {
+            isOverdue = true;
+            paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
+            paymentStatus.classList.add('overdue-status');
+            // 點擊文字打開接手彈窗
+            paymentStatus.addEventListener('click', (e) => {
+              e.stopPropagation();
+              showTakeoverModal(event, dateStr);
+            });
+            paymentStatus.title = '點擊接手此預約';
+          } 
+          // 一般未付款狀態
+          else {
+            // 計算24小時倒計時
+            const bookingTime = new Date(event.timestamp);
+            const deadline = new Date(bookingTime.getTime() + 24 * 60 * 60 * 1000); // 24小時後
+            const now = new Date();
+            const timeLeft = deadline - now;
+            
+            if (timeLeft > 0) {
+              needsPayment = true;
+              const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+              const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+              
+              if (hoursLeft < 6) {
+                // 少於6小時，橙紅警告
+                paymentStatus.innerHTML = `<span class="unpaid urgent">⚠️ ${hoursLeft}h${minutesLeft}m繳費時間</span>`;
+              } else {
+                // 還有時間，黃色提醒
+                paymentStatus.innerHTML = `<span class="unpaid">⏰ ${hoursLeft}h繳費時間</span>`;
+              }
+              paymentStatus.classList.add('unpaid-status');
+              // 點擊文字打開繳費彈窗
+              paymentStatus.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showPaymentModal();
+              });
+              paymentStatus.title = '點擊前往繳費';
+            } else {
+              // 已逾期（超過24小時）
+              isOverdue = true;
+              paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
+              paymentStatus.classList.add('overdue-status');
+              // 點擊文字打開接手彈窗
+              paymentStatus.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showTakeoverModal(event, dateStr);
+              });
+              paymentStatus.title = '點擊接手此預約';
+            }
+          }
+          
+          // 保存付款狀態元素，稍後append到dayElement
+          paymentStatusElement = paymentStatus;
+        }
+        
         // 添加取消按鈕（只對當天和未來日期顯示）
         const today = new Date();
         today.setHours(0, 0, 0, 0); // 重置時間到當天開始
@@ -3652,8 +4594,6 @@ function renderCalendar() {
         eventDate.setHours(0, 0, 0, 0); // 重置時間到當天開始
         
         const isTodayOrFuture = eventDate >= today;
-        
-        eventContainer.appendChild(eventElement);
         
         if (isTodayOrFuture) {
           const cancelBtn = document.createElement('button');
@@ -3690,6 +4630,15 @@ function renderCalendar() {
           if (dayOfWeek >= 4 || dayOfWeek === 0) {
             isNonOperating = true;
           }
+          // 只有在營業日（週一~週三）才檢查並標記國定假日
+          else if (nationalHolidays2025.includes(dateStr)) {
+            const holidayBadge = document.createElement('div');
+            holidayBadge.className = 'holiday-badge';
+            holidayBadge.innerHTML = '❌ 國定假日';
+            holidayBadge.title = getHolidayName(dateStr);
+            dayElement.appendChild(holidayBadge);
+            dayElement.classList.add('holiday-date');
+          }
           break;
         case '蔬蒔':
           // 只有週三、週六可排
@@ -3723,6 +4672,12 @@ function renderCalendar() {
     }
     
     dayElement.appendChild(eventsContainer);
+    
+    // 如果有付款狀態，直接append到dayElement（這樣它就能移到最上方）
+    if (paymentStatusElement) {
+      dayElement.appendChild(paymentStatusElement);
+    }
+    
     calendarGrid.appendChild(dayElement);
   }
 }
@@ -3817,7 +4772,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   console.log('表單數據:', { vendor, loc, date, foodType });
   
   // 驗證表單
-  if (!vendor || !loc || !date) {
+  if (!vendor || !loc || !date || !foodType) {
     showToast('error', '表單錯誤', '請完整填寫必要欄位');
     return;
   }
@@ -3825,12 +4780,30 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   // 顯示載入提示
   showToast('info', '檢查中...', '正在檢查預約狀態');
   
-  // 檢查預約衝突（包含最新GitHub數據）
-  const hasConflict = await checkBookingConflict(loc, date, '14:00-20:00');
+  // 多用戶環境下的預約鎖定機制
+  const bookingKey = `${loc}_${date}_14:00-20:00`;
+  const lockKey = `booking_lock_${bookingKey}`;
   
-  if (hasConflict) {
-    showToast('error', '預約衝突', '該時段已被預約，請選擇其他日期或重新整理頁面查看最新狀態');
+  // 檢查是否正在處理中
+  if (sessionStorage.getItem(lockKey)) {
+    showToast('error', '處理中', '該時段正在處理中，請稍後再試');
     return;
+  }
+  
+  // 設置處理鎖定
+  sessionStorage.setItem(lockKey, 'true');
+  
+  try {
+    // 檢查預約衝突（包含最新GitHub數據）
+    const hasConflict = await checkBookingConflict(loc, date, '14:00-20:00');
+    
+    if (hasConflict) {
+      showToast('error', '預約衝突', '該時段已被預約，請選擇其他日期或重新整理頁面查看最新狀態');
+      return;
+    }
+  } finally {
+    // 清除處理鎖定
+    sessionStorage.removeItem(lockKey);
   }
   
   // 檢查日曆上是否已有餐車名稱（本地檢查）
@@ -3869,27 +4842,18 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
   submitBtn.disabled = true;
   
-  // 並行提交到n8n和GitHub
+  // 並行提交到GitHub和Google Sheets
   Promise.allSettled([
-    submitToN8n(formData),
-    uploadToGitHub(formData)
+    uploadToGitHub(formData),
+    submitToGoogleSheets(formData)
   ])
     .then((results) => {
-      const [n8nResult, githubResult] = results;
+      const [githubResult, sheetsResult] = results;
       
-      // 檢查n8n提交結果
-      if (n8nResult.status === 'fulfilled') {
-        console.log('n8n提交成功');
-        showToast('success', 'n8n提交成功', '數據已發送到n8n工作流');
-      } else {
-        console.error('n8n提交失敗:', n8nResult.reason);
-        showToast('error', 'n8n提交失敗', n8nResult.reason?.message || '無法連接到n8n');
-      }
-      
-      // 檢查GitHub提交結果
+      // 檢查GitHub提交結果（靜默處理，不顯示錯誤）
       if (githubResult.status === 'fulfilled') {
         console.log('GitHub上傳成功:', githubResult.value);
-        showToast('success', 'GitHub上傳成功', '數據已同步到GitHub');
+        // 不顯示GitHub成功消息，避免干擾用戶
         
         // GitHub上傳成功後，立即觸發同步讓其他用戶看到
         setTimeout(async () => {
@@ -3901,8 +4865,8 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
           }
         }, 1000);
       } else {
-        console.error('GitHub上傳失敗:', githubResult.reason);
-        showToast('error', 'GitHub上傳失敗', githubResult.reason?.message || '無法上傳到GitHub');
+        console.log('GitHub上傳失敗（靜默處理）:', githubResult.reason?.message);
+        // 不顯示GitHub錯誤彈窗
         
         // 即使GitHub失敗，也嘗試同步以獲取最新數據
         setTimeout(async () => {
@@ -3915,15 +4879,33 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         }, 2000);
       }
       
+      // 檢查Google Sheets提交結果
+      if (sheetsResult.status === 'fulfilled') {
+        console.log('Google Sheets提交成功:', sheetsResult.value);
+        // Google Sheets提交成功後，幾秒後同步數據
+        setTimeout(async () => {
+          try {
+            await fetchBookingsFromGoogleSheets();
+            mergeSheetsDataToCalendar();
+            console.log('Google Sheets同步完成');
+          } catch (error) {
+            console.error('Google Sheets同步失敗:', error);
+          }
+        }, 2000);
+      } else {
+        console.log('Google Sheets提交失敗（靜默處理）:', sheetsResult.reason?.message);
+        // 不顯示Google Sheets錯誤彈窗
+      }
+      
       // 只要有一個成功就繼續處理
-      if (n8nResult.status === 'fulfilled' || githubResult.status === 'fulfilled') {
+      if (githubResult.status === 'fulfilled' || sheetsResult.status === 'fulfilled') {
         // 根據成功情況顯示不同提示
-        if (n8nResult.status === 'fulfilled' && githubResult.status === 'fulfilled') {
+        if (sheetsResult.status === 'fulfilled') {
           showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
         } else if (githubResult.status === 'fulfilled') {
-          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元 (已同步到GitHub)`);
+          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
         } else {
-          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元 (已發送到n8n)`);
+          showToast('success', '報名成功！', `餐車：${vendor} | 場地：${loc} | 日期：${date} | 場地費：600元`);
         }
         
         // 添加到事件列表（直接寫入日曆）
@@ -3935,6 +4917,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
           timestamp: new Date().toISOString(),
           foodType: foodType,
           fee: '600',
+          payment: '尚未付款', // 初始付款狀態
           source: 'user_booking' // 標記為用戶預約
         };
         
@@ -4031,13 +5014,13 @@ function closeBankModal() {
 function openJkopay() {
   // 街口支付連結
   window.open('https://www.jkos.com/contact-person?j=ContactPerson:901644985', '_blank');
-  showToast('info', '街口支付', '已開啟街口支付頁面，請完成付款後將截圖傳至官方帳號');
+  showToast('info', '街口支付', '已開啟街口支付頁面，請完成付款後將截圖傳至官方小幫手');
 }
 
 function openLinepay() {
   // LINE-PAY連結
   window.open('https://line.me/ti/p/natrAYmeWy', '_blank');
-  showToast('info', 'LINE-PAY', '已開啟LINE-PAY頁面，請完成付款後將截圖傳至官方帳號');
+  showToast('info', 'LINE-PAY', '已開啟LINE-PAY頁面，請完成付款後將截圖傳至官方小幫手');
 }
 
 function openBankModal() {
@@ -4046,9 +5029,9 @@ function openBankModal() {
 }
 
 function openOfficialAccount() {
-  // 官方帳號連結
-  window.open('https://lin.ee/jYqN1Y0', '_blank');
-  showToast('info', '官方帳號', '已開啟官方帳號，請將付款截圖或訊息傳送給我們');
+  // 官方小幫手連結
+  window.open('https://lin.ee/BStZlfM', '_blank');
+  showToast('info', '官方小幫手', '已開啟官方小幫手，請將付款截圖或訊息傳送給我們');
 }
 
 // 複製帳號功能
@@ -4114,6 +5097,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 啟動定期同步
   startPeriodicSync();
   
+  // 啟動Google Sheets定期同步
+  startSheetsSyncInterval();
+  
   // 頁面載入時顯示同步狀態
   showSyncStatus('系統初始化中...', 'default');
   
@@ -4125,6 +5111,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     setTimeout(async () => {
       await syncWithGitHub();
     }, 1000);
+  }
+  
+  // 初次載入時同步Google Sheets數據
+  if (GOOGLE_SHEETS_CONFIG.enabled) {
+    setTimeout(async () => {
+      try {
+        console.log('初次載入，同步Google Sheets數據...');
+        // 同時獲取完整預約數據和已預約日期
+        await Promise.all([
+          fetchBookingsFromGoogleSheets(),
+          fetchBookedDatesFromSheets()
+        ]);
+        mergeSheetsDataToCalendar();
+        
+        // 重新生成當前場地的可用日期（排除已預約日期）
+        const currentLoc = document.getElementById('location').value;
+        if (currentLoc) {
+          document.getElementById('location').dispatchEvent(new Event('change'));
+        }
+        
+        console.log('✅ Google Sheets 初始化完成');
+      } catch (error) {
+        console.error('初次同步Google Sheets失敗:', error);
+      }
+    }, 2000);
   }
   
   // 圖片點擊放大功能
@@ -4210,6 +5221,23 @@ document.addEventListener('DOMContentLoaded', async function() {
   <i class="fas fa-sync-alt"></i>
   <span>同步中...</span>
 </div>
+
+<!-- 版權警語 -->
+<footer style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 30px 20px; text-align: center; margin-top: 50px; border-top: 3px solid #FF8A00;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <p style="margin: 0 0 10px 0; font-size: 1rem;">
+      系統開發：<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: none; transition: all 0.3s;">快閃餐車小幫手</a> © 2025
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #ffc107;">
+      <i class="fas fa-exclamation-triangle"></i> 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </p>
+    <p style="margin: 0; font-size: 0.9rem;">
+      <a href="https://foodcarshop.pages.dev/guide" target="_blank" style="color: #17a2b8; font-weight: bold; text-decoration: underline; transition: all 0.3s;">
+        <i class="fas fa-shopping-cart"></i> 客製化餐車預購系統(示範)
+      </a>
+    </p>
+  </div>
+</footer>
 
 </body>
 </html>
