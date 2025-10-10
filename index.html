@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v2.3</title>
+<title>楊梅餐車排班報名系統 v2.4</title>
 
 
 <!-- Font Awesome -->
@@ -4207,31 +4207,32 @@ async function fetchBookingsFromGoogleSheets() {
   }
 }
 
-// 將Google Sheets數據合併到日曆（支援新增和更新）
+// 將Google Sheets數據合併到日曆（v2.3：完全替換模式）
 function mergeSheetsDataToCalendar() {
-  // 先清空 bookedSlots，從 Google Sheets 重建（避免髒數據）
-  console.log('清空 bookedSlots，準備從 Google Sheets 重建...');
+  console.log('========================================');
+  console.log('📥 從 Google Sheets 同步數據（完全替換模式）');
+  console.log('========================================');
+  
+  // v2.3.0：完全清空所有數據，只保留 Google Sheets 的數據
+  console.log('🧹 清空所有本地數據...');
+  allEvents.length = 0;
   Object.keys(bookedSlots).forEach(location => {
     bookedSlots[location] = {};
   });
   
   if (!sheetsBookings || sheetsBookings.length === 0) {
-    console.log('沒有Google Sheets數據需要合併');
-    // 清空所有來自Sheets的事件
-    allEvents = allEvents.filter(e => e.source !== 'google_sheets');
+    console.log('❌ 沒有Google Sheets數據');
+    console.log('✅ 日曆將顯示為空');
     renderCalendar();
     return;
   }
   
-  console.log(`開始合併 ${sheetsBookings.length} 條Google Sheets記錄到日曆`);
+  console.log(`📊 準備載入 ${sheetsBookings.length} 條Google Sheets記錄`);
   
-  let mergedCount = 0;
-  let updatedCount = 0;
+  let addedCount = 0;
   
-  // 先標記所有來自Sheets的事件
-  const sheetsEventIds = new Set();
-  
-  sheetsBookings.forEach(booking => {
+  // v2.3.0：直接添加所有Google Sheets數據，不做合併判斷
+  sheetsBookings.forEach((booking, index) => {
     // 解析日期格式（例如：10月16日(星期四)）
     const dateMatch = booking.date.match(/(\d+)月(\d+)日/);
     if (!dateMatch) {
@@ -4244,116 +4245,61 @@ function mergeSheetsDataToCalendar() {
     const year = new Date().getFullYear(); // 假設為當年
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
-    const eventId = `${dateStr}_${booking.location}_${booking.vendor}`;
-    sheetsEventIds.add(eventId);
+    // v2.3.0：直接添加事件，不檢查是否已存在（因為已經清空）
+    const newEvent = {
+      title: booking.vendor,
+      start: dateStr,
+      location: booking.location,
+      color: '#17a2b8', // 用不同顏色標示來自Sheets的數據
+      timestamp: booking.timestamp,
+      foodType: booking.foodType,
+      fee: booking.fee,
+      payment: booking.payment,
+      bookedStatus: booking.bookedStatus, // 己排狀態
+      note: booking.note,
+      source: 'google_sheets', // 標記來源
+      rowNumber: booking.rowNumber // 保存行號，用於後續更新
+    };
     
-    // 查找是否已存在相同的預約
-    const existingEventIndex = allEvents.findIndex(event => {
-      let eventDate;
-      if (event.start instanceof Date) {
-        eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
-      } else {
-        eventDate = event.start.split('T')[0];
-      }
-      return eventDate === dateStr && 
-             event.location === booking.location;
+    allEvents.push(newEvent);
+    
+    // 更新bookedSlots
+    if (!bookedSlots[booking.location]) {
+      bookedSlots[booking.location] = {};
+    }
+    if (!bookedSlots[booking.location][dateStr]) {
+      bookedSlots[booking.location][dateStr] = [];
+    }
+    bookedSlots[booking.location][dateStr].push('14:00-20:00');
+    
+    addedCount++;
+  });
+  
+  // v2.3.0：不再需要刪除邏輯，因為已經清空所有數據
+  
+  console.log('========================================');
+  console.log(`✅ Google Sheets 數據載入完成`);
+  console.log(`📊 總計載入: ${addedCount} 個預約`);
+  console.log('========================================');
+  
+  if (addedCount > 0) {
+    // 顯示每個場地的預約數量
+    const locationCounts = {};
+    allEvents.forEach(event => {
+      locationCounts[event.location] = (locationCounts[event.location] || 0) + 1;
     });
     
-    if (existingEventIndex >= 0) {
-      // 更新現有事件（檢查是否有變更）
-      const existingEvent = allEvents[existingEventIndex];
-      let hasChanges = false;
-      
-      if (existingEvent.title !== booking.vendor) {
-        console.log(`更新店名: ${existingEvent.title} → ${booking.vendor}`);
-        hasChanges = true;
-      }
-      if (existingEvent.payment !== booking.payment) {
-        console.log(`更新付款狀態: ${existingEvent.payment} → ${booking.payment}`);
-        hasChanges = true;
-      }
-      if (existingEvent.bookedStatus !== booking.bookedStatus) {
-        console.log(`更新己排狀態: ${existingEvent.bookedStatus} → ${booking.bookedStatus}`);
-        hasChanges = true;
-      }
-      if (existingEvent.note !== booking.note) {
-        console.log(`更新備註: ${existingEvent.note} → ${booking.note}`);
-        hasChanges = true;
-      }
-      
-      if (hasChanges) {
-        allEvents[existingEventIndex] = {
-          ...existingEvent,
-          title: booking.vendor,
-          foodType: booking.foodType,
-          fee: booking.fee,
-          payment: booking.payment,
-          bookedStatus: booking.bookedStatus, // 新增：己排狀態
-          note: booking.note,
-          timestamp: booking.timestamp,
-          rowNumber: booking.rowNumber,
-          source: 'google_sheets'
-        };
-        updatedCount++;
-      }
-    } else {
-      // 添加新事件到日曆
-      const newEvent = {
-        title: booking.vendor,
-        start: dateStr,
-        location: booking.location,
-        color: '#17a2b8', // 用不同顏色標示來自Sheets的數據
-        timestamp: booking.timestamp,
-        foodType: booking.foodType,
-        fee: booking.fee,
-        payment: booking.payment,
-        bookedStatus: booking.bookedStatus, // 新增：己排狀態
-        note: booking.note,
-        source: 'google_sheets', // 標記來源
-        rowNumber: booking.rowNumber // 保存行號，用於後續更新
-      };
-      
-      allEvents.push(newEvent);
-      
-      // 更新bookedSlots
-      if (!bookedSlots[booking.location]) {
-        bookedSlots[booking.location] = {};
-      }
-      if (!bookedSlots[booking.location][dateStr]) {
-        bookedSlots[booking.location][dateStr] = [];
-      }
-      bookedSlots[booking.location][dateStr].push('14:00-20:00');
-      
-      mergedCount++;
-    }
-  });
-  
-  // 刪除Sheets中已不存在的事件
-  const removedEvents = allEvents.filter(event => {
-    if (event.source !== 'google_sheets') return false;
+    console.log('📍 各場地預約數量:');
+    Object.keys(locationCounts).forEach(location => {
+      console.log(`   ${location}: ${locationCounts[location]} 個預約`);
+    });
+    console.log('========================================');
     
-    let eventDate;
-    if (event.start instanceof Date) {
-      eventDate = `${event.start.getFullYear()}-${String(event.start.getMonth() + 1).padStart(2, '0')}-${String(event.start.getDate()).padStart(2, '0')}`;
-    } else {
-      eventDate = event.start.split('T')[0];
-    }
-    
-    const eventId = `${eventDate}_${event.location}_${event.title}`;
-    return !sheetsEventIds.has(eventId);
-  });
-  
-  if (removedEvents.length > 0) {
-    console.log(`移除 ${removedEvents.length} 個已刪除的預約`);
-    allEvents = allEvents.filter(event => !removedEvents.includes(event));
-  }
-  
-  if (mergedCount > 0 || updatedCount > 0 || removedEvents.length > 0) {
-    console.log(`✅ 同步完成 - 新增: ${mergedCount}, 更新: ${updatedCount}, 刪除: ${removedEvents.length}`);
     renderCalendar(); // 重新渲染日曆
-    saveToLocalStorage(); // 保存到本地存儲
+    // v2.3.0：不再保存到localStorage，避免舊數據污染
   } else {
-    console.log('沒有變更需要同步');
+    console.log('⚠️ 沒有載入任何預約數據');
+    renderCalendar(); // 顯示空日曆
   }
 }
 
@@ -4766,19 +4712,25 @@ function handleDateChange() {
 document.getElementById('date').addEventListener('change', handleDateChange);
 document.getElementById('availableDates').addEventListener('change', handleDateChange);
 
-// 數據持久化功能
+// 數據持久化功能（v2.3.0：已停用，完全依賴Google Sheets）
 function saveToLocalStorage() {
-  try {
-    const data = {
-      allEvents: allEvents,
-      bookedSlots: bookedSlots,
-      lastUpdate: formatTimestamp()
-    };
-    localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
-    console.log('數據已保存到本地存儲');
-  } catch (error) {
-    console.error('保存到本地存儲失敗:', error);
-  }
+  // v2.3.0：不再保存到localStorage，避免舊數據污染
+  // 所有數據完全來自Google Sheets
+  console.log('ℹ️ v2.3.0: 不使用本地存儲，數據完全來自 Google Sheets');
+  return;
+  
+  // 以下代碼已停用
+  // try {
+  //   const data = {
+  //     allEvents: allEvents,
+  //     bookedSlots: bookedSlots,
+  //     lastUpdate: formatTimestamp()
+  //   };
+  //   localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
+  //   console.log('數據已保存到本地存儲');
+  // } catch (error) {
+  //   console.error('保存到本地存儲失敗:', error);
+  // }
 }
 
 // 清除本地緩存
@@ -4890,9 +4842,46 @@ window.quickTest = async function() {
   console.log('===========================');
 };
 
+// 檢查當前顯示的數據來源
+function checkDataSource() {
+  console.log('========================================');
+  console.log('📊 當前數據來源檢查');
+  console.log('========================================');
+  console.log(`總事件數: ${allEvents.length}`);
+  
+  const sourceCounts = {};
+  allEvents.forEach(event => {
+    const source = event.source || '未知';
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+  });
+  
+  console.log('\n📍 數據來源統計:');
+  Object.keys(sourceCounts).forEach(source => {
+    console.log(`   ${source}: ${sourceCounts[source]} 個事件`);
+  });
+  
+  console.log('\n📋 詳細列表:');
+  allEvents.forEach((event, index) => {
+    let dateStr;
+    if (event.start instanceof Date) {
+      dateStr = event.start.toISOString().split('T')[0];
+    } else {
+      dateStr = event.start.split('T')[0];
+    }
+    console.log(`   ${index + 1}. ${event.title} | ${event.location} | ${dateStr} | 來源: ${event.source || '未知'}`);
+  });
+  
+  console.log('========================================');
+  console.log('✅ 如果所有來源都是 "google_sheets"，表示數據正確');
+  console.log('❌ 如果有其他來源，請執行 clearLocalCache() 清除舊數據');
+  console.log('========================================');
+}
+
 // 暴露到全局供控制台使用
 window.clearLocalCache = clearLocalCache;
 window.diagnoseAllBookings = diagnoseAllBookings;
+window.checkDataSource = checkDataSource;
+window.syncOnlySheetsData = syncOnlySheetsData;
 
 function loadFromLocalStorage() {
   try {
@@ -6454,7 +6443,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '2.3.0';
+const SYSTEM_VERSION = '2.4.0';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -6510,18 +6499,49 @@ function checkVersionAndRefresh() {
   const storedVersion = localStorage.getItem('system_version');
   
   if (storedVersion !== SYSTEM_VERSION) {
-    console.log('🔄 檢測到新版本，清除舊緩存...');
+    console.log('🔄 檢測到新版本，清除所有舊緩存...');
     console.log('舊版本:', storedVersion || '未知');
     console.log('新版本:', SYSTEM_VERSION);
+    
+    // 清除所有舊的預約數據（只保留Google Sheets數據）
+    console.log('清除本地預約數據...');
+    localStorage.removeItem('foodtruck_bookings');
+    localStorage.removeItem('foodtruck_bookedSlots');
+    
+    // 清空內存中的事件
+    allEvents.length = 0;
+    Object.keys(bookedSlots).forEach(location => {
+      bookedSlots[location] = {};
+    });
     
     // 儲存新版本號
     localStorage.setItem('system_version', SYSTEM_VERSION);
     
     // 顯示更新提示
     setTimeout(() => {
-      showToast('success', '系統已更新', `已更新至版本 ${SYSTEM_VERSION}，優化LINE瀏覽器顯示`);
+      showToast('success', '系統已更新', `已更新至 v${SYSTEM_VERSION}！清除舊數據，完全依賴Google Sheets`);
     }, 500);
+    
+    return true; // 表示已清除數據
   }
+  
+  return false; // 沒有清除數據
+}
+
+// 強制只顯示Google Sheets的數據
+function syncOnlySheetsData() {
+  console.log('========================================');
+  console.log('📊 強制只顯示 Google Sheets 數據');
+  console.log('========================================');
+  
+  // 清空所有本地數據
+  allEvents.length = 0;
+  Object.keys(bookedSlots).forEach(location => {
+    bookedSlots[location] = {};
+  });
+  
+  console.log('✅ 已清空本地數據');
+  console.log('⏳ 等待從 Google Sheets 同步...');
 }
 
 // 頁面載入時檢測
@@ -6530,16 +6550,24 @@ checkVersionAndRefresh();
 
 // 圖片放大功能
 document.addEventListener('DOMContentLoaded', async function() {
-  // 先從本地存儲載入數據
-  const hasLocalData = loadFromLocalStorage();
+  // v2.4.0：完全依賴Google Sheets，清除所有本地緩存
+  console.log('========================================');
+  console.log('📋 系統初始化中... (v2.4.0)');
+  console.log('========================================');
+  console.log('🚫 不使用本地緩存數據（已停用localStorage）');
+  console.log('✅ 完全從 Google Sheets 同步數據');
+  console.log('✅ 每次刷新都顯示 Google Sheets 最新資料');
   
-  // 強制清空 bookedSlots，只依賴 Google Sheets 的數據
-  console.log('清空 bookedSlots，等待從 Google Sheets 重建...');
-  Object.keys(bookedSlots).forEach(key => {
-    bookedSlots[key] = {};
+  // 強制清空所有本地數據
+  allEvents.length = 0;
+  Object.keys(bookedSlots).forEach(location => {
+    bookedSlots[location] = {};
   });
   
-  // 初始化新行事曆
+  console.log('✅ 本地數據已清空');
+  console.log('========================================');
+  
+  // 初始化新行事曆（此時為空）
   initNewCalendar();
   
   // 設定預設場地
@@ -6717,7 +6745,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v2.3.0 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v2.4.0 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
