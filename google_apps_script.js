@@ -286,8 +286,11 @@ function addBookingToSheet(bookingData) {
     timestampCell.setValue(new Date()); // 儲存完整的Date物件（保留精確時間）
     timestampCell.setNumberFormat('yyyy-MM-dd"T"HH:mm:ss'); // 自訂顯示格式（隱藏毫秒和Z）
     
-    // 設定 F 欄（己排）的自動判斷公式 - A 欄是 Date 物件，可直接計算
-    const statusFormula = `=IF((NOW() - A${targetRow}) * 24 > 24, "逾繳可排", "己排班")`;
+    // 設定 F 欄（己排）的自動判斷公式 - 考慮付款狀態
+    // 邏輯：如果H欄是「己繳款」或「已付款」→ 己排班
+    //      如果H欄是「尚未付款」且超過24小時 → 逾繳可排
+    //      否則 → 己排班
+    const statusFormula = `=IF(OR(H${targetRow}="己繳款", H${targetRow}="已付款"), "己排班", IF(AND(H${targetRow}="尚未付款", (NOW()-A${targetRow})*24>24), "逾繳可排", "己排班"))`;
     sheet.getRange(targetRow, 6).setFormula(statusFormula);
     console.log(`F${targetRow} 欄位已設定公式: ${statusFormula}`);
     
@@ -698,19 +701,20 @@ function initializeSheets() {
     sheet.setColumnWidth(8, 100);  // H: 款項結清
     sheet.setColumnWidth(9, 250);  // I: 備註
     
-    // 6. 設定F欄（己排）的自動公式
-    // 在F10開始添加公式：如果F欄是"己排班"且距離預約時間超過1天，則顯示"逾繳可排"
-    const overdueFormula = '=IF(F10="己排班",IF(NOW()-A10>1,"逾繳可排","己排班"),"")';
+    // 6. 設定F欄（己排）的自動公式 - 考慮付款狀態
+    // 邏輯：如果H欄是「己繳款」或「已付款」→ 己排班
+    //      如果H欄是「尚未付款」且超過24小時 → 逾繳可排
+    //      否則 → 己排班
     
     // 手動設定每一行的公式（因為需要動態行號）
     for (let row = 10; row <= 1000; row++) {
-      const rowFormula = `=IF(F${row}="己排班",IF(NOW()-A${row}>1,"逾繳可排","己排班"),"")`;
+      const rowFormula = `=IF(OR(H${row}="己繳款", H${row}="已付款"), "己排班", IF(AND(H${row}="尚未付款", (NOW()-A${row})*24>24), "逾繳可排", "己排班"))`;
       sheet.getRange(`F${row}`).setFormula(rowFormula);
     }
     
     // 7. 設定數據驗證（H欄：款項結清）
     const paymentRule = SpreadsheetApp.newDataValidation()
-      .requireValueInList(['尚未付款', '已付款', '部分付款'], true)
+      .requireValueInList(['尚未付款', '已付款', '己繳款', '部分付款'], true)
       .setAllowInvalid(false)
       .setHelpText('請選擇付款狀態')
       .build();
@@ -723,6 +727,14 @@ function initializeSheets() {
     // 已付款 = 綠色
     const paidRule = SpreadsheetApp.newConditionalFormatRule()
       .whenTextEqualTo('已付款')
+      .setBackground('#D4EDDA')
+      .setFontColor('#155724')
+      .setRanges([sheet.getRange('H9:H1000')])
+      .build();
+    
+    // 己繳款 = 綠色（與已付款相同效果）
+    const paidRule2 = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo('己繳款')
       .setBackground('#D4EDDA')
       .setFontColor('#155724')
       .setRanges([sheet.getRange('H9:H1000')])
@@ -755,6 +767,7 @@ function initializeSheets() {
     
     const rules = sheet.getConditionalFormatRules();
     rules.push(paidRule);
+    rules.push(paidRule2); // 己繳款
     rules.push(unpaidRule);
     rules.push(bookedRule);
     rules.push(overdueRule);
@@ -793,6 +806,61 @@ function initializeSheets() {
   }
 }
 
+// 排序工作表數據（按照預約日期遞增）
+function sortSheetByDate() {
+  try {
+    console.log('========== 開始排序工作表 ==========');
+    
+    const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('Form_Responses1');
+    
+    if (!sheet) {
+      console.log('找不到工作表');
+      return {
+        success: false,
+        message: '找不到工作表 Form_Responses1'
+      };
+    }
+    
+    const lastRow = sheet.getLastRow();
+    console.log(`工作表最後一行: ${lastRow}`);
+    
+    if (lastRow < 2) {
+      console.log('沒有資料需要排序');
+      return {
+        success: true,
+        message: '沒有資料需要排序',
+        sortedRows: 0
+      };
+    }
+    
+    // 排序資料範圍（從第2行開始，包含所有9欄）
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
+    dataRange.sort({column: 5, ascending: true}); // 按照第5欄（E欄：預約日期）遞增排序
+    
+    const sortedCount = lastRow - 1;
+    console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
+    console.log('===================================');
+    
+    return {
+      success: true,
+      message: `成功排序 ${sortedCount} 行資料`,
+      sortedRows: sortedCount,
+      sortColumn: 'E欄（預約日期）',
+      sortOrder: '遞增'
+    };
+    
+  } catch (error) {
+    console.error('排序失敗:', error);
+    return {
+      success: false,
+      message: '排序失敗: ' + error.toString(),
+      error: error.toString()
+    };
+  }
+}
+
 // 獲取所有預約數據
 function getAllBookings() {
   try {
@@ -816,6 +884,18 @@ function getAllBookings() {
     }
     
     console.log('工作表名稱:', sheet.getName());
+    
+    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        dataRange.sort({column: 5, ascending: true});
+        console.log('✅ 資料已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響讀取）:', sortError);
+    }
     
     // 獲取所有數據（從第2行開始，跳過標題行）
     const lastRow = sheet.getLastRow();
@@ -1005,6 +1085,18 @@ function getBookedDates() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
+    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        dataRange.sort({column: 5, ascending: true});
+        console.log('✅ 資料已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響讀取）:', sortError);
+    }
+    
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
     
@@ -1132,8 +1224,8 @@ function takeoverBooking(takeoverData) {
     sheet.getRange(rowNumber, 4).setValue(takeoverData.location); // D: 預約場地
     sheet.getRange(rowNumber, 5).setValue(formattedDate); // E: 預約日期
     
-    // F: 己排 - 使用公式自動判斷（A欄是Date物件，可直接計算）
-    const statusFormula = `=IF((NOW() - A${rowNumber}) * 24 > 24, "逾繳可排", "己排班")`;
+    // F: 己排 - 使用公式自動判斷（考慮付款狀態）
+    const statusFormula = `=IF(OR(H${rowNumber}="己繳款", H${rowNumber}="已付款"), "己排班", IF(AND(H${rowNumber}="尚未付款", (NOW()-A${rowNumber})*24>24), "逾繳可排", "己排班"))`;
     sheet.getRange(rowNumber, 6).setFormula(statusFormula);
     console.log(`F${rowNumber} 欄位已設定公式: ${statusFormula}`);
     
@@ -1243,6 +1335,19 @@ function transferBooking(transferData) {
     sheet.getRange(rowNumber, 9).setValue(`轉出自: ${transferData.originalVendor}`); // I: 備註
     
     console.log(`✅ 成功釋出排班 - 行號: ${rowNumber}, 原餐車: ${transferData.originalVendor}, 新餐車: ${transferData.vendor}`);
+    
+    // 自動排序：按照預約日期（E欄）遞增排序
+    try {
+      const sortLastRow = sheet.getLastRow();
+      if (sortLastRow >= 2) {
+        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
+        dataRange.sort({column: 5, ascending: true});
+        console.log('✅ 已按照預約日期遞增排序');
+      }
+    } catch (sortError) {
+      console.error('排序失敗（不影響釋出）:', sortError);
+    }
+    
     console.log('===================================');
     
     return ContentService

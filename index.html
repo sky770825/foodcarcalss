@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v2.7</title>
+<title>楊梅餐車排班報名系統 v3.0</title>
 
 
 <!-- Font Awesome -->
@@ -1843,6 +1843,47 @@ body.line-browser .event-container {
     font-size:0.82rem;
   }
   
+  /* 使用教學彈窗手機優化 */
+  #helpModal .password-modal-content{
+    max-width:95%;
+  }
+  
+  #helpModal .password-body{
+    padding:18px 15px !important;
+    max-height:75vh;
+  }
+  
+  .help-section h4{
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+    margin-bottom:10px !important;
+  }
+  
+  .help-section ul{
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem) !important;
+    line-height:1.6 !important;
+    padding-left:18px !important;
+  }
+  
+  .help-section li{
+    margin-bottom:8px !important;
+  }
+  
+  #helpModal button{
+    padding:10px 15px !important;
+    font-size:clamp(0.88rem, 4vw, 0.95rem) !important;
+  }
+  
+  /* 幫助按鈕手機優化 */
+  .help-btn{
+    width:28px;
+    height:28px;
+    right:5px;
+  }
+  
+  .help-btn i{
+    font-size:0.9rem;
+  }
+  
   /* 場地篩選按鈕 - 2行3欄保持一致 */
   .location-filter-buttons{
     grid-template-columns:repeat(3, 1fr);
@@ -1928,6 +1969,29 @@ body.line-browser .event-container {
   .loading-spinner p div:last-child{
     font-size:clamp(0.75rem, 4vw, 0.85rem);
   }
+  
+  /* 使用教學彈窗極小螢幕優化 */
+  #helpModal .password-body{
+    padding:15px 12px !important;
+  }
+  
+  .help-section h4{
+    font-size:0.95rem !important;
+  }
+  
+  .help-section ul{
+    font-size:0.78rem !important;
+    line-height:1.5 !important;
+  }
+  
+  .help-btn{
+    width:26px;
+    height:26px;
+  }
+  
+  .help-btn i{
+    font-size:0.85rem;
+  }
 }
 </style>
 </head>
@@ -1948,7 +2012,12 @@ body.line-browser .event-container {
 
   <!-- 排班行事曆 -->
   <div class="card">
-  <h2 class="section-title">📅 排班行事曆</h2>
+    <div style="display: flex; justify-content: center; align-items: center; position: relative;">
+      <h2 class="section-title">📅 排班行事曆</h2>
+      <button onclick="showHelpModal()" class="help-btn" title="使用說明">
+        <i class="fas fa-question"></i>
+      </button>
+    </div>
     
     <!-- 新的行事曆容器 -->
     <div class="calendar-container">
@@ -2374,6 +2443,85 @@ body.line-browser .event-container {
   </div>
 </div>
 
+<!-- 使用教學彈窗 -->
+<div id="helpModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 550px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #17a2b8, #138496); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-graduation-cap"></i> 使用教學</h3>
+      <span class="modal-close" onclick="closeHelpModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+      <div class="help-content">
+        
+        <div class="help-section">
+          <h4 style="color: #FF4B2B; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-calendar-check"></i> 如何預約排班？
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li><strong>方法1：快速預約</strong><br>直接點擊日曆上的<span style="background: #fff5f0; padding: 2px 6px; border-radius: 4px; color: #FF8A00;">空白日期</span>，系統會自動填入場地和日期</li>
+            <li><strong>方法2：表單預約</strong><br>下滑到報名表單，依序填寫餐車名稱、場地、日期等資訊</li>
+            <li>送出後會顯示<span style="background: #fff3cd; padding: 2px 6px; border-radius: 4px; color: #856404;">繳費彈窗</span>，請在24小時內完成付款</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #28a745; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-credit-card"></i> 付款說明
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>預約後需在<strong style="color: #dc3545;">24小時內付款</strong>，否則將變成<span style="background: #f8d7da; padding: 2px 6px; border-radius: 4px; color: #721c24;">逾繳可排</span>狀態</li>
+            <li>支援街口支付、LINE-PAY、銀行轉帳三種方式</li>
+            <li>付款完成後，請將截圖傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></li>
+            <li>付款狀態會顯示為<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">✓ 已付款</span></li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #ffc107; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-exchange-alt"></i> 轉讓排班
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>點擊<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">已付款</span>的排班，可以將排班轉讓給其他餐車</li>
+            <li>需先與接手餐車私下完成場租交易</li>
+            <li>填寫接手餐車資訊和換班密碼即可完成轉讓</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #dc3545; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-times-circle"></i> 取消預約
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>點擊日曆上排班右上角的<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">✕</span>按鈕</li>
+            <li>可選擇聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>或使用密碼取消</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #6c5ce7; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-hand-holding-usd"></i> 接手逾期排班
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>逾期未付款的排班會顯示<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">❌ 逾繳可排</span></li>
+            <li>點擊該排班即可接手，填寫您的餐車資訊</li>
+            <li>接手後需在24小時內完成付款</li>
+          </ul>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border: 2px solid #2196f3; border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
+          <p style="margin: 0 0 10px 0; color: #1976d2; font-size: 1rem; font-weight: bold;">
+            <i class="fas fa-headset"></i> 需要協助？
+          </p>
+          <button onclick="openOfficialAccount(); closeHelpModal();" style="background: linear-gradient(135deg, #00C300, #00A000); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 195, 0, 0.3);">
+            <i class="fab fa-line"></i> 聯繫官方小幫手
+          </button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 逾期接手彈窗 -->
 <div id="takeoverModal" class="payment-modal">
   <div class="payment-modal-content">
@@ -2449,6 +2597,57 @@ body.line-browser .event-container {
 </div>
 
 <style>
+/* 使用教學按鈕樣式 */
+.help-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-btn:hover {
+  background: linear-gradient(135deg, #138496, #117a8b);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+}
+
+.help-btn i {
+  font-size: 1rem;
+}
+
+/* 使用教學彈窗樣式 */
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.help-section ul {
+  margin: 0;
+}
+
+.help-section li {
+  margin-bottom: 10px;
+}
+
+.help-section li:last-child {
+  margin-bottom: 0;
+}
+
 /* 國定假日標記樣式 - 僅用於四維路60號 */
 .holiday-badge {
   background: linear-gradient(135deg, #dc3545, #c82333);
@@ -2901,13 +3100,14 @@ const locationConfigs = {
       hours: "14:00-20:00",
       fee: "600元/天",
       limit: "僅限1車，不要跟店面強碰商品",
-      ban: "高糖飲料",
+      ban: "飲料車、素食",
       special: "只有週三、週六可排班"
     },
     notices: [
       "不供水、不供電，需自行清潔環境及垃圾處理",
       "僅限1車，請勿與店面商品強碰",
       "只有週三、週六可排班",
+      "禁止飲料車、素食",
       "建議健康蔬食類型餐車"
     ]
   },
@@ -3197,6 +3397,20 @@ function closePasswordModal() {
   
   // 清空密碼輸入框
   document.getElementById('passwordInput').value = '';
+}
+
+// 顯示使用教學彈窗
+function showHelpModal() {
+  const modal = document.getElementById('helpModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// 關閉使用教學彈窗
+function closeHelpModal() {
+  const modal = document.getElementById('helpModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
 }
 
 // 顯示排班釋出彈窗
@@ -3888,7 +4102,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycby0y5vRW3f3vQ7Yzg_1WCGwoZxJ0-MU_1WUBuJmAWlfhM1p58vmoaDqgcw1is8CuXy7/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbwlKpc_iQphO4kb5xoREepDEQNV4SyMNKpv81A6x14daEmY_MmJ3Za5oGwvpEtVQrjV/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -4516,10 +4730,80 @@ async function fetchBookingsFromGoogleSheets() {
   }
 }
 
-// 將Google Sheets數據合併到日曆（v2.3：完全替換模式）
+// 場地名稱標準化對照表（處理不同格式的場地名稱）
+const locationNameMapping = {
+  // Google Sheets 可能的格式 → 系統標準格式
+  "四維路59號": "四維路59號",
+  "楊梅區四維路59號": "四維路59號",
+  "四維路60號": "四維路60號",
+  "楊梅區四維路60號": "四維路60號",
+  "漢堡大亨": "漢堡大亨",
+  "漢堡大亨 - 四維路70號": "漢堡大亨",
+  "四維路70號": "漢堡大亨",
+  "楊梅區四維路70號": "漢堡大亨",
+  "自由風": "自由風",
+  "自由風 - 四維路190號": "自由風",
+  "四維路190號": "自由風",
+  "楊梅區四維路190號": "自由風",
+  "蔬蒔": "蔬蒔",
+  "蔬蒔 - 四維路216號": "蔬蒔",
+  "四維路216號": "蔬蒔",
+  "楊梅區四維路216號": "蔬蒔",
+  "金正好吃": "金正好吃",
+  "金正好吃 - 四維路218號": "金正好吃",
+  "四維路218號": "金正好吃",
+  "楊梅區四維路218號": "金正好吃"
+};
+
+// 標準化場地名稱
+function normalizeLocationName(locationName) {
+  if (!locationName) return locationName;
+  
+  // 移除多餘空格和全形空格
+  let trimmed = locationName.trim().replace(/\s+/g, '');
+  
+  // 移除"楊梅區"前綴（如果有）
+  trimmed = trimmed.replace(/^楊梅區/, '');
+  
+  // 查找對照表（先精確匹配）
+  if (locationNameMapping[locationName.trim()]) {
+    return locationNameMapping[locationName.trim()];
+  }
+  
+  // 查找對照表（無空格版本）
+  if (locationNameMapping[trimmed]) {
+    return locationNameMapping[trimmed];
+  }
+  
+  // 如果沒有在對照表中，嘗試智能匹配（根據門牌號碼）
+  if (trimmed.includes('70號') || trimmed.includes('漢堡')) {
+    return '漢堡大亨';
+  }
+  if (trimmed.includes('190號') || trimmed.includes('自由風')) {
+    return '自由風';
+  }
+  if (trimmed.includes('216號') || trimmed.includes('蔬蒔')) {
+    return '蔬蒔';
+  }
+  if (trimmed.includes('218號') || trimmed.includes('金正好吃')) {
+    return '金正好吃';
+  }
+  if (trimmed.includes('59號')) {
+    return '四維路59號';
+  }
+  if (trimmed.includes('60號')) {
+    return '四維路60號';
+  }
+  
+  // 如果都無法匹配，返回原始名稱
+  console.warn(`⚠️ 無法標準化場地名稱: "${locationName}"`);
+  return locationName.trim();
+}
+
+// 將Google Sheets數據合併到日曆（v2.7：完全替換模式 + 場地名稱標準化）
 function mergeSheetsDataToCalendar() {
   console.log('========================================');
-  console.log('📥 從 Google Sheets 同步數據（完全替換模式）');
+  console.log('📥 從 Google Sheets 同步數據（v2.7 - 場地名稱標準化）');
   console.log('========================================');
   
   // v2.3.0：完全清空所有數據，只保留 Google Sheets 的數據
@@ -4539,13 +4823,15 @@ function mergeSheetsDataToCalendar() {
   console.log(`📊 準備載入 ${sheetsBookings.length} 條Google Sheets記錄`);
   
   let addedCount = 0;
+  let skippedCount = 0;
   
-  // v2.3.0：直接添加所有Google Sheets數據，不做合併判斷
+  // v2.7.0：直接添加所有Google Sheets數據，並標準化場地名稱
   sheetsBookings.forEach((booking, index) => {
     // 解析日期格式（例如：10月16日(星期四)）
     const dateMatch = booking.date.match(/(\d+)月(\d+)日/);
     if (!dateMatch) {
-      console.warn('無法解析日期格式:', booking.date);
+      console.warn('❌ 無法解析日期格式:', booking.date, '- 跳過此筆資料');
+      skippedCount++;
       return;
     }
     
@@ -4554,11 +4840,26 @@ function mergeSheetsDataToCalendar() {
     const year = new Date().getFullYear(); // 假設為當年
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
-    // v2.3.0：直接添加事件，不檢查是否已存在（因為已經清空）
+    // 標準化場地名稱
+    const originalLocation = booking.location;
+    const normalizedLocation = normalizeLocationName(booking.location);
+    
+    if (originalLocation !== normalizedLocation) {
+      console.log(`🔄 場地名稱標準化: "${originalLocation}" → "${normalizedLocation}"`);
+    }
+    
+    // 檢查是否為有效場地
+    if (!locationConfigs[normalizedLocation]) {
+      console.warn(`⚠️ 未知場地: "${booking.location}" (標準化: "${normalizedLocation}") - 跳過此筆資料`);
+      skippedCount++;
+      return;
+    }
+    
+    // v2.7.0：直接添加事件，使用標準化後的場地名稱
     const newEvent = {
       title: booking.vendor,
       start: dateStr,
-      location: booking.location,
+      location: normalizedLocation, // 使用標準化後的名稱
       color: '#17a2b8', // 用不同顏色標示來自Sheets的數據
       timestamp: booking.timestamp,
       foodType: booking.foodType,
@@ -4567,28 +4868,33 @@ function mergeSheetsDataToCalendar() {
       bookedStatus: booking.bookedStatus, // 己排狀態
       note: booking.note,
       source: 'google_sheets', // 標記來源
-      rowNumber: booking.rowNumber // 保存行號，用於後續更新
+      rowNumber: booking.rowNumber, // 保存行號，用於後續更新
+      originalLocation: originalLocation // 保存原始場地名稱
     };
     
     allEvents.push(newEvent);
     
-    // 更新bookedSlots
-    if (!bookedSlots[booking.location]) {
-      bookedSlots[booking.location] = {};
+    // 更新bookedSlots（使用標準化後的名稱）
+    if (!bookedSlots[normalizedLocation]) {
+      bookedSlots[normalizedLocation] = {};
     }
-    if (!bookedSlots[booking.location][dateStr]) {
-      bookedSlots[booking.location][dateStr] = [];
+    if (!bookedSlots[normalizedLocation][dateStr]) {
+      bookedSlots[normalizedLocation][dateStr] = [];
     }
-    bookedSlots[booking.location][dateStr].push('14:00-20:00');
+    bookedSlots[normalizedLocation][dateStr].push('14:00-20:00');
     
     addedCount++;
   });
   
-  // v2.3.0：不再需要刪除邏輯，因為已經清空所有數據
+  // v2.7.0：顯示載入統計（包含跳過的資料）
   
   console.log('========================================');
   console.log(`✅ Google Sheets 數據載入完成`);
-  console.log(`📊 總計載入: ${addedCount} 個預約`);
+  console.log(`📊 成功載入: ${addedCount} 個預約`);
+  if (skippedCount > 0) {
+    console.warn(`⚠️ 跳過: ${skippedCount} 筆資料（場地名稱不匹配或日期格式錯誤）`);
+    console.warn(`💡 請在控制台執行 checkSheetsLocationNames() 查看詳情`);
+  }
   console.log('========================================');
   
   if (addedCount > 0) {
@@ -4602,6 +4908,17 @@ function mergeSheetsDataToCalendar() {
     Object.keys(locationCounts).forEach(location => {
       console.log(`   ${location}: ${locationCounts[location]} 個預約`);
     });
+    
+    // 檢查是否有場地沒有預約
+    const allLocations = Object.keys(locationConfigs);
+    const missingLocations = allLocations.filter(loc => !locationCounts[loc]);
+    if (missingLocations.length > 0) {
+      console.log('\n📭 以下場地目前無預約:');
+      missingLocations.forEach(loc => {
+        console.log(`   • ${loc}`);
+      });
+    }
+    
     console.log('========================================');
     
     renderCalendar(); // 重新渲染日曆
@@ -5177,7 +5494,8 @@ function checkDataSource() {
     } else {
       dateStr = event.start.split('T')[0];
     }
-    console.log(`   ${index + 1}. ${event.title} | ${event.location} | ${dateStr} | 來源: ${event.source || '未知'}`);
+    const originalLoc = event.originalLocation ? ` (原: ${event.originalLocation})` : '';
+    console.log(`   ${index + 1}. ${event.title} | ${event.location}${originalLoc} | ${dateStr} | 來源: ${event.source || '未知'}`);
   });
   
   console.log('========================================');
@@ -5186,11 +5504,80 @@ function checkDataSource() {
   console.log('========================================');
 }
 
+// 檢查 Google Sheets 中的場地名稱格式
+function checkSheetsLocationNames() {
+  console.log('========================================');
+  console.log('🔍 檢查 Google Sheets 場地名稱格式');
+  console.log('========================================');
+  
+  if (!sheetsBookings || sheetsBookings.length === 0) {
+    console.warn('❌ 沒有 Google Sheets 數據');
+    console.log('請先執行: await fetchBookingsFromGoogleSheets()');
+    return;
+  }
+  
+  console.log(`📊 共 ${sheetsBookings.length} 筆資料\n`);
+  
+  // 統計場地名稱
+  const locationStats = {};
+  const unknownLocations = [];
+  
+  sheetsBookings.forEach((booking, index) => {
+    const original = booking.location;
+    const normalized = normalizeLocationName(booking.location);
+    const isValid = locationConfigs[normalized] !== undefined;
+    
+    if (!locationStats[original]) {
+      locationStats[original] = {
+        count: 0,
+        normalized: normalized,
+        isValid: isValid
+      };
+    }
+    locationStats[original].count++;
+    
+    if (!isValid) {
+      unknownLocations.push({
+        index: index + 1,
+        vendor: booking.vendor,
+        location: original,
+        date: booking.date
+      });
+    }
+  });
+  
+  console.log('📍 場地名稱統計:\n');
+  Object.keys(locationStats).forEach(location => {
+    const stat = locationStats[location];
+    const status = stat.isValid ? '✅' : '❌';
+    const normalized = location !== stat.normalized ? ` → ${stat.normalized}` : '';
+    console.log(`${status} "${location}"${normalized}: ${stat.count} 筆`);
+  });
+  
+  if (unknownLocations.length > 0) {
+    console.log('\n❌ 無法識別的場地名稱:');
+    unknownLocations.forEach(item => {
+      console.log(`   第 ${item.index} 筆: ${item.vendor} | "${item.location}" | ${item.date}`);
+    });
+    console.log('\n💡 建議修正 Google Sheets 中的場地名稱為以下格式之一:');
+    console.log('   • 四維路59號');
+    console.log('   • 四維路60號');
+    console.log('   • 漢堡大亨 或 四維路70號');
+    console.log('   • 自由風 或 四維路190號');
+    console.log('   • 蔬蒔 或 四維路216號');
+    console.log('   • 金正好吃 或 四維路218號');
+  }
+  
+  console.log('========================================');
+}
+
 // 暴露到全局供控制台使用
 window.clearLocalCache = clearLocalCache;
 window.diagnoseAllBookings = diagnoseAllBookings;
 window.checkDataSource = checkDataSource;
 window.syncOnlySheetsData = syncOnlySheetsData;
+window.checkSheetsLocationNames = checkSheetsLocationNames;
+window.normalizeLocationName = normalizeLocationName;
 
 function loadFromLocalStorage() {
   try {
@@ -6759,7 +7146,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '2.7.0';
+const SYSTEM_VERSION = '3.0.0';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -6966,7 +7353,17 @@ document.addEventListener('DOMContentLoaded', async function() {
           document.getElementById('location').dispatchEvent(new Event('change'));
         }
         
+        // 計算實際載入時間
+        const syncEndTime = Date.now();
+        const syncDuration = ((syncEndTime - syncStartTime) / 1000).toFixed(1);
+        const totalDuration = ((syncEndTime - startTime) / 1000).toFixed(1);
+        
+        console.log('========================================');
         console.log('✅ Google Sheets 初始化完成');
+        console.log(`⏱️ 同步耗時: ${syncDuration} 秒`);
+        console.log(`⏱️ 總耗時: ${totalDuration} 秒`);
+        console.log(`📊 載入預約數: ${allEvents.length}`);
+        console.log('========================================');
         
         // 清除倒數計時
         clearInterval(countdownInterval);
@@ -7047,6 +7444,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('passwordModal').classList.remove('active');
       document.getElementById('transferModal').classList.remove('active');
       document.getElementById('takeoverModal').classList.remove('active');
+      document.getElementById('helpModal').classList.remove('active');
       document.body.style.overflow = 'auto';
     }
   });
@@ -7099,6 +7497,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       submitTransfer();
     }
   });
+  
+  // 點擊背景關閉使用教學彈窗
+  document.getElementById('helpModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeHelpModal();
+    }
+  });
 });
 </script>
 
@@ -7134,7 +7539,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v2.7.0 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v3.0.0 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
