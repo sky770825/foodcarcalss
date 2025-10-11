@@ -281,6 +281,14 @@ function addBookingToSheet(bookingData) {
     sheet.getRange(targetRow, 1, 1, 9).setValues([rowData]);
     console.log('數據已成功插入到工作表');
     
+    // ✨ 確保新增的列不會被隱藏（重要！）
+    try {
+      sheet.showRows(targetRow);
+      console.log(`✅ 已確保第 ${targetRow} 行可見`);
+    } catch (showError) {
+      console.warn('無法確保列可見:', showError);
+    }
+    
     // 設定時間戳記欄位（A欄）- 儲存Date物件，用自訂格式顯示
     const timestampCell = sheet.getRange(targetRow, 1);
     timestampCell.setValue(new Date()); // 儲存完整的Date物件（保留精確時間）
@@ -862,6 +870,28 @@ function quickSortSheet(sheet) {
     sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
     
     console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行）`);
+    
+    // ✨ 排序後，確保所有「尚未付款」的行都可見（防止被隱藏）
+    try {
+      let unpaidCount = 0;
+      for (let i = 0; i < sortedData.length; i++) {
+        const rowIndex = i + 2; // 實際行號（從第2行開始）
+        const paymentStatus = sortedData[i][7]; // H欄（索引7）是款項結清狀態
+        
+        // 如果是「尚未付款」，確保該行可見
+        if (paymentStatus === '尚未付款') {
+          sheet.showRows(rowIndex);
+          unpaidCount++;
+        }
+      }
+      
+      if (unpaidCount > 0) {
+        console.log(`✅ 已確保 ${unpaidCount} 行「尚未付款」資料可見`);
+      }
+    } catch (showError) {
+      console.warn('顯示未付款行時發生錯誤:', showError);
+    }
+    
   } catch (error) {
     console.error('快速排序失敗:', error);
   }
@@ -931,6 +961,27 @@ function sortSheetByDate() {
     
     const sortedCount = sortedData.length;
     console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
+    
+    // ✨ 排序後，確保所有「尚未付款」的行都可見（防止被隱藏）
+    try {
+      let unpaidCount = 0;
+      for (let i = 0; i < sortedData.length; i++) {
+        const rowIndex = i + 2; // 實際行號（從第2行開始）
+        const paymentStatus = sortedData[i][7]; // H欄（索引7）是款項結清狀態
+        
+        // 如果是「尚未付款」，確保該行可見
+        if (paymentStatus === '尚未付款') {
+          sheet.showRows(rowIndex);
+          unpaidCount++;
+        }
+      }
+      
+      if (unpaidCount > 0) {
+        console.log(`✅ 已確保 ${unpaidCount} 行「尚未付款」資料可見`);
+      }
+    } catch (showError) {
+      console.warn('顯示未付款行時發生錯誤:', showError);
+    }
     
     // 顯示前5筆排序結果供確認
     if (sortedData.length > 0) {
@@ -1323,6 +1374,14 @@ function takeoverBooking(takeoverData) {
     sheet.getRange(rowNumber, 7).setValue(takeoverData.fee); // G: 場地費
     sheet.getRange(rowNumber, 8).setValue('尚未付款'); // H: 款項結清
     sheet.getRange(rowNumber, 9).setValue(`接手自: ${takeoverData.originalVendor}`); // I: 備註
+    
+    // ✨ 確保該列不會被隱藏（接手後設為「尚未付款」）
+    try {
+      sheet.showRows(rowNumber);
+      console.log(`✅ 已確保第 ${rowNumber} 行可見`);
+    } catch (showError) {
+      console.warn('無法確保列可見:', showError);
+    }
     
     console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);
     
