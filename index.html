@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v3.0.1</title>
+<title>楊梅餐車排班報名系統 v3.1</title>
 
 
 <!-- Font Awesome -->
@@ -4150,7 +4150,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbwlKpc_iQphO4kb5xoREepDEQNV4SyMNKpv81A6x14daEmY_MmJ3Za5oGwvpEtVQrjV/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbzSw1_5Ve7WIwzziUAwKKmu3tde8DzBOxRi7ghxzmGbn10M1EtGKJARIPwVVY35-zZp/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -7194,7 +7194,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '3.0.1';
+const SYSTEM_VERSION = '3.1.0';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -7587,7 +7587,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v3.0.1 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v3.1.0 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
