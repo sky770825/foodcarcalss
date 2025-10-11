@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v3.1</title>
+<title>楊梅餐車排班報名系統 v3.2</title>
 
 
 <!-- Font Awesome -->
@@ -41,6 +41,67 @@ a{text-decoration:none;color:inherit;}
   cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,0.2);
 }
 .hero button:hover{background:#ffe1d1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+
+/* 快速連結網格 */
+.quick-links-grid{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:10px;
+  margin-top:20px;
+  max-width:750px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.quick-link-btn{
+  background:rgba(255, 255, 255, 0.98);
+  color:#2c3e50;
+  padding:10px 8px;
+  border:2px solid rgba(255, 255, 255, 0.8);
+  border-radius:10px;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .3s;
+  box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  text-align:center;
+}
+
+.quick-link-btn i{
+  font-size:1.5rem;
+  margin-bottom:3px;
+  color:#3498db;
+}
+
+.quick-link-btn span{
+  font-size:0.75rem;
+  line-height:1.2;
+  color:#2c3e50;
+}
+
+.quick-link-btn:hover{
+  background:white;
+  transform:translateY(-3px);
+  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+  border-color:white;
+}
+
+.quick-link-btn:hover i{
+  color:#2980b9;
+}
+
+.quick-link-btn:hover span{
+  color:#34495e;
+}
+
+.quick-link-btn:active{
+  transform:translateY(-1px);
+}
 
 /* 主內容 */
 .container{max-width:1200px;margin:30px auto;padding:0 20px;}
@@ -1165,6 +1226,28 @@ body.line-browser .event-container {
   .hero{padding:35px 15px;min-height:25vh;}
   .hero button{padding:10px 20px;font-size:0.95rem;}
   
+  /* 快速連結手機版 */
+  .quick-links-grid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
+    margin-top:15px;
+    max-width:100%;
+  }
+  
+  .quick-link-btn{
+    padding:10px 6px;
+    font-size:0.75rem;
+  }
+  
+  .quick-link-btn i{
+    font-size:1.3rem;
+    margin-bottom:2px;
+  }
+  
+  .quick-link-btn span{
+    font-size:0.7rem;
+  }
+  
   .container{padding:0 10px;margin:20px auto;}
   .card{padding:15px;margin-bottom:20px;border-radius:10px;}
   
@@ -2021,10 +2104,35 @@ body.line-browser .event-container {
 <section class="hero">
   <div class="hero-content">
     <h1>🚚 楊梅餐車排班報名</h1>
-  <p>立即預約您的餐車出攤檔期，隨時查看最新排班日曆</p>
-  <button onclick="document.querySelector('.calendar-container').scrollIntoView({behavior:'smooth'})">
-      <i class="fas fa-calendar-check"></i> 查看排班
-  </button>
+    <p>立即預約您的餐車出攤檔期，隨時查看最新排班日曆</p>
+    
+    <!-- 快速功能連結 -->
+    <div class="quick-links-grid">
+      <a href="https://sky770825.github.io/niceshow/" target="_blank" class="quick-link-btn">
+        <i class="fas fa-route"></i>
+        <span>每日行程總覽</span>
+      </a>
+      
+      <button onclick="showRulesModal()" class="quick-link-btn">
+        <i class="fas fa-book"></i>
+        <span>群組版規</span>
+      </button>
+      
+      <button onclick="showDownloadModal()" class="quick-link-btn">
+        <i class="fas fa-download"></i>
+        <span>下載素材</span>
+      </button>
+      
+      <a href="https://reurl.cc/G4KbgD" target="_blank" class="quick-link-btn">
+        <i class="fas fa-users"></i>
+        <span>加入預訂社群</span>
+      </a>
+      
+      <a href="https://line.me/ti/g2/2-7-YZOXN4PysTdBsO7Kr4_q4UMlNxAGviawjg?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="quick-link-btn">
+        <i class="fas fa-store"></i>
+        <span>餐車闆闆社群</span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -3461,6 +3569,34 @@ function closeHelpModal() {
   document.body.style.overflow = 'auto';
 }
 
+// 顯示群組版規彈窗
+function showRulesModal() {
+  const modal = document.getElementById('rulesModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// 關閉群組版規彈窗
+function closeRulesModal() {
+  const modal = document.getElementById('rulesModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+// 顯示下載素材彈窗
+function showDownloadModal() {
+  const modal = document.getElementById('downloadModal');
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// 關閉下載素材彈窗
+function closeDownloadModal() {
+  const modal = document.getElementById('downloadModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
 // 顯示排班釋出彈窗
 function showTransferModal(event, dateStr) {
   console.log('========== 開啟排班釋出彈窗 ==========');
@@ -4150,7 +4286,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbzSw1_5Ve7WIwzziUAwKKmu3tde8DzBOxRi7ghxzmGbn10M1EtGKJARIPwVVY35-zZp/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbw7EEhQ3bhM_32WXUMrSeqcuEdawUft9ChQJbWXTMzXJjHiztZbQHQ0U69E6HNYDbn1/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -7194,7 +7330,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '3.1.0';
+const SYSTEM_VERSION = '3.2.1';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -7493,6 +7629,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('transferModal').classList.remove('active');
       document.getElementById('takeoverModal').classList.remove('active');
       document.getElementById('helpModal').classList.remove('active');
+      document.getElementById('rulesModal').classList.remove('active');
+      document.getElementById('downloadModal').classList.remove('active');
       document.body.style.overflow = 'auto';
     }
   });
@@ -7552,6 +7690,20 @@ document.addEventListener('DOMContentLoaded', async function() {
       closeHelpModal();
     }
   });
+  
+  // 點擊背景關閉群組版規彈窗
+  document.getElementById('rulesModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeRulesModal();
+    }
+  });
+  
+  // 點擊背景關閉下載素材彈窗
+  document.getElementById('downloadModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeDownloadModal();
+    }
+  });
 });
 </script>
 
@@ -7572,6 +7724,96 @@ document.addEventListener('DOMContentLoaded', async function() {
   <span>同步中...</span>
 </div>
 
+<!-- 群組版規彈窗 -->
+<div id="rulesModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+    <div class="password-header" style="background: linear-gradient(135deg, #ffc107, #ff9800); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-book"></i> 四維商圈美食餐車群組版規</h3>
+      <span class="modal-close" onclick="closeRulesModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 20px;">
+      
+      <div class="rule-section" style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">
+        <h4 style="color: #ff9800; margin-bottom: 10px;"><i class="fas fa-star"></i> 歡迎新夥伴加入</h4>
+        <p style="line-height: 1.8; color: #666;">進群前後，請將LINE名稱改為【品牌名稱】；如有兩人以上，另一位請用【品牌名稱-小幫手】或【品牌名稱-2】。</p>
+        <p style="line-height: 1.8; color: #666;">名稱更改後，請將【品牌簡介、餐車品項、菜單價格】貼至記事本，方便大家認識彼此。</p>
+      </div>
+
+      <div class="rule-section" style="margin-bottom: 15px;">
+        <h4 style="color: #FF4B2B; margin-bottom: 8px;"><i class="fas fa-clipboard-check"></i> 1. 營業公告與預訂規範</h4>
+        <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
+          <li>營業日前2天，請於訂購群記事本張貼預訂公告。</li>
+          <li>推播僅限營業前一日19:00後。</li>
+          <li>現場作業請以預訂單為優先。</li>
+        </ul>
+      </div>
+
+      <div class="rule-section" style="margin-bottom: 15px;">
+        <h4 style="color: #FF4B2B; margin-bottom: 8px;"><i class="fas fa-dollar-sign"></i> 2. 場地費繳交規定</h4>
+        <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
+          <li>線上排班後，請於<strong>24小時內完成場地費繳交</strong>，並截圖告知小幫手。</li>
+          <li>支援<strong>街口支付、LINE Pay、銀行轉帳</strong>三種付款方式。</li>
+          <li>超過24小時未繳，該場次自動下架，需重新報班。</li>
+          <li>付款完成後狀態將變更為「已付款」，排班確定。</li>
+        </ul>
+      </div>
+
+      <div class="rule-section" style="margin-bottom: 15px;">
+        <h4 style="color: #FF4B2B; margin-bottom: 8px;"><i class="fas fa-broom"></i> 3. 環境與清潔</h4>
+        <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
+          <li>設攤及營業時請保持環境整潔。</li>
+          <li>開攤前後請拍照上傳群組。</li>
+        </ul>
+      </div>
+
+      <div style="padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 8px; margin-top: 20px;">
+        <p style="margin: 0; color: #155724; font-weight: bold;">
+          <i class="fas fa-phone"></i> 官方帳號小幫手：
+          <a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; text-decoration: underline;">lin.ee/BStZlfM</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 下載素材彈窗 -->
+<div id="downloadModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 600px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-download"></i> 下載素材</h3>
+      <span class="modal-close" onclick="closeDownloadModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 20px;">
+      <div style="text-align: center;">
+        <img src="https://res.cloudinary.com/diiyszovx/image/upload/v1757929018/S__4653076_vzto17.jpg" 
+             alt="四維商圈餐車QR Code海報" 
+             style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 20px;">
+        
+        <h4 style="color: #667eea; margin-bottom: 10px;"><i class="fas fa-qrcode"></i> 四維商圈餐車QR Code海報</h4>
+        <p style="color: #666; line-height: 1.8; margin-bottom: 15px;">供餐車主自行下載使用，設攤時張貼於明顯處推廣</p>
+        <p style="color: #999; font-size: 0.9rem; margin-bottom: 20px;">規格：A4大小，高解析度</p>
+        
+        <a href="https://res.cloudinary.com/diiyszovx/image/upload/v1757929018/S__4653076_vzto17.jpg" 
+           download="四維商圈餐車QRCode海報.jpg"
+           class="btn btn-primary" 
+           style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
+          <i class="fas fa-download"></i> 下載海報
+        </a>
+      </div>
+      
+      <div style="margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h4 style="color: #495057; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> 使用說明</h4>
+        <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
+          <li>請將海報列印成A4大小</li>
+          <li>設攤時張貼於餐車明顯處</li>
+          <li>方便客人掃描加入預訂社群</li>
+          <li>如有問題請聯絡管理員</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 版權警語 -->
 <footer style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 20px 15px; text-align: center; margin-top: 30px; border-top: 3px solid #FF8A00;">
   <div style="max-width: 1200px; margin: 0 auto;">
@@ -7587,7 +7829,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v3.1.0 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v3.2.1 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>
