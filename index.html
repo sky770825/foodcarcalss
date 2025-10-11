@@ -2,11 +2,11 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v3.0</title>
+<title>楊梅餐車排班報名系統 v3.0.1</title>
 
 
 <!-- Font Awesome -->
@@ -912,7 +912,6 @@ button.submit:hover{
 }
 .password-input-group input:focus{
   outline:none;border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.15);
-  transform:scale(1.02);
 }
 .password-submit-btn{
   background:linear-gradient(135deg,#667eea,#764ba2);
@@ -1140,6 +1139,27 @@ body.line-browser .event-container {
 
 /* 手機友善 */
 @media(max-width:768px){
+  /* 🔒 防止輸入框聚焦時頁面/彈窗自動縮放 */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important; /* 防止 iOS Safari 自動縮放 */
+    transform: none !important;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    font-size: 16px !important;
+    transform: none !important;
+  }
+  
+  /* 彈窗內的輸入框也固定字體大小 */
+  .modal input, .modal select, .modal textarea {
+    font-size: 16px !important;
+  }
+  
   .hero h1{font-size:1.6rem;}
   .hero p{font-size:0.9rem;}
   .hero{padding:35px 15px;min-height:25vh;}
@@ -2484,6 +2504,7 @@ body.line-browser .event-container {
             <li>點擊<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">已付款</span>的排班，可以將排班轉讓給其他餐車</li>
             <li>需先與接手餐車私下完成場租交易</li>
             <li>填寫接手餐車資訊和換班密碼即可完成轉讓</li>
+            <li>轉讓成功後，<strong>系統會自動通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></strong>：「訊息已轉給 <span style="color: #FF8A00; font-weight: bold;">[接手餐車名稱]</span> 協助轉讓排班」</li>
           </ul>
         </div>
         
@@ -2492,8 +2513,9 @@ body.line-browser .event-container {
             <i class="fas fa-times-circle"></i> 取消預約
           </h4>
           <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
-            <li>點擊日曆上排班右上角的<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">✕</span>按鈕</li>
-            <li>可選擇聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>或使用密碼取消</li>
+            <li>如需取消預約，請<strong>聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></strong>協助處理</li>
+            <li>提供您的<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">餐車名稱</span>、<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">預約日期</span>、<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">場地名稱</span></li>
+            <li>小幫手確認後將為您取消排班</li>
           </ul>
         </div>
         
@@ -2866,6 +2888,31 @@ body.line-browser .event-container {
   box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
+/* 防止輸入框聚焦時彈窗縮放 */
+.payment-modal-content,
+.bank-modal-content,
+.cancel-modal-content,
+.password-modal-content {
+  transform: none !important;
+  transition: none !important;
+}
+
+.payment-modal-content *,
+.bank-modal-content *,
+.cancel-modal-content *,
+.password-modal-content * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 移除所有輸入框的 focus 縮放效果 */
+#takeoverModal input:focus,
+#takeoverModal select:focus,
+#transferModal input:focus,
+#transferModal select:focus,
+#passwordModal input:focus {
+  transform: none !important;
+}
+
 /* 逾期接手彈窗樣式 */
 .alert-warning {
   background: #fff3cd;
@@ -2955,6 +3002,7 @@ body.line-browser .event-container {
   border-color: #FF8A00;
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 139, 0, 0.1);
+  transform: none !important;
 }
 
 .locked-info {
@@ -7146,7 +7194,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '3.0.0';
+const SYSTEM_VERSION = '3.0.1';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
@@ -7539,7 +7587,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v3.0.0 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v3.0.1 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>

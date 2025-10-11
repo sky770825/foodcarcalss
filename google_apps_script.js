@@ -305,13 +305,8 @@ function addBookingToSheet(bookingData) {
     try {
       const sortLastRow = sheet.getLastRow();
       if (sortLastRow >= 2) {
-        // 獲取資料範圍（從第2行開始，包含所有9欄）
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        
-        // 按照第5欄（E欄：預約日期）遞增排序
-        dataRange.sort({column: 5, ascending: true});
-        
-        console.log('✅ 已按照預約日期遞增排序');
+        // 使用中文日期排序邏輯
+        quickSortSheet(sheet);
       }
     } catch (sortError) {
       console.error('排序失敗（不影響新增）:', sortError);
@@ -806,10 +801,76 @@ function initializeSheets() {
   }
 }
 
-// 排序工作表數據（按照預約日期遞增）
+// 解析中文日期格式（例如：12月12日(星期一)）為可排序的數值
+function parseChineseDateToNumber(chineseDate) {
+  try {
+    if (!chineseDate || typeof chineseDate !== 'string') {
+      return 0;
+    }
+    
+    // 提取月份和日期（例如：從 "12月12日(星期一)" 提取 12 和 12）
+    const match = chineseDate.match(/(\d{1,2})月(\d{1,2})日/);
+    if (!match) {
+      return 0;
+    }
+    
+    const month = parseInt(match[1], 10);
+    const day = parseInt(match[2], 10);
+    
+    // 轉換為可排序的數字：月份*100 + 日期
+    // 例如：12月12日 = 1212，1月5日 = 105
+    return month * 100 + day;
+  } catch (error) {
+    console.error('解析中文日期失敗:', error, chineseDate);
+    return 0;
+  }
+}
+
+// 快速排序工作表（使用中文日期排序邏輯）
+function quickSortSheet(sheet) {
+  try {
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      return; // 沒有資料需要排序
+    }
+    
+    // 讀取所有資料
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
+    const values = dataRange.getValues();
+    
+    // 為每一行資料添加索引和解析後的日期數值
+    const dataWithIndex = values.map((row, index) => {
+      const chineseDate = row[4]; // E欄（索引4）是預約日期
+      const dateNumber = parseChineseDateToNumber(chineseDate);
+      return {
+        row: row,
+        originalIndex: index,
+        dateNumber: dateNumber
+      };
+    });
+    
+    // 按照日期數值排序（遞增）
+    dataWithIndex.sort((a, b) => {
+      if (a.dateNumber !== b.dateNumber) {
+        return a.dateNumber - b.dateNumber;
+      }
+      return a.originalIndex - b.originalIndex;
+    });
+    
+    // 提取排序後的資料並寫回工作表
+    const sortedData = dataWithIndex.map(item => item.row);
+    sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
+    
+    console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行）`);
+  } catch (error) {
+    console.error('快速排序失敗:', error);
+  }
+}
+
+// 排序工作表數據（按照預約日期遞增，支援中文日期格式）
 function sortSheetByDate() {
   try {
-    console.log('========== 開始排序工作表 ==========');
+    console.log('========== 開始排序工作表（中文日期格式）==========');
     
     const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
     const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -835,12 +896,51 @@ function sortSheetByDate() {
       };
     }
     
-    // 排序資料範圍（從第2行開始，包含所有9欄）
+    // 讀取所有資料（從第2行開始）
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
-    dataRange.sort({column: 5, ascending: true}); // 按照第5欄（E欄：預約日期）遞增排序
+    const values = dataRange.getValues();
     
-    const sortedCount = lastRow - 1;
+    console.log(`讀取了 ${values.length} 行資料`);
+    
+    // 為每一行資料添加索引和解析後的日期數值
+    const dataWithIndex = values.map((row, index) => {
+      const chineseDate = row[4]; // E欄（索引4）是預約日期
+      const dateNumber = parseChineseDateToNumber(chineseDate);
+      return {
+        row: row,
+        originalIndex: index,
+        dateNumber: dateNumber,
+        chineseDate: chineseDate
+      };
+    });
+    
+    // 按照日期數值排序（遞增）
+    dataWithIndex.sort((a, b) => {
+      if (a.dateNumber !== b.dateNumber) {
+        return a.dateNumber - b.dateNumber;
+      }
+      // 如果日期相同，保持原有順序
+      return a.originalIndex - b.originalIndex;
+    });
+    
+    // 提取排序後的資料
+    const sortedData = dataWithIndex.map(item => item.row);
+    
+    // 寫回工作表
+    sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
+    
+    const sortedCount = sortedData.length;
     console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
+    
+    // 顯示前5筆排序結果供確認
+    if (sortedData.length > 0) {
+      console.log('排序後前5筆資料：');
+      for (let i = 0; i < Math.min(5, sortedData.length); i++) {
+        const item = dataWithIndex[i];
+        console.log(`  ${i+1}. ${item.chineseDate} (數值: ${item.dateNumber})`);
+      }
+    }
+    
     console.log('===================================');
     
     return {
@@ -848,7 +948,8 @@ function sortSheetByDate() {
       message: `成功排序 ${sortedCount} 行資料`,
       sortedRows: sortedCount,
       sortColumn: 'E欄（預約日期）',
-      sortOrder: '遞增'
+      sortOrder: '遞增',
+      dateFormat: '中文日期格式（12月12日）'
     };
     
   } catch (error) {
@@ -887,12 +988,7 @@ function getAllBookings() {
     
     // ✨ 每次讀取前先自動排序（按照預約日期遞增）
     try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        dataRange.sort({column: 5, ascending: true});
-        console.log('✅ 資料已按照預約日期遞增排序');
-      }
+      quickSortSheet(sheet);
     } catch (sortError) {
       console.error('排序失敗（不影響讀取）:', sortError);
     }
@@ -1087,12 +1183,7 @@ function getBookedDates() {
     
     // ✨ 每次讀取前先自動排序（按照預約日期遞增）
     try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        dataRange.sort({column: 5, ascending: true});
-        console.log('✅ 資料已按照預約日期遞增排序');
-      }
+      quickSortSheet(sheet);
     } catch (sortError) {
       console.error('排序失敗（不影響讀取）:', sortError);
     }
@@ -1237,12 +1328,7 @@ function takeoverBooking(takeoverData) {
     
     // 自動排序：按照預約日期（E欄）遞增排序
     try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        dataRange.sort({column: 5, ascending: true});
-        console.log('✅ 已按照預約日期遞增排序');
-      }
+      quickSortSheet(sheet);
     } catch (sortError) {
       console.error('排序失敗（不影響接手）:', sortError);
     }
@@ -1338,12 +1424,7 @@ function transferBooking(transferData) {
     
     // 自動排序：按照預約日期（E欄）遞增排序
     try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        dataRange.sort({column: 5, ascending: true});
-        console.log('✅ 已按照預約日期遞增排序');
-      }
+      quickSortSheet(sheet);
     } catch (sortError) {
       console.error('排序失敗（不影響釋出）:', sortError);
     }
@@ -1439,12 +1520,7 @@ function deleteBooking(deleteData) {
     
     // 自動排序：按照預約日期（E欄）遞增排序
     try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        const dataRange = sheet.getRange(2, 1, sortLastRow - 1, 9);
-        dataRange.sort({column: 5, ascending: true});
-        console.log('✅ 已按照預約日期遞增排序');
-      }
+      quickSortSheet(sheet);
     } catch (sortError) {
       console.error('排序失敗（不影響刪除）:', sortError);
     }
@@ -1469,4 +1545,450 @@ function deleteBooking(deleteData) {
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ========== 場地費用結算功能 ==========
+
+// 創建或更新場地費用結算表
+function createOrUpdateLocationFeeSheet() {
+  try {
+    console.log('========== 開始創建/更新場地費用結算表 ==========');
+    
+    const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    
+    // 獲取 Form_Responses1 工作表
+    const sourceSheet = spreadsheet.getSheetByName('Form_Responses1');
+    if (!sourceSheet) {
+      throw new Error('找不到 Form_Responses1 工作表');
+    }
+    
+    // 創建或獲取"場地費用結算表"工作表
+    let feeSheet = spreadsheet.getSheetByName('場地費用結算表');
+    if (!feeSheet) {
+      feeSheet = spreadsheet.insertSheet('場地費用結算表');
+      console.log('已創建新工作表：場地費用結算表');
+    } else {
+      // 清空現有數據
+      feeSheet.clear();
+      console.log('已清空現有數據');
+    }
+    
+    // 設置標題
+    const headers = [
+      '月份',
+      '場地名稱',
+      '總報班數',
+      '已付款數',
+      '未付款數',
+      '總費用',
+      '已收費用',
+      '未收費用',
+      '應付場地方',
+      '已付場地方',
+      '待付場地方',
+      '淨利',
+      '功夫茶員工分潤',
+      '付款率'
+    ];
+    
+    feeSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // 美化標題行
+    const headerRange = feeSheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight('bold');
+    headerRange.setFontSize(12);
+    headerRange.setBackground('#4A90E2');
+    headerRange.setFontColor('#FFFFFF');
+    headerRange.setHorizontalAlignment('center');
+    headerRange.setVerticalAlignment('middle');
+    headerRange.setBorder(true, true, true, true, true, true, '#000000', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+    
+    // 讀取 Form_Responses1 的數據
+    const lastRow = sourceSheet.getLastRow();
+    if (lastRow < 2) {
+      console.log('沒有數據可統計');
+      
+      // 添加說明
+      feeSheet.getRange(2, 1).setValue('目前沒有報班記錄可以統計');
+      feeSheet.getRange(2, 1).setFontStyle('italic').setFontColor('#999999');
+      
+      return {
+        success: true,
+        message: '沒有數據可統計',
+        locationCount: 0
+      };
+    }
+    
+    const dataRange = sourceSheet.getRange(2, 1, lastRow - 1, 9);
+    const values = dataRange.getValues();
+    
+    console.log(`讀取了 ${values.length} 行數據`);
+    
+    // 按月份+場地統計數據
+    const locationStats = {};
+    
+    for (let i = 0; i < values.length; i++) {
+      const row = values[i];
+      const vendor = row[1];    // B: 店名
+      const location = row[3];  // D: 場地
+      const dateStr = row[4];   // E: 預約日期（例如：10月16日(星期四)）
+      const feeStr = row[6];    // G: 場地費
+      const payment = row[7];   // H: 付款狀態
+      
+      // 跳過空行
+      if (!vendor || vendor === '' || vendor === '示例餐車（可刪除）') continue;
+      
+      // 解析月份（從日期字串提取）
+      let month = '';
+      const monthMatch = dateStr ? String(dateStr).match(/(\d+)月/) : null;
+      if (monthMatch) {
+        month = monthMatch[1] + '月';
+      } else {
+        month = '未知月份';
+      }
+      
+      // 解析費用（處理可能的逗號分隔符）
+      const fee = parseFloat(String(feeStr).replace(/,/g, '')) || 0;
+      
+      // 建立組合鍵：月份-場地
+      const key = `${month}-${location}`;
+      
+      // 初始化統計
+      if (!locationStats[key]) {
+        locationStats[key] = {
+          month: month,
+          location: location,
+          totalCount: 0,
+          paidCount: 0,
+          unpaidCount: 0,
+          totalFee: 0,
+          paidFee: 0,
+          unpaidFee: 0
+        };
+      }
+      
+      // 累計統計
+      locationStats[key].totalCount++;
+      locationStats[key].totalFee += fee;
+      
+      // 判斷付款狀態
+      if (payment === '已付款' || payment === '己繳款') {
+        locationStats[key].paidCount++;
+        locationStats[key].paidFee += fee;
+      } else {
+        locationStats[key].unpaidCount++;
+        locationStats[key].unpaidFee += fee;
+      }
+      
+      console.log(`處理第${i+1}行: 月份=${month}, 場地=${location}, 費用=${fee}, 付款=${payment}`);
+    }
+    
+    // 將統計結果寫入工作表
+    const resultData = [];
+    for (const key in locationStats) {
+      const stats = locationStats[key];
+      const paymentRate = stats.totalCount > 0 
+        ? (stats.paidCount / stats.totalCount * 100).toFixed(1) + '%'
+        : '0%';
+      
+      // 計算場地方費用（一半）
+      const locationFeeTotal = stats.totalFee / 2;      // 應付場地方總額
+      const locationFeePaid = stats.paidFee / 2;        // 已付場地方
+      const locationFeeUnpaid = stats.unpaidFee / 2;    // 待付場地方
+      
+      // 計算淨利和員工分潤
+      const netProfit = stats.paidFee - locationFeePaid;  // 淨利 = 已收費用 - 已付場地方
+      const employeeShare = netProfit / 3;                 // 功夫茶員工分潤 = 淨利 × 1/3
+      
+      resultData.push([
+        stats.month,
+        stats.location,
+        stats.totalCount,
+        stats.paidCount,
+        stats.unpaidCount,
+        stats.totalFee,
+        stats.paidFee,
+        stats.unpaidFee,
+        locationFeeTotal,
+        locationFeePaid,
+        locationFeeUnpaid,
+        netProfit,
+        employeeShare,
+        paymentRate
+      ]);
+    }
+    
+    // 先按月份數字排序，再按總報班數降序排序
+    resultData.sort((a, b) => {
+      // 提取月份數字
+      const monthA = parseInt(a[0].replace('月', '')) || 0;
+      const monthB = parseInt(b[0].replace('月', '')) || 0;
+      
+      // 先按月份升序
+      if (monthA !== monthB) {
+        return monthA - monthB;
+      }
+      // 同月份則按總報班數降序
+      return b[2] - a[2];
+    });
+    
+    console.log(`統計了 ${resultData.length} 個場地`);
+    
+    // 按月份分組，並在每個月份後插入小計行
+    const finalData = [];
+    let currentMonth = '';
+    let monthlyTotals = {
+      totalCount: 0,
+      paidCount: 0,
+      unpaidCount: 0,
+      totalFee: 0,
+      paidFee: 0,
+      unpaidFee: 0,
+      locationFeeTotal: 0,
+      locationFeePaid: 0,
+      locationFeeUnpaid: 0,
+      netProfit: 0,
+      employeeShare: 0
+    };
+    
+    for (let i = 0; i < resultData.length; i++) {
+      const row = resultData[i];
+      const month = row[0];
+      
+      // 如果遇到新月份，先插入前一個月的小計
+      if (currentMonth !== '' && currentMonth !== month) {
+        const paymentRate = monthlyTotals.totalCount > 0 
+          ? (monthlyTotals.paidCount / monthlyTotals.totalCount * 100).toFixed(1) + '%'
+          : '0%';
+        
+        finalData.push([
+          `${currentMonth}小計`,
+          '',
+          monthlyTotals.totalCount,
+          monthlyTotals.paidCount,
+          monthlyTotals.unpaidCount,
+          monthlyTotals.totalFee,
+          monthlyTotals.paidFee,
+          monthlyTotals.unpaidFee,
+          monthlyTotals.locationFeeTotal,
+          monthlyTotals.locationFeePaid,
+          monthlyTotals.locationFeeUnpaid,
+          monthlyTotals.netProfit,
+          monthlyTotals.employeeShare,
+          paymentRate
+        ]);
+        
+        // 重置月度統計
+        monthlyTotals = {
+          totalCount: 0,
+          paidCount: 0,
+          unpaidCount: 0,
+          totalFee: 0,
+          paidFee: 0,
+          unpaidFee: 0,
+          locationFeeTotal: 0,
+          locationFeePaid: 0,
+          locationFeeUnpaid: 0,
+          netProfit: 0,
+          employeeShare: 0
+        };
+      }
+      
+      // 更新當前月份
+      currentMonth = month;
+      
+      // 添加當前行
+      finalData.push(row);
+      
+      // 累計月度統計
+      monthlyTotals.totalCount += row[2];
+      monthlyTotals.paidCount += row[3];
+      monthlyTotals.unpaidCount += row[4];
+      monthlyTotals.totalFee += row[5];
+      monthlyTotals.paidFee += row[6];
+      monthlyTotals.unpaidFee += row[7];
+      monthlyTotals.locationFeeTotal += row[8];
+      monthlyTotals.locationFeePaid += row[9];
+      monthlyTotals.locationFeeUnpaid += row[10];
+      monthlyTotals.netProfit += row[11];
+      monthlyTotals.employeeShare += row[12];
+    }
+    
+    // 插入最後一個月的小計
+    if (currentMonth !== '') {
+      const paymentRate = monthlyTotals.totalCount > 0 
+        ? (monthlyTotals.paidCount / monthlyTotals.totalCount * 100).toFixed(1) + '%'
+        : '0%';
+      
+      finalData.push([
+        `${currentMonth}小計`,
+        '',
+        monthlyTotals.totalCount,
+        monthlyTotals.paidCount,
+        monthlyTotals.unpaidCount,
+        monthlyTotals.totalFee,
+        monthlyTotals.paidFee,
+        monthlyTotals.unpaidFee,
+        monthlyTotals.locationFeeTotal,
+        monthlyTotals.locationFeePaid,
+        monthlyTotals.locationFeeUnpaid,
+        monthlyTotals.netProfit,
+        monthlyTotals.employeeShare,
+        paymentRate
+      ]);
+    }
+    
+    console.log(`處理後共有 ${finalData.length} 行數據（包含月度小計）`);
+    
+    // 寫入數據
+    if (finalData.length > 0) {
+      feeSheet.getRange(2, 1, finalData.length, headers.length).setValues(finalData);
+      
+      // 設置數字格式（應用到所有數據行）
+      feeSheet.getRange(2, 3, finalData.length, 3).setNumberFormat('#,##0');  // 數量
+      feeSheet.getRange(2, 6, finalData.length, 8).setNumberFormat('#,##0');  // 費用（包含場地方費用、淨利、員工分潤）
+      
+      // 設置列寬
+      feeSheet.setColumnWidth(1, 80);   // 月份
+      feeSheet.setColumnWidth(2, 150);  // 場地名稱
+      feeSheet.setColumnWidth(3, 90);   // 總報班數
+      feeSheet.setColumnWidth(4, 90);   // 已付款數
+      feeSheet.setColumnWidth(5, 90);   // 未付款數
+      feeSheet.setColumnWidth(6, 100);  // 總費用
+      feeSheet.setColumnWidth(7, 100);  // 已收費用
+      feeSheet.setColumnWidth(8, 100);  // 未收費用
+      feeSheet.setColumnWidth(9, 110);  // 應付場地方
+      feeSheet.setColumnWidth(10, 110); // 已付場地方
+      feeSheet.setColumnWidth(11, 110); // 待付場地方
+      feeSheet.setColumnWidth(12, 110); // 淨利
+      feeSheet.setColumnWidth(13, 130); // 功夫茶員工分潤
+      feeSheet.setColumnWidth(14, 90);  // 付款率
+      
+      // 添加資料格式和對齊
+      const dataRange2 = feeSheet.getRange(2, 1, finalData.length, headers.length);
+      dataRange2.setVerticalAlignment('middle');
+      dataRange2.setBorder(true, true, true, true, true, true, '#CCCCCC', SpreadsheetApp.BorderStyle.SOLID);
+      
+      // 美化月度小計行
+      for (let i = 0; i < finalData.length; i++) {
+        const rowData = finalData[i];
+        const monthValue = rowData[0];
+        
+        // 檢查是否為小計行
+        if (String(monthValue).includes('小計')) {
+          const rowNum = i + 2; // +2 因為標題行是第1行，數據從第2行開始
+          const subtotalRange = feeSheet.getRange(rowNum, 1, 1, headers.length);
+          subtotalRange.setFontWeight('bold');
+          subtotalRange.setBackground('#FFF4E6');
+          subtotalRange.setFontColor('#D35400');
+          subtotalRange.setBorder(true, true, true, true, false, false, '#D35400', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+        }
+      }
+      
+      // 設置條件格式（付款率顏色標示）
+      // 付款率 >= 80% = 綠色
+      const highPaymentRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenNumberGreaterThanOrEqualTo(0.8)
+        .setBackground('#D4EDDA')
+        .setFontColor('#155724')
+        .setRanges([feeSheet.getRange(2, 14, finalData.length, 1)])
+        .build();
+      
+      // 付款率 50-79% = 黃色
+      const mediumPaymentRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenNumberBetween(0.5, 0.799)
+        .setBackground('#FFF3CD')
+        .setFontColor('#856404')
+        .setRanges([feeSheet.getRange(2, 14, finalData.length, 1)])
+        .build();
+      
+      // 付款率 < 50% = 紅色
+      const lowPaymentRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenNumberLessThan(0.5)
+        .setBackground('#F8D7DA')
+        .setFontColor('#721C24')
+        .setRanges([feeSheet.getRange(2, 14, finalData.length, 1)])
+        .build();
+      
+      const rules = [highPaymentRule, mediumPaymentRule, lowPaymentRule];
+      feeSheet.setConditionalFormatRules(rules);
+      
+      // 添加總計行（在所有數據和月度小計之後）
+      const totalRow = finalData.length + 2;
+      const totalLabel = '總計';
+      
+      feeSheet.getRange(totalRow, 1).setValue(totalLabel);
+      feeSheet.getRange(totalRow, 2).setValue('全部場地');
+      
+      // 只對非小計行求和（使用SUMIF排除包含"小計"的行）
+      feeSheet.getRange(totalRow, 3).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",C2:C${totalRow-1})`);
+      feeSheet.getRange(totalRow, 4).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",D2:D${totalRow-1})`);
+      feeSheet.getRange(totalRow, 5).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",E2:E${totalRow-1})`);
+      feeSheet.getRange(totalRow, 6).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",F2:F${totalRow-1})`);
+      feeSheet.getRange(totalRow, 7).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",G2:G${totalRow-1})`);
+      feeSheet.getRange(totalRow, 8).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",H2:H${totalRow-1})`);
+      feeSheet.getRange(totalRow, 9).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",I2:I${totalRow-1})`);  // 應付場地方
+      feeSheet.getRange(totalRow, 10).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",J2:J${totalRow-1})`); // 已付場地方
+      feeSheet.getRange(totalRow, 11).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",K2:K${totalRow-1})`); // 待付場地方
+      feeSheet.getRange(totalRow, 12).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",L2:L${totalRow-1})`); // 淨利
+      feeSheet.getRange(totalRow, 13).setFormula(`=SUMIF(A2:A${totalRow-1},"<>*小計*",M2:M${totalRow-1})`); // 功夫茶員工分潤
+      feeSheet.getRange(totalRow, 14).setFormula(`=IF(C${totalRow}>0, D${totalRow}/C${totalRow}, 0)`); // 付款率
+      
+      // 設置彙總行格式
+      feeSheet.getRange(totalRow, 3, 1, 3).setNumberFormat('#,##0');
+      feeSheet.getRange(totalRow, 6, 1, 8).setNumberFormat('#,##0');
+      feeSheet.getRange(totalRow, 14).setNumberFormat('0.0%');
+      
+      // 美化彙總行
+      const totalRange = feeSheet.getRange(totalRow, 1, 1, headers.length);
+      totalRange.setFontWeight('bold');
+      totalRange.setFontSize(11);
+      totalRange.setBackground('#E3F2FD');
+      totalRange.setBorder(true, true, true, true, false, false, '#000000', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+      totalRange.setHorizontalAlignment('center');
+      
+      // 添加更新時間說明
+      const updateRow = totalRow + 2;
+      feeSheet.getRange(updateRow, 1).setValue(`最後更新時間: ${formatTimestamp()}`);
+      feeSheet.getRange(updateRow, 1).setFontSize(9).setFontColor('#999999').setFontStyle('italic');
+    }
+    
+    // 凍結標題行
+    feeSheet.setFrozenRows(1);
+    
+    console.log(`✅ 場地費用結算表已更新，共${resultData.length}個場地統計項目`);
+    console.log(`   包含${finalData.length}行數據（含月度小計）`);
+    console.log('===================================');
+    
+    return {
+      success: true,
+      message: `場地費用結算表已成功創建/更新，共統計${resultData.length}個場地（按月份分組，含月度小計）`,
+      locationCount: resultData.length,
+      totalRows: finalData.length
+    };
+    
+  } catch (error) {
+    console.error('創建場地費用結算表失敗:', error);
+    return {
+      success: false,
+      message: '創建失敗: ' + error.toString(),
+      error: error.toString()
+    };
+  }
+}
+
+// 自動更新場地費用結算表（可以設置為定時觸發器）
+function autoUpdateLocationFeeSheet() {
+  const result = createOrUpdateLocationFeeSheet();
+  console.log('自動更新結果:', JSON.stringify(result));
+  return result;
+}
+
+// 測試場地費用結算表功能
+function testLocationFeeSheet() {
+  console.log('開始測試場地費用結算表功能...');
+  const result = createOrUpdateLocationFeeSheet();
+  console.log('測試結果:', JSON.stringify(result, null, 2));
+  return result;
 }
