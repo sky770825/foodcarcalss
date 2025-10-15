@@ -318,16 +318,16 @@ function addBookingToSheet(bookingData) {
     // 移除自動調整列寬功能，保持原有表格格式
     // sheet.autoResizeColumns(1, 9);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        // 使用中文日期排序邏輯
-        quickSortSheet(sheet);
-      }
-    } catch (sortError) {
-      console.error('排序失敗（不影響新增）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：提交時不排序（避免等待 10-20 秒）
+    // 排序可以手動執行或定期執行，不需要每次提交都排序
+    // try {
+    //   const sortLastRow = sheet.getLastRow();
+    //   if (sortLastRow >= 2) {
+    //     quickSortSheet(sheet);
+    //   }
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響新增）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({ 
@@ -1108,12 +1108,13 @@ function getAllBookings() {
     
     console.log('工作表名稱:', sheet.getName());
     
-    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響讀取）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：讀取時不排序，只讀取數據
+    // 排序只在新增/修改/刪除時執行，避免每次讀取都寫入試算表
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響讀取）:', sortError);
+    // }
     
     // 獲取所有數據（從第2行開始，跳過標題行）
     const lastRow = sheet.getLastRow();
@@ -1142,14 +1143,13 @@ function getAllBookings() {
       const row = values[i];
       const actualRow = i + 2; // 實際行號（從第2行開始）
       
-      // 診斷：顯示每一行的B欄內容
-      console.log(`第${actualRow}行 - B欄(店名): "${row[1]}", D欄(場地): "${row[3]}", E欄(日期): "${row[4]}"`);
-      console.log(`  A欄(時間戳記): "${row[0]}", F欄(己排): "${row[5]}"`);
-
+      // ⚡ v3.2.3 性能優化：移除循環中的 console.log
+      // console.log(`第${actualRow}行 - B欄(店名): "${row[1]}", D欄(場地): "${row[3]}", E欄(日期): "${row[4]}"`);
+      // console.log(`  A欄(時間戳記): "${row[0]}", F欄(己排): "${row[5]}"`);
       
       // 跳過空行（B欄店名為空）
       if (!row[1] || row[1] === '') {
-        console.log(`  → 跳過（店名為空）`);
+        // console.log(`  → 跳過（店名為空）`);
         continue;
       }
       
@@ -1303,12 +1303,12 @@ function getBookedDates() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響讀取）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：讀取時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響讀取）:', sortError);
+    // }
     
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
@@ -1456,12 +1456,12 @@ function takeoverBooking(takeoverData) {
     
     console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響接手）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：接手時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響接手）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -1552,12 +1552,12 @@ function transferBooking(transferData) {
     
     console.log(`✅ 成功釋出排班 - 行號: ${rowNumber}, 原餐車: ${transferData.originalVendor}, 新餐車: ${transferData.vendor}`);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響釋出）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：釋出時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響釋出）:', sortError);
+    // }
     
     console.log('===================================');
     
@@ -1648,12 +1648,12 @@ function deleteBooking(deleteData) {
     console.log(`✅ 成功刪除第${rowNumber}行的預約`);
     console.log('===================================');
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響刪除）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：刪除時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響刪除）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -1745,12 +1745,12 @@ function updatePaymentStatus(updateData) {
     console.log(`✅ 成功更新第${rowNumber}行的付款狀態`);
     console.log('===================================');
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響更新）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：更新付款狀態時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響更新）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({

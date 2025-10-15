@@ -1330,7 +1330,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbxpmjRmjfLI4XCVGVwf_jwyFW-qK94uxnkiQx1vomAd-CMcUgz6x8aSn_0ygNRsl6FK/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbwUJWJDzD9nxpVTGVslUyC6l7gAxY63yr7Gyz-26YdQ5Tc2a5H4Z2o_8zgPFSxniRrr/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -2604,23 +2604,19 @@ document.getElementById('availableDates').addEventListener('change', handleDateC
 
 // 數據持久化功能（v2.3.0：已停用，完全依賴Google Sheets）
 function saveToLocalStorage() {
-  // v2.3.0：不再保存到localStorage，避免舊數據污染
-  // 所有數據完全來自Google Sheets
-  console.log('ℹ️ v2.3.0: 不使用本地存儲，數據完全來自 Google Sheets');
-  return;
-  
-  // 以下代碼已停用
-  // try {
-  //   const data = {
-  //     allEvents: allEvents,
-  //     bookedSlots: bookedSlots,
-  //     lastUpdate: formatTimestamp()
-  //   };
-  //   localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
-  //   console.log('數據已保存到本地存儲');
-  // } catch (error) {
-  //   console.error('保存到本地存儲失敗:', error);
-  // }
+  // v3.2.3：啟用快取，加速二次載入
+  try {
+    const data = {
+      version: SYSTEM_VERSION,
+      sheetsBookings: sheetsBookings,
+      sheetsBookedDates: sheetsBookedDates,
+      lastUpdate: new Date().toISOString()
+    };
+    localStorage.setItem('foodtruck_cache', JSON.stringify(data));
+    console.log('✅ 數據已保存到快取');
+  } catch (error) {
+    console.error('保存到快取失敗:', error);
+  }
 }
 
 // 清除本地緩存
