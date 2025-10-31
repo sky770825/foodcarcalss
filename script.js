@@ -2101,35 +2101,27 @@ function mergeSheetsDataToCalendar() {
     const month = parseInt(dateMatch[1]);
     const day = parseInt(dateMatch[2]);
     
-    // 智能年份判斷：嘗試判斷此月份是否在未來的3個月內
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-    
+    // 根據時間戳記判斷年份：時間戳記 + 3 個月內的日期
     let year;
-    // 檢查是否可能是未來3個月內的日期
-    // 生成當前月和未來2個月的所有月份組合
-    const possibleMonths = [];
-    for (let i = 0; i < 3; i++) {
-      const targetMonth = currentMonth + i;
-      let finalYear, finalMonth;
-      if (targetMonth > 12) {
-        finalYear = currentYear + Math.floor((targetMonth - 1) / 12);
-        finalMonth = ((targetMonth - 1) % 12) + 1;
+    if (booking.timestamp) {
+      const timestampDate = new Date(booking.timestamp);
+      const timestampYear = timestampDate.getFullYear();
+      const timestampMonth = timestampDate.getMonth() + 1;
+      
+      // 計算預約日期可能的年份範圍（從時間戳記到 +3 個月）
+      // 例如：11月登記 → 可預約 11月、12月、1月
+      // 例如：12月登記 → 可預約 12月、1月、2月
+      if (month >= timestampMonth) {
+        // 同年範圍內（例如：11月登記 → 11月、12月）
+        year = timestampYear;
+      } else if (timestampMonth >= 10 && month <= 3) {
+        // 跨年情況：10/11/12月登記，預約1/2/3月 → 可能是次年
+        year = timestampYear + 1;
       } else {
-        finalYear = currentYear;
-        finalMonth = targetMonth;
+        year = timestampYear; // 默認使用時間戳記的年份
       }
-      possibleMonths.push({ month: finalMonth, year: finalYear });
-    }
-    
-    // 檢查預約月份是否匹配任一可能的未來月份
-    const match = possibleMonths.find(pm => pm.month === month);
-    if (match) {
-      year = match.year;
     } else {
-      // 不在未來3個月範圍內，可能是舊資料，跳過
-      skippedCount++;
-      return;
+      year = new Date().getFullYear(); // 沒有時間戳記則使用當年
     }
     
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -2662,23 +2654,19 @@ document.getElementById('availableDates').addEventListener('change', handleDateC
 
 // 數據持久化功能（v2.3.0：已停用，完全依賴Google Sheets）
 function saveToLocalStorage() {
-  // v2.3.0：不再保存到localStorage，避免舊數據污染
-  // 所有數據完全來自Google Sheets
-  console.log('ℹ️ v2.3.0: 不使用本地存儲，數據完全來自 Google Sheets');
-  return;
-  
-  // 以下代碼已停用
-  // try {
-  //   const data = {
-  //     allEvents: allEvents,
-  //     bookedSlots: bookedSlots,
-  //     lastUpdate: formatTimestamp()
-  //   };
-  //   localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
-  //   console.log('數據已保存到本地存儲');
-  // } catch (error) {
-  //   console.error('保存到本地存儲失敗:', error);
-  // }
+  // v3.2.3：啟用快取，加速二次載入
+  try {
+    const data = {
+      version: SYSTEM_VERSION,
+      sheetsBookings: sheetsBookings,
+      sheetsBookedDates: sheetsBookedDates,
+      lastUpdate: new Date().toISOString()
+    };
+    localStorage.setItem('foodtruck_cache', JSON.stringify(data));
+    console.log('✅ 數據已保存到快取');
+  } catch (error) {
+    console.error('保存到快取失敗:', error);
+  }
 }
 
 // 清除本地緩存

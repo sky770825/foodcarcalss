@@ -273,16 +273,17 @@ function addBookingToSheet(bookingData) {
     console.log('完整時間戳記:', fullTimestamp);
     
     // 始終插入到最後一行的下一行（不覆蓋現有資料）
+    // 確保資料插入到第 10 行之後（跳過標題/說明/示例）
     const lastRow = sheet.getLastRow();
     let targetRow;
     
-    if (lastRow < 1) {
-      // 工作表是空的，插入到第1行（標題行）
-      targetRow = 1;
-      console.log('工作表是空的，插入標題行到第1行');
+    if (lastRow < 9) {
+      // 工作表結構不完整，插入到第 10 行（第一個資料行）
+      targetRow = 10;
+      console.log('工作表結構不完整，資料將插入到第 10 行（第一個資料行）');
     } else {
-      // 插入到最後一行的下一行
-      targetRow = lastRow + 1;
+      // 插入到最後一行的下一行（確保在第 10 行之後）
+      targetRow = Math.max(lastRow + 1, 10);
       console.log(`工作表最後一行: ${lastRow}，新資料將插入到第 ${targetRow} 行`);
     }
     
@@ -310,16 +311,16 @@ function addBookingToSheet(bookingData) {
     // 移除自動調整列寬功能，保持原有表格格式
     // sheet.autoResizeColumns(1, 9);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      const sortLastRow = sheet.getLastRow();
-      if (sortLastRow >= 2) {
-        // 使用中文日期排序邏輯
-        quickSortSheet(sheet);
-      }
-    } catch (sortError) {
-      console.error('排序失敗（不影響新增）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：提交時不排序（避免等待 10-20 秒）
+    // 排序可以手動執行或定期執行，不需要每次提交都排序
+    // try {
+    //   const sortLastRow = sheet.getLastRow();
+    //   if (sortLastRow >= 2) {
+    //     quickSortSheet(sheet);
+    //   }
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響新增）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({ 
@@ -839,17 +840,17 @@ function parseChineseDateToNumber(chineseDate) {
 function quickSortSheet(sheet) {
   try {
     const lastRow = sheet.getLastRow();
-    if (lastRow < 2) {
+    if (lastRow < 10) {
       return; // 沒有資料需要排序
     }
     
-    // 讀取所有資料
-    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
+    // 讀取所有資料（從第10行開始，跳過標題/說明/示例）
+    const dataRange = sheet.getRange(10, 1, lastRow - 9, 9);
     const values = dataRange.getValues();
     
     // 為每一行資料添加索引和日期數值
     const dataWithIndex = values.map((row, index) => {
-      const actualRowNumber = index + 2; // 實際行號
+      const actualRowNumber = index + 10; // 實際行號（從第10行開始）
       const chineseDate = row[4]; // E欄（索引4）是預約日期
       const dateNumber = parseChineseDateToNumber(chineseDate);
       return {
@@ -868,9 +869,9 @@ function quickSortSheet(sheet) {
       return a.originalIndex - b.originalIndex;
     });
     
-    // 提取排序後的資料並寫回工作表
+    // 提取排序後的資料並寫回工作表（寫回第10行開始）
     const sortedData = dataWithIndex.map(item => item.row);
-    sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
+    sheet.getRange(10, 1, sortedData.length, 9).setValues(sortedData);
     
     console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行）`);
     
@@ -899,7 +900,7 @@ function sortSheetByDate() {
     const lastRow = sheet.getLastRow();
     console.log(`工作表最後一行: ${lastRow}`);
     
-    if (lastRow < 2) {
+    if (lastRow < 10) {
       console.log('沒有資料需要排序');
       return {
         success: true,
@@ -908,15 +909,15 @@ function sortSheetByDate() {
       };
     }
     
-    // 讀取所有資料（從第2行開始）
-    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
+    // 讀取所有資料（從第10行開始，跳過標題/說明/示例）
+    const dataRange = sheet.getRange(10, 1, lastRow - 9, 9);
     const values = dataRange.getValues();
     
     console.log(`讀取了 ${values.length} 行資料`);
     
     // 為每一行資料添加索引、日期數值
     const dataWithIndex = values.map((row, index) => {
-      const actualRowNumber = index + 2; // 實際行號
+      const actualRowNumber = index + 10; // 實際行號（從第10行開始）
       const chineseDate = row[4]; // E欄（索引4）是預約日期
       const dateNumber = parseChineseDateToNumber(chineseDate);
       return {
@@ -940,8 +941,8 @@ function sortSheetByDate() {
     // 提取排序後的資料
     const sortedData = dataWithIndex.map(item => item.row);
     
-    // 寫回工作表
-    sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
+    // 寫回工作表（寫回第10行開始）
+    sheet.getRange(10, 1, sortedData.length, 9).setValues(sortedData);
     
     const sortedCount = sortedData.length;
     console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
@@ -1000,11 +1001,17 @@ function getAllBookings() {
     
     console.log('工作表名稱:', sheet.getName());
     
-    // ⚡ 已移除每次讀取前的自動排序以提升性能（僅在新增/更新時排序）
+    // ⚡ v3.2.3 性能優化：讀取時不排序，只讀取數據
+    // 排序只在新增/修改/刪除時執行，避免每次讀取都寫入試算表
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響讀取）:', sortError);
+    // }
     
-    // 獲取所有數據（從第2行開始，跳過標題行）
+    // 獲取所有數據（從第10行開始，跳過標題/說明/示例）
     const lastRow = sheet.getLastRow();
-    if (lastRow < 2) {
+    if (lastRow < 10) {
       console.log('沒有數據行');
       return ContentService
         .createTextOutput(JSON.stringify({ 
@@ -1016,18 +1023,18 @@ function getAllBookings() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9); // 從第2行開始，讀取9列
+    const dataRange = sheet.getRange(10, 1, lastRow - 9, 9); // 從第10行開始，讀取9列
     const values = dataRange.getValues();
     
     console.log(`========== 讀取 Google Sheets ==========`);
-    console.log(`總行數: ${lastRow}, 數據從第2行開始`);
+    console.log(`總行數: ${lastRow}, 數據從第10行開始`);
     console.log(`讀取了 ${values.length} 行數據`);
     
     // 轉換為JSON格式
     const bookings = [];
     for (let i = 0; i < values.length; i++) {
       const row = values[i];
-      const actualRow = i + 2; // 實際行號（從第2行開始）
+      const actualRow = i + 10; // 實際行號（從第10行開始）
       
       // ⚡ v3.2.3 性能優化：移除逐行日誌以提升載入速度
       // 跳過空行（B欄店名為空）
@@ -1174,7 +1181,7 @@ function getBookedDates() {
     }
     
     const lastRow = sheet.getLastRow();
-    if (lastRow < 8) {
+    if (lastRow < 10) {
       return ContentService
         .createTextOutput(JSON.stringify({ 
           success: true, 
@@ -1185,9 +1192,14 @@ function getBookedDates() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    // ⚡ 已移除每次讀取前的自動排序以提升性能（僅在新增/更新時排序）
+    // ⚡ v3.2.3 性能優化：讀取時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響讀取）:', sortError);
+    // }
     
-    const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
+    const dataRange = sheet.getRange(10, 1, lastRow - 9, 9);
     const values = dataRange.getValues();
     
     // 按場地整理已預約的日期
@@ -1214,34 +1226,24 @@ function getBookedDates() {
           const month = parseInt(dateMatch[1]);
           const day = parseInt(dateMatch[2]);
           
-          // 智能年份判斷：嘗試判斷此月份是否在未來的3個月內
-          const currentYear = new Date().getFullYear();
-          const currentMonth = new Date().getMonth() + 1;
-          
+          // 根據時間戳記判斷年份：時間戳記 + 3 個月內的日期
           let year;
-          // 檢查是否可能是未來3個月內的日期
-          // 生成當前月和未來2個月的所有月份組合
-          const possibleMonths = [];
-          for (let i = 0; i < 3; i++) {
-            const targetMonth = currentMonth + i;
-            let finalYear, finalMonth;
-            if (targetMonth > 12) {
-              finalYear = currentYear + Math.floor((targetMonth - 1) / 12);
-              finalMonth = ((targetMonth - 1) % 12) + 1;
+          if (row[0]) {
+            const timestampDate = row[0] instanceof Date ? row[0] : new Date(row[0]);
+            const timestampYear = timestampDate.getFullYear();
+            const timestampMonth = timestampDate.getMonth() + 1;
+            
+            // 計算預約日期可能的年份範圍（從時間戳記到 +3 個月）
+            // 例如：11月登記 → 可預約 11月、12月、1月
+            if (month >= timestampMonth) {
+              year = timestampYear;
+            } else if (timestampMonth >= 10 && month <= 3) {
+              year = timestampYear + 1;
             } else {
-              finalYear = currentYear;
-              finalMonth = targetMonth;
+              year = timestampYear;
             }
-            possibleMonths.push({ month: finalMonth, year: finalYear });
-          }
-          
-          // 檢查預約月份是否匹配任一可能的未來月份
-          const match = possibleMonths.find(pm => pm.month === month);
-          if (match) {
-            year = match.year;
           } else {
-            // 不在未來3個月範圍內，可能是舊資料，使用當年
-            year = currentYear;
+            year = new Date().getFullYear();
           }
           
           const standardDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -1355,12 +1357,12 @@ function takeoverBooking(takeoverData) {
     
     console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響接手）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：接手時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響接手）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -1451,12 +1453,12 @@ function transferBooking(transferData) {
     
     console.log(`✅ 成功釋出排班 - 行號: ${rowNumber}, 原餐車: ${transferData.originalVendor}, 新餐車: ${transferData.vendor}`);
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響釋出）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：釋出時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響釋出）:', sortError);
+    // }
     
     console.log('===================================');
     
@@ -1547,12 +1549,12 @@ function deleteBooking(deleteData) {
     console.log(`✅ 成功刪除第${rowNumber}行的預約`);
     console.log('===================================');
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響刪除）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：刪除時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響刪除）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({
@@ -1644,12 +1646,12 @@ function updatePaymentStatus(updateData) {
     console.log(`✅ 成功更新第${rowNumber}行的付款狀態`);
     console.log('===================================');
     
-    // 自動排序：按照預約日期（E欄）遞增排序
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響更新）:', sortError);
-    }
+    // ⚡ v3.2.3 性能優化：更新付款狀態時不排序
+    // try {
+    //   quickSortSheet(sheet);
+    // } catch (sortError) {
+    //   console.error('排序失敗（不影響更新）:', sortError);
+    // }
     
     return ContentService
       .createTextOutput(JSON.stringify({
