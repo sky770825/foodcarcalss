@@ -261,7 +261,7 @@ function updateLocationInfo(location) {
   }
 }
 
-// 2025年主要國定假日列表
+// 2025-2026年主要國定假日列表
 const nationalHolidays2025 = [
   '2025-01-01', // 元旦
   '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', '2025-02-03', // 春節連假
@@ -272,6 +272,18 @@ const nationalHolidays2025 = [
   '2025-10-10', '2025-10-11', '2025-10-12', '2025-10-13', // 國慶日連假
   '2025-12-25'  // 聖誕節
 ];
+const nationalHolidays2026 = [
+  '2026-01-01', // 元旦
+  '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', // 春節連假
+  '2026-03-28', '2026-03-29', '2026-03-30', '2026-03-31', // 清明節連假
+  '2026-05-01', // 勞動節
+  '2026-05-20', // 端午節
+  '2026-09-25', '2026-09-26', '2026-09-27', // 中秋節連假
+  '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', // 國慶日連假
+  '2026-12-25'  // 聖誕節
+];
+// 合併兩年國定假日
+const nationalHolidays = [...nationalHolidays2025, ...nationalHolidays2026];
 
 // 生成可用日期選項 - 完全分離條件版本
 function generateAvailableDates(location) {
@@ -317,7 +329,7 @@ function generateAvailableDates(location) {
       if (!locationConfig.days.includes(dayOfWeek)) continue;
       
       // 條件4：特別處理四維路60號的國定假日（直接跳過，不可選擇）
-      if (location === '四維路60號' && nationalHolidays2025.includes(dateStr)) {
+      if (location === '四維路60號' && nationalHolidays.includes(dateStr)) {
         console.log(`四維路60號國定假日不可預約: ${dateStr} (${getHolidayName(dateStr)})`);
         continue; // 國定假日直接跳過，不添加到可選日期
       }
@@ -1330,7 +1342,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbwUJWJDzD9nxpVTGVslUyC6l7gAxY63yr7Gyz-26YdQ5Tc2a5H4Z2o_8zgPFSxniRrr/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbxpmjRmjfLI4XCVGVwf_jwyFW-qK94uxnkiQx1vomAd-CMcUgz6x8aSn_0ygNRsl6FK/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -2088,7 +2100,38 @@ function mergeSheetsDataToCalendar() {
     
     const month = parseInt(dateMatch[1]);
     const day = parseInt(dateMatch[2]);
-    const year = new Date().getFullYear(); // 假設為當年
+    
+    // 智能年份判斷：嘗試判斷此月份是否在未來的3個月內
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    
+    let year;
+    // 檢查是否可能是未來3個月內的日期
+    // 生成當前月和未來2個月的所有月份組合
+    const possibleMonths = [];
+    for (let i = 0; i < 3; i++) {
+      const targetMonth = currentMonth + i;
+      let finalYear, finalMonth;
+      if (targetMonth > 12) {
+        finalYear = currentYear + Math.floor((targetMonth - 1) / 12);
+        finalMonth = ((targetMonth - 1) % 12) + 1;
+      } else {
+        finalYear = currentYear;
+        finalMonth = targetMonth;
+      }
+      possibleMonths.push({ month: finalMonth, year: finalYear });
+    }
+    
+    // 檢查預約月份是否匹配任一可能的未來月份
+    const match = possibleMonths.find(pm => pm.month === month);
+    if (match) {
+      year = match.year;
+    } else {
+      // 不在未來3個月範圍內，可能是舊資料，跳過
+      skippedCount++;
+      return;
+    }
+    
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
     // 標準化場地名稱
@@ -2390,6 +2433,7 @@ window.sheetsBookedDates = () => sheetsBookedDates;
 // 獲取國定假日名稱
 function getHolidayName(dateStr) {
   const holidayMap = {
+    // 2025年
     '2025-01-01': '元旦',
     '2025-01-28': '春節',
     '2025-01-29': '春節',
@@ -2401,7 +2445,21 @@ function getHolidayName(dateStr) {
     '2025-06-14': '端午節',
     '2025-09-27': '中秋節',
     '2025-10-10': '國慶日',
-    '2025-12-25': '聖誕節'
+    '2025-12-25': '聖誕節',
+    // 2026年
+    '2026-01-01': '元旦',
+    '2026-02-15': '春節',
+    '2026-02-16': '春節',
+    '2026-02-17': '春節',
+    '2026-02-28': '和平紀念日',
+    '2026-03-28': '兒童節',
+    '2026-03-29': '清明節',
+    '2026-05-01': '勞動節',
+    '2026-05-20': '端午節',
+    '2026-09-25': '中秋節',
+    '2026-10-09': '國慶日',
+    '2026-10-10': '國慶日',
+    '2026-12-25': '聖誕節'
   };
   return holidayMap[dateStr] || '國定假日';
 }
@@ -2604,19 +2662,23 @@ document.getElementById('availableDates').addEventListener('change', handleDateC
 
 // 數據持久化功能（v2.3.0：已停用，完全依賴Google Sheets）
 function saveToLocalStorage() {
-  // v3.2.3：啟用快取，加速二次載入
-  try {
-    const data = {
-      version: SYSTEM_VERSION,
-      sheetsBookings: sheetsBookings,
-      sheetsBookedDates: sheetsBookedDates,
-      lastUpdate: new Date().toISOString()
-    };
-    localStorage.setItem('foodtruck_cache', JSON.stringify(data));
-    console.log('✅ 數據已保存到快取');
-  } catch (error) {
-    console.error('保存到快取失敗:', error);
-  }
+  // v2.3.0：不再保存到localStorage，避免舊數據污染
+  // 所有數據完全來自Google Sheets
+  console.log('ℹ️ v2.3.0: 不使用本地存儲，數據完全來自 Google Sheets');
+  return;
+  
+  // 以下代碼已停用
+  // try {
+  //   const data = {
+  //     allEvents: allEvents,
+  //     bookedSlots: bookedSlots,
+  //     lastUpdate: formatTimestamp()
+  //   };
+  //   localStorage.setItem('foodtruck_bookings', JSON.stringify(data));
+  //   console.log('數據已保存到本地存儲');
+  // } catch (error) {
+  //   console.error('保存到本地存儲失敗:', error);
+  // }
 }
 
 // 清除本地緩存
@@ -3871,7 +3933,7 @@ function renderCalendar() {
             isNonOperating = true;
           }
           // 只有在營業日（週一~週三）才檢查並標記國定假日
-          else if (nationalHolidays2025.includes(dateStr)) {
+          else if (nationalHolidays.includes(dateStr)) {
             const holidayBadge = document.createElement('div');
             holidayBadge.className = 'holiday-badge';
             holidayBadge.innerHTML = '❌ 國定假日';
