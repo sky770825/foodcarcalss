@@ -1342,7 +1342,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbxPnTzmyKeg-cRrnhz1DcZK8XKQ5CwpLSOggaD_VE0a4Fl9ipelJ80-iUDbwLhFN6wJ/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbxl0lUEzPoa2bjAm_X0KPXi_ZDIUB5BHbIjF912-lofb2mj7caelPU7fhQODi6D4T_4/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
@@ -4482,7 +4482,7 @@ function fallbackCopyTextToClipboard(text) {
 document.getElementById('date').min = new Date().toISOString().split('T')[0];
 
 // 系統版本號
-const SYSTEM_VERSION = '3.2.1';
+const SYSTEM_VERSION = '3.2.3';
 
 // 檢測LINE瀏覽器並添加特殊類名
 function detectLineApp() {
