@@ -290,14 +290,6 @@ function addBookingToSheet(bookingData) {
     sheet.getRange(targetRow, 1, 1, 9).setValues([rowData]);
     console.log('數據已成功插入到工作表');
     
-    // ✨ 確保新增的列不會被隱藏（重要！）
-    try {
-      sheet.showRows(targetRow);
-      console.log(`✅ 已確保第 ${targetRow} 行可見`);
-    } catch (showError) {
-      console.warn('無法確保列可見:', showError);
-    }
-    
     // 設定時間戳記欄位（A欄）- 儲存Date物件，用自訂格式顯示
     const timestampCell = sheet.getRange(targetRow, 1);
     timestampCell.setValue(new Date()); // 儲存完整的Date物件（保留精確時間）
@@ -851,24 +843,11 @@ function quickSortSheet(sheet) {
       return; // 沒有資料需要排序
     }
     
-    // ✨ 步驟1: 記錄哪些行原本是隱藏的（排序前）
-    const hiddenRows = [];
-    for (let i = 2; i <= lastRow; i++) {
-      try {
-        if (sheet.isRowHiddenByUser(i)) {
-          hiddenRows.push(i);
-        }
-      } catch (e) {
-        // 忽略檢查隱藏狀態的錯誤
-      }
-    }
-    console.log(`排序前有 ${hiddenRows.length} 行被隱藏: [${hiddenRows.join(', ')}]`);
-    
     // 讀取所有資料
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
     
-    // 為每一行資料添加索引、日期數值和原始隱藏狀態
+    // 為每一行資料添加索引和日期數值
     const dataWithIndex = values.map((row, index) => {
       const actualRowNumber = index + 2; // 實際行號
       const chineseDate = row[4]; // E欄（索引4）是預約日期
@@ -877,8 +856,7 @@ function quickSortSheet(sheet) {
         row: row,
         originalIndex: index,
         originalRowNumber: actualRowNumber,
-        dateNumber: dateNumber,
-        wasHidden: hiddenRows.includes(actualRowNumber) // 記錄是否原本被隱藏
+        dateNumber: dateNumber
       };
     });
     
@@ -895,42 +873,6 @@ function quickSortSheet(sheet) {
     sheet.getRange(2, 1, sortedData.length, 9).setValues(sortedData);
     
     console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行）`);
-    
-    // ✨ 步驟2: 排序後，重新應用隱藏狀態
-    try {
-      let reHiddenCount = 0;
-      let unpaidVisibleCount = 0;
-      
-      for (let i = 0; i < dataWithIndex.length; i++) {
-        const newRowIndex = i + 2; // 排序後的新行號
-        const item = dataWithIndex[i];
-        const paymentStatus = item.row[7]; // H欄（索引7）是款項結清狀態
-        
-        // 優先規則：「尚未付款」必須可見
-        if (paymentStatus === '尚未付款') {
-          sheet.showRows(newRowIndex);
-          unpaidVisibleCount++;
-          if (item.wasHidden) {
-            console.log(`第 ${newRowIndex} 行（原第 ${item.originalRowNumber} 行）: 尚未付款，強制顯示`);
-          }
-        }
-        // 次要規則：如果原本被隱藏，且不是「尚未付款」，則重新隱藏
-        else if (item.wasHidden) {
-          sheet.hideRows(newRowIndex);
-          reHiddenCount++;
-          console.log(`第 ${newRowIndex} 行（原第 ${item.originalRowNumber} 行）: 重新隱藏`);
-        }
-      }
-      
-      if (reHiddenCount > 0) {
-        console.log(`✅ 已重新隱藏 ${reHiddenCount} 行資料`);
-      }
-      if (unpaidVisibleCount > 0) {
-        console.log(`✅ 已確保 ${unpaidVisibleCount} 行「尚未付款」資料可見`);
-      }
-    } catch (showError) {
-      console.warn('重新設定行可見性時發生錯誤:', showError);
-    }
     
   } catch (error) {
     console.error('快速排序失敗:', error);
@@ -966,26 +908,13 @@ function sortSheetByDate() {
       };
     }
     
-    // ✨ 步驟1: 記錄哪些行原本是隱藏的（排序前）
-    const hiddenRows = [];
-    for (let i = 2; i <= lastRow; i++) {
-      try {
-        if (sheet.isRowHiddenByUser(i)) {
-          hiddenRows.push(i);
-        }
-      } catch (e) {
-        // 忽略檢查隱藏狀態的錯誤
-      }
-    }
-    console.log(`排序前有 ${hiddenRows.length} 行被隱藏: [${hiddenRows.join(', ')}]`);
-    
     // 讀取所有資料（從第2行開始）
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
     
     console.log(`讀取了 ${values.length} 行資料`);
     
-    // 為每一行資料添加索引、日期數值和原始隱藏狀態
+    // 為每一行資料添加索引、日期數值
     const dataWithIndex = values.map((row, index) => {
       const actualRowNumber = index + 2; // 實際行號
       const chineseDate = row[4]; // E欄（索引4）是預約日期
@@ -995,8 +924,7 @@ function sortSheetByDate() {
         originalIndex: index,
         originalRowNumber: actualRowNumber,
         dateNumber: dateNumber,
-        chineseDate: chineseDate,
-        wasHidden: hiddenRows.includes(actualRowNumber) // 記錄是否原本被隱藏
+        chineseDate: chineseDate
       };
     });
     
@@ -1017,42 +945,6 @@ function sortSheetByDate() {
     
     const sortedCount = sortedData.length;
     console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
-    
-    // ✨ 步驟2: 排序後，重新應用隱藏狀態
-    try {
-      let reHiddenCount = 0;
-      let unpaidVisibleCount = 0;
-      
-      for (let i = 0; i < dataWithIndex.length; i++) {
-        const newRowIndex = i + 2; // 排序後的新行號
-        const item = dataWithIndex[i];
-        const paymentStatus = item.row[7]; // H欄（索引7）是款項結清狀態
-        
-        // 優先規則：「尚未付款」必須可見
-        if (paymentStatus === '尚未付款') {
-          sheet.showRows(newRowIndex);
-          unpaidVisibleCount++;
-          if (item.wasHidden) {
-            console.log(`第 ${newRowIndex} 行（原第 ${item.originalRowNumber} 行）: 尚未付款，強制顯示`);
-          }
-        }
-        // 次要規則：如果原本被隱藏，且不是「尚未付款」，則重新隱藏
-        else if (item.wasHidden) {
-          sheet.hideRows(newRowIndex);
-          reHiddenCount++;
-          console.log(`第 ${newRowIndex} 行（原第 ${item.originalRowNumber} 行）: 重新隱藏`);
-        }
-      }
-      
-      if (reHiddenCount > 0) {
-        console.log(`✅ 已重新隱藏 ${reHiddenCount} 行資料`);
-      }
-      if (unpaidVisibleCount > 0) {
-        console.log(`✅ 已確保 ${unpaidVisibleCount} 行「尚未付款」資料可見`);
-      }
-    } catch (showError) {
-      console.warn('重新設定行可見性時發生錯誤:', showError);
-    }
     
     // 顯示前5筆排序結果供確認
     if (sortedData.length > 0) {
@@ -1108,12 +1000,7 @@ function getAllBookings() {
     
     console.log('工作表名稱:', sheet.getName());
     
-    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響讀取）:', sortError);
-    }
+    // ⚡ 已移除每次讀取前的自動排序以提升性能（僅在新增/更新時排序）
     
     // 獲取所有數據（從第2行開始，跳過標題行）
     const lastRow = sheet.getLastRow();
@@ -1303,12 +1190,7 @@ function getBookedDates() {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    // ✨ 每次讀取前先自動排序（按照預約日期遞增）
-    try {
-      quickSortSheet(sheet);
-    } catch (sortError) {
-      console.error('排序失敗（不影響讀取）:', sortError);
-    }
+    // ⚡ 已移除每次讀取前的自動排序以提升性能（僅在新增/更新時排序）
     
     const dataRange = sheet.getRange(2, 1, lastRow - 1, 9);
     const values = dataRange.getValues();
@@ -1475,14 +1357,6 @@ function takeoverBooking(takeoverData) {
     sheet.getRange(rowNumber, 7).setValue(takeoverData.fee); // G: 場地費
     sheet.getRange(rowNumber, 8).setValue('尚未付款'); // H: 款項結清
     sheet.getRange(rowNumber, 9).setValue(`接手自: ${takeoverData.originalVendor}`); // I: 備註
-    
-    // ✨ 確保該列不會被隱藏（接手後設為「尚未付款」）
-    try {
-      sheet.showRows(rowNumber);
-      console.log(`✅ 已確保第 ${rowNumber} 行可見`);
-    } catch (showError) {
-      console.warn('無法確保列可見:', showError);
-    }
     
     console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);
     

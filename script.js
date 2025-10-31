@@ -1342,7 +1342,7 @@ const GITHUB_CONFIG = {
 // 部署後的URL格式類似：https://script.google.com/macros/s/AKfycby.../exec
 const GOOGLE_SHEETS_CONFIG = {
   // 將Google Apps Script部署為Web App後，將URL貼在這裡
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbxpmjRmjfLI4XCVGVwf_jwyFW-qK94uxnkiQx1vomAd-CMcUgz6x8aSn_0ygNRsl6FK/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbxPnTzmyKeg-cRrnhz1DcZK8XKQ5CwpLSOggaD_VE0a4Fl9ipelJ80-iUDbwLhFN6wJ/exec',
   enabled: true, // 設為false可停用Google Sheets同步
   autoSync: true, // 自動同步
   syncInterval: 30000 // 同步間隔（毫秒），預設30秒
