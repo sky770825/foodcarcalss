@@ -1029,14 +1029,9 @@ function getAllBookings() {
       const row = values[i];
       const actualRow = i + 2; // 實際行號（從第2行開始）
       
-      // 診斷：顯示每一行的B欄內容
-      console.log(`第${actualRow}行 - B欄(店名): "${row[1]}", D欄(場地): "${row[3]}", E欄(日期): "${row[4]}"`);
-      console.log(`  A欄(時間戳記): "${row[0]}", F欄(己排): "${row[5]}"`);
-
-      
+      // ⚡ v3.2.3 性能優化：移除逐行日誌以提升載入速度
       // 跳過空行（B欄店名為空）
       if (!row[1] || row[1] === '') {
-        console.log(`  → 跳過（店名為空）`);
         continue;
       }
       
@@ -1260,7 +1255,7 @@ function getBookedDates() {
       }
     }
     
-    console.log('已預約日期整理完成:', JSON.stringify(bookedDates));
+    console.log('已預約日期整理完成');
     
     return ContentService
       .createTextOutput(JSON.stringify({ 
@@ -2123,4 +2118,37 @@ function testLocationFeeSheet() {
   const result = createOrUpdateLocationFeeSheet();
   console.log('測試結果:', JSON.stringify(result, null, 2));
   return result;
+}
+
+// 移除工作表保護（一次性使用函數）
+function removeSheetProtection() {
+  try {
+    const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName('Form_Responses1');
+    
+    if (!sheet) {
+      console.log('找不到工作表 Form_Responses1');
+      return { success: false, message: '找不到工作表' };
+    }
+    
+    // 取得所有保護範圍
+    const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+    console.log(`找到 ${protections.length} 個保護範圍`);
+    
+    // 移除所有保護
+    let removedCount = 0;
+    protections.forEach(protection => {
+      protection.remove();
+      removedCount++;
+      console.log(`✅ 已移除保護: ${protection.getRange().getA1Notation()}`);
+    });
+    
+    console.log(`✅ 總共移除了 ${removedCount} 個保護範圍`);
+    return { success: true, removedCount: removedCount };
+    
+  } catch (error) {
+    console.error('移除保護失敗:', error);
+    return { success: false, error: error.toString() };
+  }
 }
