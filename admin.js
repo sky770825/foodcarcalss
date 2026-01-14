@@ -21,7 +21,7 @@ if (typeof window.supabase !== 'undefined') {
 }
 
 // 管理密碼（請修改為您的實際密碼）
-const ADMIN_PASSWORD = 'admin123'; // ⚠️ 請修改此密碼！
+const ADMIN_PASSWORD = 'sky36990'; // ⚠️ 請妥善保管此密碼！
 
 // 全局變數
 let allBookings = [];
