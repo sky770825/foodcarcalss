@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>檢查 Supabase 重複數據</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-card.warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .stat-card.success {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .duplicate-list {
+      margin-top: 30px;
+    }
+    .duplicate-item {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    .duplicate-item h3 {
+      margin: 0 0 10px 0;
+      color: #856404;
+    }
+    .duplicate-item .ids {
+      font-family: monospace;
+      color: #666;
+      font-size: 12px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Supabase 重複數據檢查工具</h1>
+    
+    <div id="errorContainer"></div>
+    
+    <div id="loading" class="loading">
+      <p>正在載入數據...</p>
+    </div>
+    
+    <div id="results" style="display: none;">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="totalCount">0</div>
+          <div class="stat-label">總記錄數</div>
+        </div>
+        <div class="stat-card warning" id="duplicateCard">
+          <div class="stat-value" id="duplicateCount">0</div>
+          <div class="stat-label">重複記錄數</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-value" id="uniqueCount">0</div>
+          <div class="stat-label">唯一記錄數</div>
+        </div>
+      </div>
+      
+      <div class="duplicate-list" id="duplicateList"></div>
+      
+      <button id="deleteDuplicatesBtn" onclick="deleteDuplicates()" disabled>
+        刪除重複記錄（保留最新的）
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sqgrnowrcvspxhuudrqc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ3Jub3dyY3ZzcHhodXVkcnFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMTExNjYsImV4cCI6MjA4Mzc4NzE2Nn0.VMg-7oQTmPapHLGeLzEZ3l_5zcyCZRjJdw_X2J-8kRw';
+    
+    let supabaseClient;
+    let duplicates = [];
+    
+    // 初始化
+    if (typeof window.supabase !== 'undefined') {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      checkDuplicates();
+    } else {
+      showError('Supabase 庫未載入');
+    }
+    
+    async function checkDuplicates() {
+      try {
+        // 獲取所有記錄
+        const { data: allBookings, error } = await supabaseClient
+          .from('foodcarcalss')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        document.getElementById('totalCount').textContent = allBookings.length;
+        
+        // 找出重複記錄（基於 location + booking_date + vendor）
+        const seen = new Map();
+        const duplicateGroups = new Map();
+        
+        allBookings.forEach(booking => {
+          const key = `${booking.location}|${booking.booking_date}|${booking.vendor}`;
+          
+          if (seen.has(key)) {
+            if (!duplicateGroups.has(key)) {
+              duplicateGroups.set(key, [seen.get(key)]);
+            }
+            duplicateGroups.get(key).push(booking);
+          } else {
+            seen.set(key, booking);
+          }
+        });
+        
+        // 轉換為陣列格式
+        duplicates = Array.from(duplicateGroups.entries()).map(([key, bookings]) => ({
+          key,
+          bookings: [seen.get(key), ...bookings], // 包含第一個和所有重複的
+          total: bookings.length + 1
+        }));
+        
+        const duplicateCount = duplicates.reduce((sum, group) => sum + (group.total - 1), 0);
+        const uniqueCount = allBookings.length - duplicateCount;
+        
+        document.getElementById('duplicateCount').textContent = duplicateCount;
+        document.getElementById('uniqueCount').textContent = uniqueCount;
+        
+        // 顯示重複記錄
+        if (duplicates.length > 0) {
+          const duplicateList = document.getElementById('duplicateList');
+          duplicateList.innerHTML = '<h2>重複記錄詳情</h2>';
+          
+          duplicates.forEach((group, index) => {
+            const [location, date, vendor] = group.key.split('|');
+            const div = document.createElement('div');
+            div.className = 'duplicate-item';
+            div.innerHTML = `
+              <h3>重複組 #${index + 1}: ${vendor} - ${location} - ${date}</h3>
+              <p><strong>重複次數:</strong> ${group.total} 筆</p>
+              <div class="ids">
+                <strong>記錄 ID:</strong> ${group.bookings.map(b => b.id).join(', ')}
+              </div>
+              <div style="margin-top: 10px; font-size: 12px;">
+                ${group.bookings.map(b => `
+                  <div style="margin: 5px 0; padding: 5px; background: white; border-radius: 4px;">
+                    ID: ${b.id} | 建立時間: ${new Date(b.created_at).toLocaleString('zh-TW')} | 
+                    更新時間: ${new Date(b.updated_at).toLocaleString('zh-TW')}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            duplicateList.appendChild(div);
+          });
+          
+          document.getElementById('deleteDuplicatesBtn').disabled = false;
+        } else {
+          document.getElementById('duplicateList').innerHTML = '<p style="color: green;">✅ 沒有發現重複記錄！</p>';
+        }
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        
+      } catch (error) {
+        showError('檢查失敗: ' + error.message);
+        console.error(error);
+      }
+    }
+    
+    async function deleteDuplicates() {
+      if (!confirm(`確定要刪除 ${duplicates.reduce((sum, g) => sum + (g.total - 1), 0)} 筆重複記錄嗎？\n\n將保留每組中最新的一筆記錄。`)) {
+        return;
+      }
+      
+      const deleteBtn = document.getElementById('deleteDuplicatesBtn');
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = '正在刪除...';
+      
+      try {
+        let deletedCount = 0;
+        
+        for (const group of duplicates) {
+          // 按 created_at 排序，保留最新的（最後一個）
+          const sorted = group.bookings.sort((a, b) => 
+            new Date(a.created_at) - new Date(b.created_at)
+          );
+          
+          // 刪除除了最後一個之外的所有記錄
+          const toDelete = sorted.slice(0, -1);
+          
+          for (const booking of toDelete) {
+            const { error } = await supabaseClient
+              .from('foodcarcalss')
+              .delete()
+              .eq('id', booking.id);
+            
+            if (error) throw error;
+            deletedCount++;
+          }
+        }
+        
+        alert(`✅ 成功刪除 ${deletedCount} 筆重複記錄！`);
+        location.reload();
+        
+      } catch (error) {
+        showError('刪除失敗: ' + error.message);
+        console.error(error);
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = '刪除重複記錄（保留最新的）';
+      }
+    }
+    
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = message;
+      document.getElementById('errorContainer').appendChild(errorDiv);
+      document.getElementById('loading').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

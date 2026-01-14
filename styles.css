@@ -1,0 +1,2637 @@
+/* 楊梅餐車排班報名系統 v3.2 - 樣式表 */
+/* ============================================== */
+
+/* 基礎樣式 */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Microsoft JhengHei",sans-serif;line-height:1.6;color:#333;background:linear-gradient(135deg,#f8f9fa,#e9ecef);}
+a{text-decoration:none;color:inherit;}
+
+/* Hero 區塊 */
+.hero{
+  background:linear-gradient(135deg,#FF8A00,#FF4B2B);
+  color:white;text-align:center;padding:50px 20px;
+  position:relative;overflow:hidden;min-height:30vh;
+}
+.hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity:0.3;animation:float 20s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0px) rotate(0deg);}
+  50%{transform:translateY(-10px) rotate(1deg);}
+}
+.hero-content{position:relative;z-index:1;}
+.hero h1{font-size:2rem;margin-bottom:12px;text-shadow:2px 2px 4px rgba(0,0,0,0.3);}
+.hero p{font-size:1rem;margin-bottom:20px;opacity:0.95;}
+.hero button{
+  background:white;color:#FF4B2B;padding:12px 28px;
+  border:none;border-radius:30px;font-size:1rem;font-weight:bold;
+  cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+.hero button:hover{background:#ffe1d1;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+
+/* 快速連結網格 */
+.quick-links-grid{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:10px;
+  margin-top:20px;
+  max-width:750px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.quick-link-btn{
+  background:rgba(255, 255, 255, 0.98);
+  color:#2c3e50;
+  padding:10px 8px;
+  border:2px solid rgba(255, 255, 255, 0.8);
+  border-radius:10px;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .3s;
+  box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  text-align:center;
+}
+
+.quick-link-btn i{
+  font-size:1.5rem;
+  margin-bottom:3px;
+  color:#3498db;
+}
+
+.quick-link-btn span{
+  font-size:0.75rem;
+  line-height:1.2;
+  color:#2c3e50;
+}
+
+.quick-link-btn:hover{
+  background:white;
+  transform:translateY(-3px);
+  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+  border-color:white;
+}
+
+.quick-link-btn:hover i{
+  color:#2980b9;
+}
+
+.quick-link-btn:hover span{
+  color:#34495e;
+}
+
+.quick-link-btn:active{
+  transform:translateY(-1px);
+}
+
+/* 主內容 */
+.container{max-width:1200px;margin:30px auto;padding:0 20px;}
+.card{
+  background:white;padding:20px;border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);margin-bottom:25px;
+  border:1px solid rgba(255,139,0,0.1);
+}
+h2.section-title{
+  margin-bottom:18px;text-align:center;color:#FF4B2B;
+  font-size:1.5rem;position:relative;
+}
+h2.section-title::after{
+  content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+  width:60px;height:3px;background:linear-gradient(90deg,#FF8A00,#FF4B2B);
+  border-radius:2px;
+}
+
+/* 場地分頁 */
+.location-tabs{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:8px;margin-bottom:18px;
+}
+.location-tab{
+  background:white;border:2px solid #e9ecef;border-radius:8px;
+  padding:10px;text-align:center;cursor:pointer;transition:all .3s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:relative;overflow:hidden;
+}
+.location-tab::before{
+  content:'';position:absolute;top:0;left:-100%;
+  width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+  transition:left 0.5s;
+}
+.location-tab:hover::before{left:100%;}
+.location-tab:hover{
+  border-color:#FF8A00;transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(255,139,0,0.2);
+}
+.location-tab.active{
+  background:linear-gradient(135deg,#FF8A00,#FF4B2B);
+  color:white;border-color:#FF4B2B;
+  box-shadow:0 4px 15px rgba(255,75,43,0.4);
+  transform:scale(1.02);
+}
+.location-tab i{font-size:1.3rem;margin-bottom:4px;}
+.location-tab span{font-weight:bold;font-size:0.9rem;}
+.location-tab small{font-size:0.75rem;opacity:0.8;}
+
+/* 場地資訊卡片 */
+.location-info{
+  background:linear-gradient(135deg,#fff5f0,#ffe8e0);
+  border-left:4px solid #FF8A00;padding:15px;margin-bottom:18px;
+  border-radius:8px;transition:all .3s;
+}
+.location-info h3{color:#FF4B2B;margin-bottom:12px;font-size:1.1rem;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+.info-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:0.9rem;
+}
+.info-item i{
+  color:#FF8A00;
+  width:18px;
+  font-size:0.95rem;
+}
+
+/* 表單樣式 */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;}
+label{display:block;margin-top:15px;font-weight:bold;color:#555;font-size:0.95rem;}
+input,select,textarea{
+  width:100%;padding:10px;margin-top:6px;
+  border:2px solid #e9ecef;border-radius:6px;font-size:0.95rem;
+  transition:border-color .3s,box-shadow .3s;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:#FF8A00;box-shadow:0 0 0 3px rgba(255,139,0,0.1);
+}
+
+/* 日期選擇樣式 */
+.date-selection{
+  display:flex;gap:10px;align-items:center;
+}
+.date-info{
+  background:#e3f2fd;border:1px solid #2196f3;border-radius:6px;
+  padding:8px 12px;margin-top:5px;
+}
+.date-info small{color:#1976d2;font-size:0.85rem;}
+
+/* 場地費固定欄位樣式 */
+.fee-input-group {
+  position: relative;
+}
+
+.fee-input-group input {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  color: #2e7d32;
+  font-weight: bold;
+  cursor: not-allowed;
+  border: 2px solid #4caf50;
+}
+
+.fee-input-group i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2e7d32;
+  font-size: 1rem;
+}
+
+.fee-input-group input {
+  padding-left: 35px;
+}
+
+/* 特殊提示樣式 */
+.special-notice{
+  background:#fff3cd;border:1px solid #ffeaa7;border-radius:6px;
+  padding:10px 12px;margin:10px 0;display:flex;align-items:center;
+  gap:8px;
+}
+.special-notice i{
+  color:#856404;font-size:1.1rem;
+}
+.special-notice span{
+  color:#856404;font-weight:600;font-size:0.9rem;
+}
+
+button.submit{
+  background:linear-gradient(135deg,#FF4B2B,#FF8A00);color:white;border:none;
+  margin-top:20px;padding:12px 25px;font-size:1rem;font-weight:bold;
+  border-radius:8px;cursor:pointer;transition:all .3s;
+  box-shadow:0 4px 15px rgba(255,75,43,0.3);
+}
+button.submit:hover{
+  transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,75,43,0.4);
+}
+
+/* 匯款圖片上傳 */
+.payment-image-upload {
+  grid-column: 1 / -1;
+}
+
+.image-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.image-upload-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.image-upload-btn:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.image-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #667eea;
+  flex-shrink: 0;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* 注意事項 */
+.notice-box{
+  background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;
+  padding:12px 15px;margin-top:18px;
+}
+.notice-box h4{
+  color:#856404;
+  margin-bottom:8px;
+  font-size:1rem;
+}
+.notice-box ul{
+  color:#856404;
+  padding-left:20px;
+  font-size:0.9rem;
+  line-height:1.5;
+}
+.notice-box li{
+  margin-bottom:4px;
+}
+
+/* 日曆控制器 */
+.calendar-controls{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;padding:15px;background:#f8f9fa;
+  border-radius:10px;flex-wrap:wrap;gap:15px;
+}
+.month-navigation{
+  display:flex;align-items:center;gap:10px;
+}
+.nav-btn{
+  padding:8px 12px;border:2px solid #e9ecef;background:white;
+  border-radius:6px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;
+  min-width:40px;height:40px;
+}
+.nav-btn:hover{
+  border-color:#FF8A00;background:#fff5f0;
+}
+.today-btn{
+  padding:8px 15px;min-width:auto;
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+.today-btn:hover{
+  background:#FF4B2B;border-color:#FF4B2B;
+}
+.month-display{
+  padding:8px 15px;background:white;border:2px solid #e9ecef;
+  border-radius:6px;font-weight:bold;color:#555;
+  min-width:120px;text-align:center;
+}
+.filter-section{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.filter-section label{font-weight:bold;color:#555;margin:0;}
+.location-filters{
+  display:flex;gap:5px;flex-wrap:wrap;
+}
+.filter-btn{
+  padding:6px 12px;border:2px solid #e9ecef;background:white;
+  border-radius:20px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;gap:5px;font-size:0.9rem;
+  white-space:nowrap;
+}
+.filter-btn:hover{
+  border-color:#FF8A00;background:#fff5f0;
+}
+.filter-btn.active{
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+.view-toggle{
+  display:flex;gap:5px;
+}
+.view-btn{
+  padding:8px 15px;border:2px solid #e9ecef;background:white;
+  border-radius:6px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;gap:5px;
+}
+.view-btn:hover{border-color:#FF8A00;}
+.view-btn.active{
+  background:#FF8A00;color:white;border-color:#FF8A00;
+}
+
+/* 新行事曆樣式 */
+.calendar-container {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-btn, .today-btn {
+  background: #FF8A00;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.85rem;
+}
+
+.nav-btn:hover, .today-btn:hover {
+  background: #e67e00;
+  transform: translateY(-1px);
+}
+
+.today-btn {
+  background: #28a745;
+}
+
+.today-btn:hover {
+  background: #218838;
+}
+
+.month-display {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  min-width: 100px;
+  text-align: center;
+}
+
+.location-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.location-filter label {
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
+}
+
+.location-filter-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.location-filter .filter-btn {
+  padding: 8px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: normal;
+  min-width: 0;
+  min-height: 36px;
+  line-height: 1.3;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.location-filter .filter-btn i {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.location-filter .filter-btn:hover {
+  border-color: #FF8A00;
+  background: #fff5f0;
+  transform: translateY(-1px);
+}
+
+.location-filter .filter-btn.active {
+  background: #FF8A00;
+  border-color: #FF8A00;
+  color: white;
+}
+
+.location-filter .filter-btn.active:hover {
+  background: #e67a00;
+  border-color: #e67a00;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendar-day-header {
+  background: #f8f9fa;
+  padding: 8px 6px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+  font-size: 0.8rem;
+}
+
+.calendar-day {
+  background: white;
+  min-height: 85px;
+  padding: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: #f8f9fa;
+}
+
+.calendar-day.today {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+}
+
+.calendar-day.other-month {
+  background: #f8f9fa;
+  color: #999;
+}
+
+.calendar-day.booked {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.calendar-day.booked::after {
+  content: '🚫';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.calendar-day.non-operating {
+  background: #ffe6e6;
+  color: #cc0000;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.calendar-day.non-operating::after {
+  content: '❌';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.calendar-day.past-date {
+  background: #f8f9fa;
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+.calendar-day.past-date .event-item {
+  background: #6c757d;
+  opacity: 0.8;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 2px;
+  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  padding-top: 2px;
+}
+
+.day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-item {
+  background: #FF8A00;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.event-item:hover {
+  background: #e67e00;
+  transform: scale(1.05);
+}
+
+/* 事件容器和取消按鈕 */
+.event-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.cancel-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.cancel-btn:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+/* 場地縮圖 */
+.location-thumbnail{
+  width:100%;height:90px;object-fit:cover;
+  border-radius:6px;cursor:pointer;transition:transform .3s;
+  margin-top:6px;
+}
+.location-thumbnail:hover{transform:scale(1.05);}
+
+/* Toast 提示系統 */
+.toast-container{
+  position:fixed;top:20px;right:20px;z-index:9999;
+}
+.toast{
+  background:white;border-left:4px solid #28a745;
+  border-radius:8px;padding:15px 20px;margin-bottom:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+  transform:translateX(100%);opacity:0;
+  transition:all .3s ease;
+  min-width:300px;
+}
+.toast.show{
+  transform:translateX(0);opacity:1;
+}
+.toast.error{border-left-color:#dc3545;}
+.toast.warning{border-left-color:#ffc107;}
+.toast.info{border-left-color:#17a2b8;}
+.toast-header{
+  display:flex;align-items:center;margin-bottom:5px;
+}
+.toast-icon{
+  font-size:1.2rem;margin-right:8px;
+}
+.toast.success .toast-icon{color:#28a745;}
+.toast.error .toast-icon{color:#dc3545;}
+.toast.warning .toast-icon{color:#ffc107;}
+.toast.info .toast-icon{color:#17a2b8;}
+.toast-title{
+  font-weight:bold;font-size:1rem;
+}
+.toast-message{
+  font-size:0.9rem;color:#666;white-space:pre-line;
+}
+
+/* 圖片放大模態框 */
+.image-modal{
+  display:none;position:fixed;z-index:1000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.image-modal.active{display:flex;}
+.modal-content{
+  max-width:90%;max-height:90%;object-fit:contain;
+  border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+.modal-close{
+  position:absolute;top:20px;right:30px;color:white;
+  font-size:40px;font-weight:bold;cursor:pointer;
+  z-index:1001;
+}
+.modal-close:hover{color:#FF8A00;}
+
+/* 繳費彈窗樣式 */
+.payment-modal{
+  display:none;position:fixed;z-index:2000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.payment-modal.active{display:flex;}
+.payment-modal-content{
+  background:white;border-radius:15px;padding:0;
+  box-shadow:0 15px 35px rgba(0,0,0,0.3);
+  max-width:500px;width:90%;max-height:80vh;overflow-y:auto;
+  position:relative;
+}
+.payment-header{
+  background:linear-gradient(135deg,#FF8A00,#FF4B2B);
+  color:white;padding:20px;border-radius:15px 15px 0 0;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.payment-header h3{
+  margin:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;
+}
+.payment-header .modal-close{
+  position:static;color:white;font-size:24px;cursor:pointer;
+  padding:5px;border-radius:50%;transition:background .3s;
+}
+.payment-header .modal-close:hover{
+  background:rgba(255,255,255,0.2);
+}
+.payment-body{
+  padding:30px;
+}
+.payment-info{
+  text-align:center;margin-bottom:25px;
+}
+.payment-info p{
+  margin:5px 0;font-size:1.1rem;
+}
+.payment-buttons{
+  display:grid;grid-template-columns:1fr;gap:15px;margin-bottom:25px;
+}
+.payment-btn{
+  display:flex;align-items:center;gap:15px;
+  padding:15px 20px;border:none;border-radius:10px;
+  font-size:1.1rem;font-weight:bold;cursor:pointer;
+  transition:all .3s;text-align:left;
+}
+.jkopay-btn{
+  background:linear-gradient(135deg,#00D4AA,#00B894);
+  color:white;
+}
+.jkopay-btn:hover{
+  background:linear-gradient(135deg,#00B894,#00A085);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(0,212,170,0.3);
+}
+.linepay-btn{
+  background:linear-gradient(135deg,#00C300,#00A000);
+  color:white;
+}
+.linepay-btn:hover{
+  background:linear-gradient(135deg,#00A000,#008000);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(0,195,0,0.3);
+}
+.bank-btn{
+  background:linear-gradient(135deg,#6C5CE7,#5A4FCF);
+  color:white;
+}
+.bank-btn:hover{
+  background:linear-gradient(135deg,#5A4FCF,#4A3FB8);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(108,92,231,0.3);
+}
+.payment-btn i{
+  font-size:1.5rem;
+}
+.payment-notice{
+  background:#e3f2fd;border:1px solid #2196f3;
+  border-radius:8px;padding:15px;text-align:center;
+}
+.payment-notice p{
+  margin:0;color:#1976d2;font-size:0.9rem;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+
+/* 繳費彈窗圖片上傳樣式 */
+.payment-image-upload-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 2px dashed #d1d5db;
+}
+
+.payment-image-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.payment-image-upload-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.payment-image-upload-btn:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.payment-image-preview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #667eea;
+  flex-shrink: 0;
+}
+
+.payment-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.payment-image-preview.uploaded {
+  border-color: #28a745;
+}
+
+.remove-payment-image-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.remove-payment-image-btn:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+}
+
+.payment-form-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.upload-payment-image-submit-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.upload-payment-image-submit-btn:hover {
+  background: linear-gradient(135deg, #20c997, #28a745);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.upload-payment-image-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 銀行轉帳彈窗樣式 */
+.bank-modal{
+  display:none;position:fixed;z-index:3000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.bank-modal.active{display:flex;}
+.bank-modal-content{
+  background:white;border-radius:15px;padding:0;
+  box-shadow:0 15px 35px rgba(0,0,0,0.3);
+  max-width:450px;width:90%;max-height:80vh;overflow-y:auto;
+  position:relative;
+}
+.bank-header{
+  background:linear-gradient(135deg,#6C5CE7,#5A4FCF);
+  color:white;padding:20px;border-radius:15px 15px 0 0;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.bank-header h3{
+  margin:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;
+}
+.bank-header .modal-close{
+  position:static;color:white;font-size:24px;cursor:pointer;
+  padding:5px;border-radius:50%;transition:background .3s;
+}
+.bank-header .modal-close:hover{
+  background:rgba(255,255,255,0.2);
+}
+.bank-body{
+  padding:30px;
+}
+.bank-info{
+  margin-bottom:25px;
+}
+.bank-item{
+  display:flex;align-items:center;margin-bottom:15px;
+  padding:10px;background:#f8f9fa;border-radius:8px;
+}
+.bank-item label{
+  font-weight:bold;color:#555;min-width:80px;margin:0;
+}
+.bank-item span{
+  color:#333;font-size:1rem;
+}
+.account-number{
+  display:flex;align-items:center;gap:10px;flex:1;
+}
+.account-number span{
+  background:white;padding:8px 12px;border:2px solid #e9ecef;
+  border-radius:6px;font-family:monospace;font-size:1.1rem;
+  color:#333;flex:1;
+}
+.copy-btn{
+  background:#28a745;color:white;border:none;
+  padding:8px 12px;border-radius:6px;cursor:pointer;
+  font-size:0.9rem;transition:all .3s;
+  display:flex;align-items:center;gap:5px;
+}
+.copy-btn:hover{
+  background:#218838;transform:translateY(-1px);
+}
+.bank-amount{
+  display:flex;align-items:center;margin-bottom:15px;
+  padding:15px;background:linear-gradient(135deg,#fff3cd,#ffeaa7);
+  border:1px solid #ffc107;border-radius:8px;
+}
+.bank-amount label{
+  font-weight:bold;color:#856404;min-width:80px;margin:0;
+}
+.bank-amount .amount{
+  color:#856404;font-size:1.2rem;font-weight:bold;
+}
+.bank-notice{
+  background:#e3f2fd;border:1px solid #2196f3;
+  border-radius:8px;padding:15px;text-align:center;
+}
+.bank-notice p{
+  margin:0 0 15px 0;color:#1976d2;font-size:0.9rem;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.official-account-btn{
+  background:linear-gradient(135deg,#00C300,#00A000);
+  color:white;border:none;padding:12px 20px;
+  border-radius:8px;cursor:pointer;font-size:1rem;
+  font-weight:bold;transition:all .3s;
+  display:flex;align-items:center;gap:8px;margin:0 auto;
+}
+.official-account-btn:hover{
+  background:linear-gradient(135deg,#00A000,#008000);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(0,195,0,0.3);
+}
+
+/* 取消預約彈窗樣式 */
+.cancel-modal{
+  display:none;position:fixed;z-index:4000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.cancel-modal.active{display:flex;}
+.cancel-modal-content{
+  background:white;border-radius:15px;padding:0;
+  box-shadow:0 15px 35px rgba(0,0,0,0.3);
+  max-width:500px;width:90%;max-height:80vh;overflow-y:auto;
+  position:relative;
+}
+.cancel-header{
+  background:linear-gradient(135deg,#dc3545,#c82333);
+  color:white;padding:20px;border-radius:15px 15px 0 0;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.cancel-header h3{
+  margin:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;
+}
+.cancel-header .modal-close{
+  position:static;color:white;font-size:24px;cursor:pointer;
+  padding:5px;border-radius:50%;transition:background .3s;
+}
+.cancel-header .modal-close:hover{
+  background:rgba(255,255,255,0.2);
+}
+.cancel-body{
+  padding:30px;
+}
+.booking-details{
+  background:#f8f9fa;border:1px solid #e9ecef;
+  border-radius:10px;padding:20px;margin-bottom:25px;
+}
+.booking-details h4{
+  color:#dc3545;margin:0 0 15px 0;font-size:1.1rem;
+  display:flex;align-items:center;gap:8px;
+}
+.detail-item{
+  display:flex;align-items:center;margin-bottom:10px;
+  padding:8px 0;border-bottom:1px solid #e9ecef;
+}
+.detail-item:last-child{
+  border-bottom:none;margin-bottom:0;
+}
+.detail-item label{
+  font-weight:bold;color:#555;min-width:80px;margin:0;
+}
+.detail-item span{
+  color:#333;font-size:1rem;flex:1;
+}
+.cancel-options{
+  text-align:center;
+}
+.cancel-notice{
+  background:#fff3cd;border:1px solid #ffeaa7;
+  border-radius:8px;padding:15px;margin-bottom:20px;
+}
+.cancel-notice p{
+  margin:0;color:#856404;font-size:0.9rem;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.cancel-buttons{
+  display:grid;grid-template-columns:1fr;gap:15px;
+}
+.contact-support-btn{
+  background:linear-gradient(135deg,#00C300,#00A000);
+  color:white;border:none;padding:15px 20px;
+  border-radius:10px;cursor:pointer;font-size:1.1rem;
+  font-weight:bold;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.contact-support-btn:hover{
+  background:linear-gradient(135deg,#00A000,#008000);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(0,195,0,0.3);
+}
+.password-cancel-btn{
+  background:linear-gradient(135deg,#6c757d,#5a6268);
+  color:white;border:none;padding:15px 20px;
+  border-radius:10px;cursor:pointer;font-size:1.1rem;
+  font-weight:bold;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.password-cancel-btn:hover{
+  background:linear-gradient(135deg,#5a6268,#495057);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(108,117,125,0.3);
+}
+
+/* 密碼輸入彈窗樣式 */
+.password-modal{
+  display:none;position:fixed;z-index:5000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+  backdrop-filter:blur(5px);
+}
+.password-modal.active{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+.password-modal-content{
+  background:white;border-radius:15px;padding:0;
+  box-shadow:0 15px 35px rgba(0,0,0,0.3);
+  max-width:400px;width:90%;max-height:80vh;overflow-y:auto;
+  position:relative;
+}
+.password-header{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;padding:20px;border-radius:15px 15px 0 0;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.password-header h3{
+  margin:0;font-size:1.3rem;display:flex;align-items:center;gap:10px;
+}
+.password-header .modal-close{
+  position:static;color:white;font-size:28px;cursor:pointer;
+  padding:5px;border-radius:50%;transition:all .3s;
+  width:35px;height:35px;display:flex;align-items:center;justify-content:center;
+}
+.password-header .modal-close:hover{
+  background:rgba(255,255,255,0.25);
+  transform:rotate(90deg);
+}
+.password-body{
+  padding:30px;
+}
+.password-info{
+  text-align:center;
+}
+.password-info p{
+  margin:0 0 20px 0;color:#555;font-size:1rem;
+}
+.password-input-group{
+  display:flex;gap:10px;align-items:center;
+}
+.password-input-group input{
+  flex:1;padding:12px;border:2px solid #e9ecef;
+  border-radius:8px;font-size:1rem;transition:all .3s;
+}
+.password-input-group input:focus{
+  outline:none;border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.15);
+}
+.password-submit-btn{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;border:none;padding:12px 20px;
+  border-radius:8px;cursor:pointer;font-size:1rem;
+  font-weight:bold;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.password-submit-btn:hover{
+  background:linear-gradient(135deg,#764ba2,#667eea);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(102,126,234,0.4);
+}
+
+/* 載入狀態指示器 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+  backdrop-filter: blur(5px);
+}
+
+.loading-overlay.active {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.loading-spinner {
+  background: white;
+  border-radius: 20px;
+  padding: 35px 45px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  animation: slideUp 0.4s ease;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.loading-spinner .spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #FF8A00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.loading-spinner p {
+  color: #333;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 同步狀態指示器 - 已隱藏 */
+.sync-status{
+  position:fixed;bottom:20px;right:20px;z-index:1000;
+  background:rgba(0,0,0,0.9);color:white;padding:12px 18px;
+  border-radius:25px;font-size:0.9rem;display:none !important;
+  align-items:center;gap:10px;backdrop-filter:blur(10px);
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  cursor:pointer;transition:all 0.3s ease;
+  border:2px solid transparent;
+}
+.sync-status.show{display:none !important;}
+.sync-status:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 25px rgba(0,0,0,0.4);
+}
+.sync-status i{
+  animation:spin 1s linear infinite;
+  font-size:1rem;
+}
+.sync-status.success{
+  background:rgba(40,167,69,0.95);
+  border-color:rgba(40,167,69,0.5);
+}
+.sync-status.success i{
+  animation:none;
+}
+.sync-status.error{
+  background:rgba(220,53,69,0.95);
+  border-color:rgba(220,53,69,0.5);
+}
+.sync-status.error i{
+  animation:none;
+}
+
+/* Footer 連結 hover 效果 */
+footer a:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+/* LINE瀏覽器兼容模式 - 強制水平顯示 */
+body.line-browser .event-item {
+  writing-mode: horizontal-tb !important;
+  -webkit-writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  -webkit-text-orientation: mixed !important;
+  max-width: 100% !important;
+  min-width: 40px !important;
+  white-space: normal !important;
+  word-break: break-all !important;
+  line-height: 1.2 !important;
+  padding: 3px 5px !important;
+  text-align: center !important;
+  font-size: 0.6rem !important;
+}
+
+body.line-browser .payment-status {
+  font-size: 0.55rem !important;
+}
+
+body.line-browser .payment-status span {
+  font-size: 0.5rem !important;
+}
+
+body.line-browser .day-number {
+  font-size: 0.85rem !important;
+}
+
+body.line-browser .day-events {
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+body.line-browser .event-container {
+  width: 100% !important;
+}
+
+/* 中等螢幕優化（平板）- 餐車名稱垂直顯示 */
+@media(max-width:1024px){
+  .event-item{
+    writing-mode:vertical-rl;
+    -webkit-writing-mode:vertical-rl;
+    -ms-writing-mode:tb-rl;
+    text-orientation:upright;
+    -webkit-text-orientation:upright;
+    letter-spacing:0.05em;
+    min-height:30px;
+    padding:3px 5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto;
+    word-break:break-all;
+    white-space:normal;
+    line-height:1.2;
+    max-width:60px;
+    text-align:center;
+  }
+  
+  .event-container{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:35px;
+    position:relative;
+    padding-top:8px;
+  }
+  
+  .calendar-day{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  
+  .day-events{
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    gap:4px;
+    width:100%;
+    margin-top:18px;
+  }
+  
+  .cancel-btn{
+    top:-4px;
+    right:-4px;
+  }
+}
+
+/* 手機友善 */
+@media(max-width:768px){
+  /* 防止輸入框聚焦時頁面/彈窗自動縮放 */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important;
+    transform: none !important;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    font-size: 16px !important;
+    transform: none !important;
+  }
+  
+  .modal input, .modal select, .modal textarea {
+    font-size: 16px !important;
+  }
+  
+  .hero h1{font-size:1.6rem;}
+  .hero p{font-size:0.9rem;}
+  .hero{padding:35px 15px;min-height:25vh;}
+  .hero button{padding:10px 20px;font-size:0.95rem;}
+  
+  .quick-links-grid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
+    margin-top:15px;
+    max-width:100%;
+  }
+  
+  .quick-link-btn{
+    padding:10px 6px;
+    font-size:0.75rem;
+  }
+  
+  .quick-link-btn i{
+    font-size:1.3rem;
+    margin-bottom:2px;
+  }
+  
+  .quick-link-btn span{
+    font-size:0.7rem;
+  }
+  
+  .container{padding:0 10px;margin:20px auto;}
+  .card{padding:15px;margin-bottom:20px;border-radius:10px;}
+  
+  .form-grid{grid-template-columns:1fr;gap:15px;}
+  .info-grid{grid-template-columns:1fr;}
+  
+  h2.section-title{font-size:1.3rem;margin-bottom:15px;}
+  h2.section-title::after{width:50px;height:2px;}
+  
+  .location-tabs{
+    grid-template-columns:repeat(2,1fr);
+    gap:6px;
+  }
+  .location-tab{
+    padding:6px;
+    min-height:auto;
+  }
+  .location-tab i{font-size:1.1rem;margin-bottom:2px;}
+  .location-tab span{font-size:0.8rem;}
+  .location-tab small{display:none;}
+  .location-thumbnail{height:50px;margin-top:2px;border-radius:4px;}
+  
+  .location-info{padding:12px;}
+  .location-info h3{font-size:1rem;margin-bottom:8px;}
+  .info-item{font-size:0.85rem;gap:8px;}
+  .info-item i{font-size:0.9rem;}
+  .special-notice{padding:8px;font-size:0.8rem;}
+  
+  .calendar-container{padding:12px;border-radius:8px;}
+  
+  .calendar-header{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+  }
+  
+  .calendar-nav{
+    justify-content:center;
+    gap:6px;
+  }
+  
+  .nav-btn,.today-btn{
+    padding:6px 8px;
+    font-size:0.8rem;
+    min-width:32px;
+    height:32px;
+  }
+  
+  .month-display{
+    font-size:1rem;
+    min-width:90px;
+  }
+  
+  .location-filter{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  
+  .location-filter label{
+    font-size:0.85rem;
+    text-align:center;
+    margin:0 0 8px 0;
+  }
+  
+  .location-filter-buttons{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(2, 1fr);
+    gap:6px;
+  }
+  
+  .location-filter .filter-btn{
+    font-size:0.68rem;
+    padding:6px 4px;
+    white-space:normal;
+    border-radius:8px;
+    min-height:42px;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    line-height:1.2;
+    text-align:center;
+  }
+  
+  .location-filter .filter-btn i{
+    font-size:0.75rem;
+    flex-shrink:0;
+  }
+  
+  .calendar-grid{
+    gap:1px;
+    font-size:0.8rem;
+    border-radius:6px;
+  }
+  
+  .calendar-day-header{
+    padding:6px 2px;
+    font-size:0.7rem;
+  }
+  
+  .calendar-day{
+    min-height:70px;
+    padding:3px 2px;
+  }
+  
+  .day-number{
+    font-size:clamp(0.7rem, 4vw, 0.85rem);
+    padding-top:0;
+    margin-bottom:1px;
+  }
+  
+  .event-item{
+    font-size:clamp(0.5rem, 3vw, 0.65rem);
+    padding:3px 4px;
+    min-height:20px;
+    line-height:1.2;
+    border-radius:2px;
+    writing-mode:vertical-rl;
+    -webkit-writing-mode:vertical-rl;
+    -ms-writing-mode:tb-rl;
+    text-orientation:upright;
+    -webkit-text-orientation:upright;
+    letter-spacing:0.05em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto;
+    max-width:25px;
+    word-break:break-all;
+    white-space:normal;
+    text-align:center;
+  }
+  
+  .day-events{
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    gap:3px;
+  }
+  
+  .payment-status{
+    top:4px;
+    font-size:clamp(0.45rem, 3.5vw, 0.55rem);
+    max-width:calc(100% - 8px);
+    left:4px;
+    right:4px;
+    transform:none;
+    white-space:normal;
+    line-height:1.1;
+  }
+  
+  .payment-status span{
+    font-size:clamp(0.4rem, 3vw, 0.5rem);
+    padding:1px 3px;
+    display:inline-block;
+    white-space:normal;
+    word-break:keep-all;
+    line-height:1.2;
+  }
+  
+  .cancel-btn{
+    width:20px;
+    height:20px;
+    font-size:10px;
+    top:-3px;
+    right:-3px;
+  }
+  
+  .takeover-btn,.calendar-payment-btn{
+    width:18px;
+    height:18px;
+    font-size:9px;
+    top:-3px;
+    left:-3px;
+  }
+  
+  .holiday-badge{
+    font-size:0.55rem;
+    padding:1px 3px;
+    margin-top:1px;
+  }
+  
+  label{
+    font-size:0.9rem;
+    margin-top:12px;
+  }
+  label i{
+    font-size:0.85rem;
+  }
+  
+  input,select,textarea{
+    padding:9px;
+    font-size:0.9rem;
+    border-radius:6px;
+  }
+  
+  button.submit{
+    padding:12px 20px;
+    font-size:1rem;
+    margin-top:20px;
+    width:100%;
+  }
+  
+  .notice-box{
+    padding:10px;
+    font-size:0.85rem;
+    border-radius:6px;
+    margin-top:15px;
+  }
+  .notice-box h4{
+    font-size:0.95rem;
+    margin-bottom:8px;
+  }
+  .notice-box ul{
+    font-size:0.8rem;
+    line-height:1.4;
+    padding-left:18px;
+  }
+  .notice-box li{
+    margin-bottom:5px;
+  }
+  
+  .special-notice{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .special-notice i{
+    font-size:0.9rem;
+  }
+  .special-notice span{
+    font-size:0.8rem;
+  }
+  
+  /* 所有彈窗統一優化 */
+  .payment-modal-content,
+  .bank-modal-content,
+  .cancel-modal-content,
+  .password-modal-content{
+    width:92%;
+    max-width:none;
+    max-height:88vh;
+    border-radius:12px;
+  }
+  
+  .payment-header,
+  .bank-header,
+  .cancel-header,
+  .password-header{
+    padding:12px 15px !important;
+  }
+  
+  .payment-header h3,
+  .bank-header h3,
+  .cancel-header h3,
+  .password-header h3{
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+    gap:6px !important;
+  }
+  
+  .payment-header h3 i,
+  .bank-header h3 i,
+  .cancel-header h3 i,
+  .password-header h3 i{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+  }
+  
+  .payment-body,
+  .bank-body,
+  .cancel-body,
+  .password-body{
+    padding:15px !important;
+  }
+  
+  .payment-btn{
+    padding:10px 12px;
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    gap:8px;
+  }
+  .payment-btn i{
+    font-size:clamp(1rem, 4.5vw, 1.2rem);
+  }
+  
+  .payment-info p{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+    margin:3px 0;
+  }
+  
+  .payment-notice p{
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem);
+    line-height:1.4;
+  }
+  
+  .payment-buttons{
+    gap:10px;
+    margin-bottom:15px;
+  }
+  
+  .bank-item{
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    margin-bottom:8px;
+  }
+  .bank-item label{
+    min-width:auto;
+    margin:0;
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem);
+    white-space:nowrap;
+  }
+  .bank-item span{
+    font-size:clamp(0.85rem, 3.8vw, 0.9rem);
+  }
+  .account-number{
+    width:100%;
+    flex-direction:column;
+    gap:6px;
+  }
+  .account-number span{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+    padding:6px 8px;
+  }
+  .copy-btn{
+    padding:7px 10px;
+    font-size:clamp(0.75rem, 3.5vw, 0.8rem);
+    width:100%;
+  }
+  
+  .bank-amount{
+    padding:10px;
+    margin-bottom:10px;
+  }
+  
+  .bank-amount label,
+  .bank-amount .amount{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+  }
+  
+  .bank-notice{
+    padding:10px;
+  }
+  
+  .bank-notice p{
+    font-size:clamp(0.75rem, 3.5vw, 0.8rem);
+    line-height:1.4;
+  }
+  
+  .official-account-btn{
+    padding:10px 15px;
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    gap:6px;
+  }
+  
+  .booking-details{
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:12px;
+  }
+  .booking-details h4{
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    margin-bottom:8px;
+    gap:6px;
+  }
+  .detail-item{
+    flex-direction:row;
+    align-items:center;
+    gap:6px;
+    padding:5px 0;
+  }
+  .detail-item label{
+    min-width:55px;
+    margin:0;
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    white-space:nowrap;
+  }
+  .detail-item span{
+    font-size:clamp(0.8rem, 3.8vw, 0.88rem);
+    line-height:1.3;
+  }
+  
+  .contact-support-btn,
+  .password-cancel-btn{
+    padding:10px 12px;
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    gap:6px;
+  }
+  
+  .cancel-notice p{
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    line-height:1.4;
+  }
+  
+  .cancel-buttons{
+    gap:10px;
+  }
+  
+  #passwordModal .password-body{
+    padding:20px 15px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child{
+    margin-bottom:15px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div{
+    width:50px !important;
+    height:50px !important;
+    margin-bottom:10px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div i{
+    font-size:1.3rem !important;
+  }
+  
+  #passwordModal .password-info p:first-of-type{
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+  }
+  
+  #passwordModal .password-info p:last-of-type{
+    font-size:clamp(0.78rem, 3.5vw, 0.85rem) !important;
+  }
+  
+  .password-input-group{
+    flex-direction:column;
+    gap:10px;
+  }
+  .password-input-group input{
+    padding:9px;
+    padding-left:36px;
+    font-size:clamp(0.88rem, 4vw, 0.95rem);
+    height:40px;
+    letter-spacing:1.5px;
+  }
+  .password-input-group i{
+    font-size:clamp(0.85rem, 4vw, 0.95rem);
+    left:11px;
+  }
+  .password-submit-btn{
+    width:100%;
+    justify-content:center;
+    padding:9px 12px;
+    font-size:clamp(0.88rem, 4vw, 0.95rem);
+    height:40px;
+    gap:5px;
+  }
+  
+  #passwordModal .password-info > div:last-child{
+    padding:8px 10px !important;
+    margin-top:12px !important;
+  }
+  
+  #passwordModal .password-info > div:last-child p{
+    font-size:clamp(0.72rem, 3.2vw, 0.78rem) !important;
+  }
+  
+  #takeoverModal .payment-body,
+  #transferModal .password-body{
+    padding:12px !important;
+  }
+  #takeoverModal label,
+  #transferModal label{
+    margin-top:8px;
+    font-size:clamp(0.78rem, 3.5vw, 0.85rem);
+  }
+  #takeoverModal input,
+  #takeoverModal select,
+  #transferModal input,
+  #transferModal select{
+    font-size:clamp(0.85rem, 3.8vw, 0.9rem);
+    padding:8px;
+    height:38px;
+  }
+  
+  #takeoverModal .alert-warning p,
+  #takeoverModal .takeover-notice p,
+  #transferModal .special-notice span{
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+  }
+  
+  #takeoverModal .original-booking-info h4,
+  #transferModal .original-booking-info h4{
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    margin-bottom:8px;
+  }
+  
+  #takeoverModal button,
+  #transferModal button{
+    font-size:clamp(0.85rem, 4vw, 0.92rem);
+    padding:10px 12px;
+    gap:5px;
+  }
+  
+  .toast-container{
+    top:10px;
+    right:10px;
+    left:10px;
+  }
+  .toast{
+    min-width:auto;
+    max-width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+  }
+  .toast-header{
+    margin-bottom:3px;
+  }
+  .toast-icon{
+    font-size:clamp(0.9rem, 4vw, 1rem);
+  }
+  .toast-title{
+    font-size:clamp(0.82rem, 4vw, 0.9rem);
+  }
+  .toast-message{
+    font-size:clamp(0.75rem, 3.5vw, 0.82rem);
+    line-height:1.4;
+  }
+  
+  footer{
+    padding:20px 12px;
+    margin-top:30px;
+  }
+  footer p{
+    font-size:0.8rem !important;
+    line-height:1.5;
+    margin-bottom:6px;
+  }
+  footer a{
+    display:inline-block;
+    margin:3px 0;
+  }
+  
+  .fee-input-group input{
+    font-size:0.85rem;
+    padding:8px;
+    padding-left:35px;
+  }
+  .fee-input-group i{
+    font-size:0.9rem;
+    left:10px;
+  }
+  
+  .date-info{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .date-info small{
+    font-size:0.75rem;
+  }
+  
+  .loading-spinner{
+    padding:25px 30px;
+    min-width:260px;
+    max-width:90%;
+    border-radius:15px;
+  }
+  .loading-spinner .spinner{
+    width:50px;
+    height:50px;
+    margin-bottom:15px;
+    border-width:4px;
+  }
+  .loading-spinner p{
+    font-size:1rem;
+    letter-spacing:0.3px;
+    line-height:1.4;
+  }
+  
+  .loading-spinner p div:first-child{
+    font-size:clamp(1.1rem, 5vw, 1.3rem);
+  }
+  
+  .loading-spinner p div:last-child{
+    font-size:clamp(0.8rem, 3.5vw, 0.9rem);
+  }
+  
+  body{
+    overflow-x:hidden;
+  }
+  .container{
+    max-width:100%;
+  }
+  
+  *{
+    -webkit-tap-highlight-color:rgba(255,139,0,0.1);
+  }
+}
+
+/* 極小螢幕優化（320px-480px）*/
+@media(max-width:480px){
+  .hero h1{font-size:1.4rem;}
+  .hero p{font-size:0.85rem;}
+  .hero{padding:30px 12px;min-height:22vh;}
+  
+  .container{padding:0 8px;margin:15px auto;}
+  .card{padding:12px;margin-bottom:15px;}
+  
+  h2.section-title{font-size:1.2rem;margin-bottom:12px;}
+  
+  .location-tab i{font-size:1rem;}
+  .location-tab span{font-size:0.75rem;}
+  .location-thumbnail{height:45px;}
+  
+  .payment-modal-content,
+  .bank-modal-content,
+  .cancel-modal-content,
+  .password-modal-content{
+    width:94%;
+    border-radius:10px;
+  }
+  
+  .payment-header,
+  .bank-header,
+  .cancel-header,
+  .password-header{
+    padding:10px 12px !important;
+  }
+  
+  .payment-body,
+  .bank-body,
+  .cancel-body,
+  .password-body{
+    padding:12px !important;
+  }
+  
+  .payment-btn,
+  .contact-support-btn,
+  .password-cancel-btn{
+    padding:9px 10px;
+  }
+  
+  .booking-details,
+  .original-booking-info{
+    padding:8px;
+    margin-bottom:10px;
+  }
+  
+  #passwordModal .password-body{
+    padding:15px 12px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div{
+    width:45px !important;
+    height:45px !important;
+  }
+  
+  #passwordModal .password-info > div:first-child > div i{
+    font-size:1.1rem !important;
+  }
+  
+  .password-input-group input{
+    height:38px;
+    font-size:0.85rem;
+  }
+  
+  .password-submit-btn{
+    height:38px;
+    font-size:0.85rem;
+    padding:8px 10px;
+  }
+  
+  #takeoverModal button,
+  #transferModal button{
+    padding:9px 8px;
+    font-size:0.82rem;
+  }
+  
+  #helpModal .password-modal-content{
+    max-width:95%;
+  }
+  
+  #helpModal .password-body{
+    padding:18px 15px !important;
+    max-height:75vh;
+  }
+  
+  .help-section h4{
+    font-size:clamp(0.95rem, 4.5vw, 1.05rem) !important;
+    margin-bottom:10px !important;
+  }
+  
+  .help-section ul{
+    font-size:clamp(0.8rem, 3.5vw, 0.85rem) !important;
+    line-height:1.6 !important;
+    padding-left:18px !important;
+  }
+  
+  .help-section li{
+    margin-bottom:8px !important;
+  }
+  
+  #helpModal button{
+    padding:10px 15px !important;
+    font-size:clamp(0.88rem, 4vw, 0.95rem) !important;
+  }
+  
+  .help-btn{
+    width:28px;
+    height:28px;
+    right:5px;
+  }
+  
+  .help-btn i{
+    font-size:0.9rem;
+  }
+  
+  .location-filter-buttons{
+    grid-template-columns:repeat(3, 1fr);
+    gap:5px;
+  }
+  
+  .location-filter .filter-btn{
+    font-size:0.65rem;
+    padding:5px 3px;
+    min-height:38px;
+    gap:2px;
+  }
+  
+  .location-filter .filter-btn i{
+    font-size:0.7rem;
+  }
+  
+  .calendar-day{min-height:65px;}
+  .day-number{font-size:clamp(0.65rem, 4.5vw, 0.8rem);}
+  .event-item{
+    font-size:clamp(0.45rem, 3.5vw, 0.6rem);
+    padding:3px 3px;
+    writing-mode:vertical-rl;
+    -webkit-writing-mode:vertical-rl;
+    -ms-writing-mode:tb-rl;
+    text-orientation:upright;
+    -webkit-text-orientation:upright;
+    letter-spacing:0.05em;
+    min-height:18px;
+    max-width:22px;
+    margin:0 auto;
+    word-break:break-all;
+    white-space:normal;
+    text-align:center;
+    line-height:1.2;
+  }
+  
+  .payment-status{
+    max-width:calc(100% - 6px);
+    left:3px;
+    right:3px;
+    font-size:clamp(0.38rem, 4vw, 0.5rem);
+  }
+  
+  .payment-status span{
+    font-size:clamp(0.35rem, 3.5vw, 0.45rem);
+    padding:1px 2px;
+  }
+  
+  input,select,textarea{
+    padding:8px;
+    font-size:0.85rem;
+  }
+  
+  button.submit{
+    padding:11px 18px;
+    font-size:0.95rem;
+  }
+  
+  .loading-spinner{
+    padding:20px 25px;
+    min-width:240px;
+    max-width:92%;
+  }
+  .loading-spinner .spinner{
+    width:45px;
+    height:45px;
+    margin-bottom:12px;
+  }
+  .loading-spinner p{
+    font-size:0.9rem;
+    line-height:1.3;
+  }
+  
+  .loading-spinner p div:first-child{
+    font-size:clamp(1rem, 6vw, 1.2rem);
+    margin-bottom:6px;
+  }
+  
+  .loading-spinner p div:last-child{
+    font-size:clamp(0.75rem, 4vw, 0.85rem);
+  }
+  
+  #helpModal .password-body{
+    padding:15px 12px !important;
+  }
+  
+  .help-section h4{
+    font-size:0.95rem !important;
+  }
+  
+  .help-section ul{
+    font-size:0.78rem !important;
+    line-height:1.5 !important;
+  }
+  
+  .help-btn{
+    width:26px;
+    height:26px;
+  }
+  
+  .help-btn i{
+    font-size:0.85rem;
+  }
+}
+
+/* 使用教學按鈕樣式 */
+.help-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-btn:hover {
+  background: linear-gradient(135deg, #138496, #117a8b);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+}
+
+.help-btn i {
+  font-size: 1rem;
+}
+
+/* 使用教學彈窗樣式 */
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.help-section ul {
+  margin: 0;
+}
+
+.help-section li {
+  margin-bottom: 10px;
+}
+
+.help-section li:last-child {
+  margin-bottom: 0;
+}
+
+/* 國定假日標記樣式 - 僅用於四維路60號 */
+.holiday-badge {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.calendar-day.holiday-date {
+  border: 2px solid #dc3545 !important;
+  background: linear-gradient(135deg, #fff5f5, #ffe6e6) !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* 付款狀態樣式 */
+.payment-status {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  right: 6px;
+  font-size: clamp(0.55rem, 1vw, 0.7rem);
+  text-align: center;
+  z-index: 5;
+  white-space: normal;
+  max-width: calc(100% - 12px);
+  line-height: 1.2;
+  background: transparent;
+  cursor: pointer;
+  word-break: keep-all;
+}
+
+.payment-status span {
+  display: inline-block;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: bold;
+  line-height: 1.3;
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
+  transition: all 0.3s;
+  white-space: normal;
+  word-break: keep-all;
+  max-width: 100%;
+}
+
+.payment-status span:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.payment-status .paid {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.payment-status .unpaid {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.payment-status .unpaid.urgent {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  animation: blink 1s ease-in-out infinite;
+}
+
+.payment-status .unpaid.overdue {
+  background: #dc3545;
+  color: white;
+  border: 1px solid #bd2130;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* 日曆事件容器樣式調整 */
+.event-container {
+  position: relative;
+  padding: 2px;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+
+.event-item {
+  cursor: pointer;
+  padding: 5px 7px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-align: center;
+  background: #FF8A00;
+  color: white;
+  min-height: 22px;
+}
+
+.event-item:hover {
+  opacity: 0.8;
+}
+
+/* 取消按鈕樣式優化 - 右上角 */
+.cancel-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  background: rgba(220, 53, 69, 0.95);
+  border: 1px solid white;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 16;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.cancel-btn:hover {
+  background: #dc3545;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 逾期接手按鈕 - 左上方 */
+.takeover-btn {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 14px;
+  height: 14px;
+  background: #ffc107;
+  color: #000;
+  border: 1px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 15;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.takeover-btn:hover {
+  background: #ff9800;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 日曆繳費按鈕 - 左上方 */
+.calendar-payment-btn {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 14px;
+  height: 14px;
+  background: rgba(40, 167, 69, 0.95);
+  color: white;
+  border: 1px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 15;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.calendar-payment-btn:hover {
+  background: #28a745;
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* 防止輸入框聚焦時彈窗縮放 */
+.payment-modal-content,
+.bank-modal-content,
+.cancel-modal-content,
+.password-modal-content {
+  transform: none !important;
+  transition: none !important;
+}
+
+.payment-modal-content *,
+.bank-modal-content *,
+.cancel-modal-content *,
+.password-modal-content * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 移除所有輸入框的 focus 縮放效果 */
+#takeoverModal input:focus,
+#takeoverModal select:focus,
+#transferModal input:focus,
+#transferModal select:focus,
+#passwordModal input:focus {
+  transform: none !important;
+}
+
+/* 逾期接手彈窗樣式 */
+.alert-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-warning i {
+  color: #856404;
+  font-size: 1.5rem;
+}
+
+.alert-warning p {
+  color: #856404;
+  font-weight: 600;
+  margin: 0;
+}
+
+.original-booking-info {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.original-booking-info h4 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item label {
+  font-weight: bold;
+  color: #6c757d;
+  min-width: 100px;
+}
+
+.detail-item span {
+  color: #212529;
+}
+
+.takeover-form {
+  margin-top: 20px;
+}
+
+.takeover-form h4 {
+  color: #FF4B2B;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.takeover-form label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #555;
+}
+
+.takeover-form input,
+.takeover-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.takeover-form input:focus,
+.takeover-form select:focus {
+  border-color: #FF8A00;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 139, 0, 0.1);
+  transform: none !important;
+}
+
+.locked-info {
+  margin-top: 15px;
+}
+
+.takeover-notice {
+  background: #e7f3ff;
+  border: 1px solid #2196f3;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 15px;
+}
+
+.takeover-notice p {
+  color: #1976d2;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.takeover-submit-btn {
+  width: 100%;
+  margin-top: 20px;
+}
+

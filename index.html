@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>楊梅餐車排班報名系統 v3.2.3</title>
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="楊梅餐車排班報名系統 - 線上預約餐車出攤檔期，查看最新排班日曆，支援多種付款方式，輕鬆管理餐車排班">
+<meta name="keywords" content="餐車,排班,楊梅,四維路,餐車預約,快閃餐車">
+<meta name="author" content="快閃餐車小幫手">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="楊梅餐車排班報名系統 v3.2.3">
+<meta property="og:description" content="線上預約餐車出攤檔期，查看最新排班日曆，支援多種付款方式">
+<meta property="og:locale" content="zh_TW">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="楊梅餐車排班報名系統 v3.2.3">
+<meta name="twitter:description" content="線上預約餐車出攤檔期，查看最新排班日曆">
+
+<!-- Performance Optimization: DNS Prefetch & Preconnect -->
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link rel="dns-prefetch" href="https://i.postimg.cc">
+<link rel="dns-prefetch" href="https://res.cloudinary.com">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://i.postimg.cc" crossorigin>
+
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<!-- Supabase JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- 外部樣式表 -->
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<!-- Hero Banner -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>🚚 楊梅餐車排班報名</h1>
+    <p>立即預約您的餐車出攤檔期，隨時查看最新排班日曆</p>
+    
+    <!-- 快速功能連結 -->
+    <div class="quick-links-grid">
+      <a href="https://siwei.pages.dev/" target="_blank" class="quick-link-btn">
+        <i class="fas fa-route"></i>
+        <span>每日行程總覽</span>
+      </a>
+      
+      <button onclick="showRulesModal()" class="quick-link-btn" aria-label="查看群組版規">
+        <i class="fas fa-book"></i>
+        <span>群組版規</span>
+      </button>
+      
+      <button onclick="showDownloadModal()" class="quick-link-btn" aria-label="下載素材">
+        <i class="fas fa-download"></i>
+        <span>下載素材</span>
+      </button>
+      
+      <button onclick="showActivityModal()" class="quick-link-btn" style="background: linear-gradient(135deg, #DC3545, #C82333);" aria-label="查看活動詳細資訊">
+        <i class="fas fa-star"></i>
+        <span>活動詳細必看</span>
+      </button>
+      
+      <a href="https://reurl.cc/G4KbgD" target="_blank" class="quick-link-btn">
+        <i class="fas fa-users"></i>
+        <span>加入預訂社群</span>
+      </a>
+      
+      <a href="https://line.me/ti/g2/2-7-YZOXN4PysTdBsO7Kr4_q4UMlNxAGviawjg?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="quick-link-btn">
+        <i class="fas fa-store"></i>
+        <span>餐車闆闆社群</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="container" id="mainContent" style="opacity: 0; transition: opacity 0.5s ease;">
+
+  <!-- 排班行事曆 -->
+  <div class="card">
+    <div style="display: flex; justify-content: center; align-items: center; position: relative;">
+      <h2 class="section-title">📅 排班行事曆</h2>
+      <button onclick="showHelpModal()" class="help-btn" title="使用說明" aria-label="開啟使用說明">
+        <i class="fas fa-question"></i>
+      </button>
+    </div>
+    
+    <!-- 新的行事曆容器 -->
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <div class="calendar-nav">
+          <button id="prevMonth" class="nav-btn" aria-label="上一個月"><i class="fas fa-chevron-left"></i></button>
+          <span id="currentMonth" class="month-display" aria-live="polite">2025年10月</span>
+          <button id="nextMonth" class="nav-btn" aria-label="下一個月"><i class="fas fa-chevron-right"></i></button>
+          <button id="todayBtn" class="today-btn" aria-label="回到今天">今天</button>
+        </div>
+        <div class="location-filter">
+          <label><i class="fas fa-filter"></i> 篩選場地：</label>
+          <div class="location-filter-buttons">
+            <button class="filter-btn active" data-location="四維路59號">
+              <i class="fas fa-map-marker-alt"></i> 四維路59號
+            </button>
+            <button class="filter-btn" data-location="漢堡大亨">
+              <i class="fas fa-map-marker-alt"></i> 四維路70號
+            </button>
+            <button class="filter-btn" data-location="自由風">
+              <i class="fas fa-map-marker-alt"></i> 四維路190號
+            </button>
+            <button class="filter-btn" data-location="蔬蒔">
+              <i class="fas fa-map-marker-alt"></i> 四維路216號
+            </button>
+            <button class="filter-btn" data-location="金正好吃">
+              <i class="fas fa-map-marker-alt"></i> 四維路218號
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 行事曆內容將由JavaScript生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 場地選擇 -->
+  <div class="card">
+    <h2 class="section-title">📍 選擇場地</h2>
+    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px;">
+      <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+        <i class="fas fa-lightbulb"></i> 💡 <strong>小提示：</strong>您可以直接點擊上方日曆的空白日期快速預約，或在此選擇場地查看詳細資訊
+      </p>
+    </div>
+    <div class="location-tabs">
+      <button class="location-tab active" data-location="四維路59號">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>四維路59號</span>
+        <small>楊梅區四維路59號</small>
+        <img src="https://i.postimg.cc/wTB3mKM7/59.jpg" alt="四維路59號" class="location-thumbnail" data-full-image="https://i.postimg.cc/wTB3mKM7/59.jpg" loading="lazy">
+      </button>
+      <button class="location-tab" data-location="漢堡大亨">
+        <i class="fas fa-store"></i>
+        <span>漢堡大亨</span>
+        <small>楊梅區四維路70號</small>
+        <img src="https://i.postimg.cc/zD7VvDzH/70.jpg" alt="漢堡大亨" class="location-thumbnail" data-full-image="https://i.postimg.cc/zD7VvDzH/70.jpg" loading="lazy">
+      </button>
+      <button class="location-tab" data-location="自由風">
+        <i class="fas fa-store"></i>
+        <span>自由風</span>
+        <small>楊梅區四維路190號</small>
+        <img src="https://i.postimg.cc/nV2CrVFX/190.jpg" alt="自由風" class="location-thumbnail" data-full-image="https://i.postimg.cc/nV2CrVFX/190.jpg" loading="lazy">
+      </button>
+      <button class="location-tab" data-location="蔬蒔">
+        <i class="fas fa-leaf"></i>
+        <span>蔬蒔</span>
+        <small>楊梅區四維路216號</small>
+        <img src="https://i.postimg.cc/MZ5vHZ6j/216.jpg" alt="蔬蒔" class="location-thumbnail" data-full-image="https://i.postimg.cc/MZ5vHZ6j/216.jpg" loading="lazy">
+      </button>
+      <button class="location-tab" data-location="金正好吃">
+        <i class="fas fa-utensils"></i>
+        <span>金正好吃</span>
+        <small>楊梅區四維路218號</small>
+        <img src="https://i.postimg.cc/bYgsrYyd/218.jpg" alt="金正好吃" class="location-thumbnail" data-full-image="https://i.postimg.cc/bYgsrYyd/218.jpg" loading="lazy">
+      </button>
+    </div>
+    
+    <!-- 動態場地資訊 -->
+    <div id="locationInfo" class="location-info">
+      <h3><i class="fas fa-map-marker-alt"></i> 楊梅區四維路59號</h3>
+      <div class="special-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>整月都可排班</span>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <i class="fas fa-clock"></i>
+          <span><strong>營業時間：</strong>14:00-20:00</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-dollar-sign"></i>
+          <span><strong>費用：</strong>600元/天</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-truck"></i>
+          <span><strong>限制：</strong>僅限1車，餐車高度限制</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-ban"></i>
+          <span><strong>禁止：</strong>油炸落地攤、煙霧太大、飲料車</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 報名表單 -->
+  <div class="card" id="form">
+    <h2 class="section-title">📝 線上報名表</h2>
+    <div class="form-grid">
+      <div>
+        <label><i class="fas fa-store"></i> 餐車名稱</label>
+        <input type="text" id="vendorName" placeholder="例如：向陽坡刈包">
+      </div>
+      <div>
+        <label><i class="fas fa-map-marker-alt"></i> 選擇場地</label>
+      <select id="location">
+          <option value="">請選擇場地</option>
+          <option value="四維路59號">四維路59號</option>
+          <option value="漢堡大亨">漢堡大亨 - 四維路70號</option>
+          <option value="自由風">自由風 - 四維路190號</option>
+          <option value="蔬蒔">蔬蒔 - 四維路216號</option>
+          <option value="金正好吃">金正好吃 - 四維路218號</option>
+      </select>
+      </div>
+      <div>
+        <label><i class="fas fa-calendar"></i> 選擇日期</label>
+        <div class="date-selection">
+          <input type="date" id="date" style="display:none;">
+          <select id="availableDates">
+            <option value="">請先選擇場地</option>
+      </select>
+        </div>
+        <div id="dateInfo" class="date-info">
+          <small><i class="fas fa-info-circle"></i> 請先選擇場地</small>
+        </div>
+      </div>
+      <div>
+        <label><i class="fas fa-utensils"></i> 餐車類型</label>
+        <select id="foodType">
+          <option value="">請選擇</option>
+          <option value="主食類">主食類</option>
+          <option value="甜點類">甜點類</option>
+          <option value="小點類">小點類</option>
+          <option value="中式餐點">中式餐點</option>
+          <option value="烤腿套餐">烤腿套餐</option>
+          <option value="甜品類">甜品類</option>
+          <option value="小吃類型">小吃類型</option>
+      </select>
+      </div>
+      <div class="fee-info">
+        <label><i class="fas fa-dollar-sign"></i> 場地費</label>
+        <div class="fee-input-group">
+          <i class="fas fa-coins"></i>
+          <input type="text" value="600元/天 (14:00-20:00)" disabled readonly>
+        </div>
+      </div>
+      <div class="payment-image-upload">
+        <label><i class="fas fa-image"></i> 匯款證明圖片 <span style="color: #6b7280; font-weight: normal; font-size: 0.85rem;">(選填)</span></label>
+        <div class="image-upload-container">
+          <input type="file" id="paymentImageInput" accept="image/*" style="display: none;">
+          <button type="button" class="image-upload-btn" onclick="document.getElementById('paymentImageInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
+          </button>
+          <div id="imagePreview" class="image-preview" style="display: none;">
+            <img id="previewImage" src="" alt="預覽圖片">
+            <button type="button" class="remove-image-btn" onclick="removePaymentImage()" title="移除圖片">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <small class="form-hint" style="display: block; margin-top: 8px; color: #6b7280; font-size: 0.85rem;">
+          <i class="fas fa-info-circle"></i> 支援 JPG、PNG 格式，建議上傳匯款截圖以便審核
+        </small>
+      </div>
+  </div>
+    
+    <div class="notice-box" id="noticeBox">
+      <h4><i class="fas fa-exclamation-triangle"></i> 重要注意事項</h4>
+      <ul>
+        <li>不供水、不供電，需自行清潔環境及垃圾處理</li>
+        <li>禁止油炸落地攤，其他可以不限，禁煙霧太大</li>
+        <li>禁止飲料及飲料車</li>
+        <li>餐車高度限制，請特別注意</li>
+        <li>房東很注重地板要記得鋪地墊</li>
+        <li>桶仔雞煙霧太大不行</li>
+        <li>發電機老式太吵不行</li>
+      </ul>
+    </div>
+    
+    <button class="submit" id="submitBtn" type="button" aria-label="送出報名表單">
+      <i class="fas fa-paper-plane"></i> 送出報名
+    </button>
+  </div>
+
+</div>
+
+<!-- 圖片放大模態框 -->
+<div id="imageModal" class="image-modal">
+  <span class="modal-close" aria-label="關閉" role="button">&times;</span>
+  <img class="modal-content" id="modalImage" src="" alt="">
+</div>
+
+<!-- 繳費彈窗 -->
+<div id="paymentModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <div class="payment-header">
+      <h3><i class="fas fa-credit-card"></i> 繳交場地費</h3>
+      <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+    </div>
+    <div class="payment-body">
+      <div class="payment-info">
+        <p style="font-size: 1.05rem; margin: 5px 0;"><strong>場地費：600元</strong></p>
+        <p style="font-size: 0.9rem; margin: 5px 0;">請選擇付款方式完成繳費</p>
+        <div id="paymentBookingInfo" style="margin-top: 12px; padding: 10px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid #3b82f6; display: none;">
+          <p style="margin: 4px 0; font-size: 0.85rem; color: #1e40af;">
+            <i class="fas fa-info-circle"></i> 
+            <strong>預約資訊：</strong>
+            <span id="paymentBookingDetails"></span>
+          </p>
+        </div>
+      </div>
+      <div class="payment-buttons">
+        <button class="payment-btn jkopay-btn" onclick="openJkopay()">
+          <i class="fas fa-mobile-alt"></i>
+          <span>街口支付</span>
+        </button>
+        <button class="payment-btn linepay-btn" onclick="openLinepay()">
+          <i class="fab fa-line"></i>
+          <span>LINE-PAY</span>
+        </button>
+        <button class="payment-btn bank-btn" onclick="openBankModal()">
+          <i class="fas fa-university"></i>
+          <span>網銀轉帳</span>
+        </button>
+      </div>
+      <div class="payment-image-upload-section">
+        <label style="display: block; margin: 20px 0 10px 0; font-weight: 600; color: #374151;">
+          <i class="fas fa-image"></i> 上傳匯款證明圖片
+        </label>
+        <div class="payment-image-upload-container">
+          <input type="file" id="paymentModalImageInput" accept="image/*" style="display: none;">
+          <button type="button" class="payment-image-upload-btn" onclick="document.getElementById('paymentModalImageInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
+          </button>
+          <div id="paymentModalImagePreview" class="payment-image-preview" style="display: none;">
+            <img id="paymentModalPreviewImage" src="" alt="預覽圖片">
+            <button type="button" class="remove-payment-image-btn" onclick="removePaymentModalImage()" title="移除圖片">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <small class="payment-form-hint" style="display: block; margin-top: 8px; color: #6b7280; font-size: 0.85rem;">
+          <i class="fas fa-info-circle"></i> 支援 JPG、PNG 格式，建議上傳匯款截圖以便審核
+        </small>
+        <button type="button" id="uploadPaymentImageBtn" class="upload-payment-image-submit-btn" onclick="uploadPaymentImageFromModal()" style="display: none;">
+          <i class="fas fa-upload"></i> 上傳圖片
+        </button>
+      </div>
+      <div class="payment-notice">
+        <p><i class="fas fa-info-circle"></i> 繳費完成後，請將截圖或訊息傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline; cursor: pointer;">官方小幫手</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 銀行轉帳資料彈窗 -->
+<div id="bankModal" class="bank-modal">
+  <div class="bank-modal-content">
+    <div class="bank-header">
+      <h3><i class="fas fa-university"></i> 銀行轉帳資訊</h3>
+      <span class="modal-close" onclick="closeBankModal()">&times;</span>
+    </div>
+    <div class="bank-body">
+      <div class="bank-info">
+        <div class="bank-item">
+          <label>銀行名稱：</label>
+          <span>渣打銀行</span>
+        </div>
+        <div class="bank-item">
+          <label>銀行代號：</label>
+          <span>052</span>
+        </div>
+        <div class="bank-item">
+          <label>帳號：</label>
+          <div class="account-number">
+            <span id="accountNumber">02420000547239</span>
+            <button class="copy-btn" onclick="copyAccountNumber()">
+              <i class="fas fa-copy"></i> 複製
+            </button>
+          </div>
+        </div>
+        <div class="bank-amount">
+          <label>轉帳金額：</label>
+          <span class="amount">600元</span>
+        </div>
+      </div>
+      <div class="bank-notice">
+        <p><i class="fas fa-exclamation-triangle"></i> 轉帳完成後，請將轉帳截圖或訊息傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></p>
+        <button class="official-account-btn" onclick="openOfficialAccount()">
+          <i class="fab fa-line"></i> 傳送至官方小幫手
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 管理選項彈窗（取消/審計二選一）-->
+<div id="adminOptionsModal" class="cancel-modal">
+  <div class="cancel-modal-content" style="max-width: 420px;">
+    <div class="cancel-header" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+      <h3><i class="fas fa-cog"></i> 系統管理選項</h3>
+      <span class="modal-close" onclick="closeAdminOptionsModal()">&times;</span>
+    </div>
+    <div class="cancel-body">
+      <div class="cancel-info">
+        <div class="booking-details">
+          <h4><i class="fas fa-info-circle"></i> 預約資訊</h4>
+          <div class="detail-item">
+            <label>餐車名稱：</label>
+            <span id="adminVendorName"></span>
+          </div>
+          <div class="detail-item">
+            <label>場地：</label>
+            <span id="adminLocation"></span>
+          </div>
+          <div class="detail-item">
+            <label>日期：</label>
+            <span id="adminDate"></span>
+          </div>
+          <div class="detail-item">
+            <label>付款狀態：</label>
+            <span id="adminPaymentStatus" style="font-weight: bold;"></span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cancel-options">
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; margin-bottom: 15px; border-radius: 6px;">
+          <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+            <i class="fas fa-info-circle"></i> 請選擇要執行的管理操作
+          </p>
+        </div>
+        
+        <div class="cancel-buttons" style="gap: 12px;">
+          <button class="contact-support-btn" style="background: linear-gradient(135deg, #28a745, #20c997);" onclick="selectAuditOption()">
+            <i class="fas fa-check-circle"></i> 己繳場租審計
+          </button>
+          <button class="password-cancel-btn" style="background: linear-gradient(135deg, #dc3545, #c82333);" onclick="selectCancelOption()">
+            <i class="fas fa-times-circle"></i> 取消預約
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 取消預約彈窗 -->
+<div id="cancelModal" class="cancel-modal">
+  <div class="cancel-modal-content">
+    <div class="cancel-header">
+      <h3><i class="fas fa-calendar-times"></i> 取消預約</h3>
+      <span class="modal-close" onclick="closeCancelModal()">&times;</span>
+    </div>
+    <div class="cancel-body">
+      <div class="cancel-info">
+        <div class="booking-details">
+          <h4><i class="fas fa-info-circle"></i> 預約詳情</h4>
+          <div class="detail-item">
+            <label>餐車名稱：</label>
+            <span id="cancelVendorName"></span>
+          </div>
+          <div class="detail-item">
+            <label>場地：</label>
+            <span id="cancelLocation"></span>
+          </div>
+          <div class="detail-item">
+            <label>日期：</label>
+            <span id="cancelDate"></span>
+          </div>
+          <div class="detail-item">
+            <label>時間：</label>
+            <span>14:00-20:00</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cancel-options">
+        <div class="cancel-notice">
+          <p><i class="fas fa-exclamation-triangle"></i> 無法自行取消預約，請洽<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></p>
+        </div>
+        
+        <div class="cancel-buttons">
+          <button class="contact-support-btn" onclick="openOfficialAccount()">
+            <i class="fab fa-line"></i> 聯繫官方小幫手
+          </button>
+          <button class="password-cancel-btn" onclick="showPasswordInput()">
+            <i class="fas fa-key"></i> 密碼取消預約
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 密碼輸入彈窗 -->
+<div id="passwordModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 420px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-shield-alt"></i> 密碼驗證</h3>
+      <span class="modal-close" onclick="closePasswordModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px;">
+      <div class="password-info">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-lock" style="font-size: 1.6rem; color: white;"></i>
+          </div>
+          <p style="font-size: 1.05rem; color: #333; margin: 0 0 6px 0; font-weight: bold;">請輸入取消密碼</p>
+          <p style="font-size: 0.85rem; color: #666; margin: 0;">驗證後即可取消預約</p>
+        </div>
+        
+        <div class="password-input-group" style="flex-direction: column; gap: 12px;">
+          <div style="position: relative;">
+            <i class="fas fa-key" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #667eea; font-size: 1rem;"></i>
+            <input type="password" id="passwordInput" placeholder="請輸入密碼" maxlength="10" style="padding-left: 40px; border: 2px solid #e0e0e0; font-size: 1rem; height: 45px; text-align: center; letter-spacing: 2px;">
+          </div>
+          <button class="password-submit-btn" onclick="verifyPassword()" style="width: 100%; height: 45px; font-size: 1rem; background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-check-circle"></i> 確認驗證
+          </button>
+        </div>
+        
+        <div style="background: #f8f9fa; border-left: 3px solid #667eea; padding: 10px 12px; margin-top: 15px; border-radius: 4px;">
+          <p style="margin: 0; color: #666; font-size: 0.8rem; line-height: 1.4;">
+            <i class="fas fa-info-circle" style="color: #667eea;"></i> 如忘記密碼，請聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 己繳場租審計彈窗 -->
+<div id="auditModal" class="cancel-modal">
+  <div class="cancel-modal-content">
+    <div class="cancel-header" style="background: linear-gradient(135deg, #28a745, #20c997);">
+      <h3><i class="fas fa-check-circle"></i> 己繳場租審計</h3>
+      <span class="modal-close" onclick="closeAuditModal()">&times;</span>
+    </div>
+    <div class="cancel-body">
+      <div class="cancel-info">
+        <div class="booking-details">
+          <h4><i class="fas fa-info-circle"></i> 己繳詳情</h4>
+          <div class="detail-item">
+            <label>餐車名稱：</label>
+            <span id="auditVendorName"></span>
+          </div>
+          <div class="detail-item">
+            <label>場地：</label>
+            <span id="auditLocation"></span>
+          </div>
+          <div class="detail-item">
+            <label>日期：</label>
+            <span id="auditDate"></span>
+          </div>
+          <div class="detail-item">
+            <label>時間：</label>
+            <span>14:00-20:00</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cancel-options">
+        <div class="cancel-notice">
+          <p><i class="fas fa-exclamation-triangle"></i> 如未審計請洽<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></p>
+        </div>
+        
+        <div class="cancel-buttons">
+          <button class="contact-support-btn" onclick="openOfficialAccount()">
+            <i class="fab fa-line"></i> 聯繫官方小幫手
+          </button>
+          <button class="password-cancel-btn" style="background: linear-gradient(135deg, #28a745, #20c997);" onclick="showAuditPasswordInput()">
+            <i class="fas fa-key"></i> 密碼確認繳費
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 審計密碼輸入彈窗 -->
+<div id="auditPasswordModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 420px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #28a745, #20c997); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-shield-alt"></i> 審計密碼驗證</h3>
+      <span class="modal-close" onclick="closeAuditPasswordModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px;">
+      <div class="password-info">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #28a745, #20c997); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
+            <i class="fas fa-lock" style="font-size: 1.6rem; color: white;"></i>
+          </div>
+          <p style="font-size: 1.05rem; color: #333; margin: 0 0 6px 0; font-weight: bold;">請輸入審計密碼</p>
+          <p style="font-size: 0.85rem; color: #666; margin: 0;">驗證後將更新為「己繳款」</p>
+        </div>
+        
+        <div class="password-input-group" style="flex-direction: column; gap: 12px;">
+          <div style="position: relative;">
+            <i class="fas fa-key" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #28a745; font-size: 1rem;"></i>
+            <input type="password" id="auditPasswordInput" placeholder="請輸入密碼" maxlength="10" style="padding-left: 40px; border: 2px solid #e0e0e0; font-size: 1rem; height: 45px; text-align: center; letter-spacing: 2px;">
+          </div>
+          <button class="password-submit-btn" onclick="verifyAuditPassword()" style="width: 100%; height: 45px; font-size: 1rem; background: linear-gradient(135deg, #28a745, #20c997); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
+            <i class="fas fa-check-circle"></i> 確認審計
+          </button>
+        </div>
+        
+        <div style="background: #f8f9fa; border-left: 3px solid #28a745; padding: 10px 12px; margin-top: 15px; border-radius: 4px;">
+          <p style="margin: 0; color: #666; font-size: 0.8rem; line-height: 1.4;">
+            <i class="fas fa-info-circle" style="color: #28a745;"></i> 如忘記密碼，請聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 排班釋出彈窗 -->
+<div id="transferModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 450px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
+      <h3><i class="fas fa-exchange-alt"></i> 排班釋出</h3>
+      <span class="modal-close" onclick="closeTransferModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 18px;">
+      <div class="transfer-info">
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 12px; margin-bottom: 12px; border-radius: 6px;">
+          <p style="margin: 0; color: #856404; font-size: 0.82rem; line-height: 1.4;">
+            <i class="fas fa-info-circle"></i> <strong>釋出說明：</strong>請先完成場租交易後再填寫
+          </p>
+        </div>
+        
+        <div class="original-booking-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+          <h4 style="margin-bottom: 8px; color: #FF4B2B; font-size: 0.9rem;">原預約資訊</h4>
+          <div class="detail-item" style="margin-bottom: 6px; padding: 4px 0;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">原餐車：</label>
+            <span id="transferOriginalVendor" style="font-weight: bold; color: #dc3545; font-size: 0.85rem;"></span>
+          </div>
+          <div class="detail-item" style="margin-bottom: 6px; padding: 4px 0;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">場地：</label>
+            <span id="transferLocation" style="font-size: 0.85rem;"></span>
+          </div>
+          <div class="detail-item" style="padding: 4px 0; border: none;">
+            <label style="margin: 0; font-size: 0.8rem; min-width: 50px;">日期：</label>
+            <span id="transferDate" style="font-size: 0.85rem;"></span>
+          </div>
+        </div>
+        
+        <div class="transfer-form">
+          <h4 style="margin-bottom: 10px; color: #FF4B2B; font-size: 0.9rem;">接手餐車資訊</h4>
+          
+          <label style="margin-top: 8px; font-size: 0.85rem;">新店名 <span style="color: red;">*</span></label>
+          <input type="text" id="transferVendorName" placeholder="請輸入餐車名稱" required style="font-size: 0.88rem; padding: 8px;">
+          
+          <label style="margin-top: 8px; font-size: 0.85rem;">餐車類型 <span style="color: red;">*</span></label>
+          <select id="transferFoodType" required style="font-size: 0.88rem; padding: 8px;">
+            <option value="">請選擇</option>
+            <option value="主食類">主食類</option>
+            <option value="甜點類">甜點類</option>
+            <option value="小點類">小點類</option>
+            <option value="中式餐點">中式餐點</option>
+            <option value="烤腿套餐">烤腿套餐</option>
+            <option value="甜品類">甜品類</option>
+            <option value="小吃類型">小吃類型</option>
+          </select>
+          
+          <label style="margin-top: 8px; font-size: 0.85rem;">換班密碼 <span style="color: red;">*</span></label>
+          <div style="position: relative;">
+            <i class="fas fa-key" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #FF8A00; font-size: 0.9rem;"></i>
+            <input type="password" id="transferPassword" placeholder="請輸入換班密碼" maxlength="20" style="padding: 8px; padding-left: 35px; font-size: 0.88rem; height: 38px;">
+          </div>
+          
+          <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 8px 10px; margin-top: 12px;">
+            <p style="margin: 0; color: #1976d2; font-size: 0.78rem; line-height: 1.4;">
+              <i class="fas fa-exclamation-circle"></i> 釋出後將替換為新餐車，需自行完成場租交易
+            </p>
+          </div>
+          
+          <button class="password-submit-btn" onclick="submitTransfer()" style="width: 100%; margin-top: 12px; padding: 10px 12px; font-size: 0.9rem; height: 42px; background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
+            <i class="fas fa-exchange-alt"></i> 確認釋出換班
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 使用教學彈窗 -->
+<div id="helpModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 550px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #17a2b8, #138496); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-graduation-cap"></i> 使用教學</h3>
+      <span class="modal-close" onclick="closeHelpModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+      <div class="help-content">
+        
+        <div class="help-section">
+          <h4 style="color: #FF4B2B; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-calendar-check"></i> 如何預約排班？
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li><strong>方法1：快速預約</strong><br>直接點擊日曆上的<span style="background: #fff5f0; padding: 2px 6px; border-radius: 4px; color: #FF8A00;">空白日期</span>，系統會自動填入場地和日期</li>
+            <li><strong>方法2：表單預約</strong><br>下滑到報名表單，依序填寫餐車名稱、場地、日期等資訊</li>
+            <li>送出後會顯示<span style="background: #fff3cd; padding: 2px 6px; border-radius: 4px; color: #856404;">繳費彈窗</span>，請在24小時內完成付款</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #28a745; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-credit-card"></i> 付款說明
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>預約後需在<strong style="color: #dc3545;">24小時內付款</strong>，否則將變成<span style="background: #f8d7da; padding: 2px 6px; border-radius: 4px; color: #721c24;">逾繳可排</span>狀態</li>
+            <li>支援街口支付、LINE-PAY、銀行轉帳三種方式</li>
+            <li>付款完成後，請將截圖傳至<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></li>
+            <li>付款狀態會顯示為<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">✓ 已付款</span></li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #ffc107; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-exchange-alt"></i> 轉讓排班
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>點擊<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">已付款</span>的排班，可以將排班轉讓給其他餐車</li>
+            <li>需先與接手餐車私下完成場租交易</li>
+            <li>填寫接手餐車資訊和換班密碼即可完成轉讓</li>
+            <li>轉讓成功後，<strong>系統會自動通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></strong>：「訊息已轉給 <span style="color: #FF8A00; font-weight: bold;">[接手餐車名稱]</span> 協助轉讓排班」</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #dc3545; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-times-circle"></i> 取消預約
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>如需取消預約，請<strong>聯繫<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></strong>協助處理</li>
+            <li>提供您的<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">餐車名稱</span>、<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">預約日期</span>、<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 4px;">場地名稱</span></li>
+            <li>小幫手確認後將為您取消排班</li>
+          </ul>
+        </div>
+        
+        <div class="help-section" style="margin-top: 20px;">
+          <h4 style="color: #6c5ce7; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-hand-holding-usd"></i> 接手逾期排班
+          </h4>
+          <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
+            <li>逾期未付款的排班會顯示<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">❌ 逾繳可排</span></li>
+            <li>點擊該排班即可接手，填寫您的餐車資訊</li>
+            <li>接手後需在24小時內完成付款</li>
+          </ul>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border: 2px solid #2196f3; border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
+          <p style="margin: 0 0 10px 0; color: #1976d2; font-size: 1rem; font-weight: bold;">
+            <i class="fas fa-headset"></i> 需要協助？
+          </p>
+          <button onclick="openOfficialAccount(); closeHelpModal();" style="background: linear-gradient(135deg, #00C300, #00A000); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 195, 0, 0.3);">
+            <i class="fab fa-line"></i> 聯繫官方小幫手
+          </button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 逾期接手彈窗 -->
+<div id="takeoverModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <div class="payment-header">
+      <h3><i class="fas fa-hand-holding-usd"></i> 接手預約</h3>
+      <span class="modal-close" onclick="closeTakeoverModal()">&times;</span>
+    </div>
+    <div class="payment-body" style="padding: 18px;">
+      <div class="takeover-info">
+        <div class="alert-warning" style="padding: 8px 10px; margin-bottom: 10px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p style="font-size: 0.82rem; margin: 0;">此預約已逾期，可接手</p>
+        </div>
+        
+        <div class="original-booking-info" style="padding: 10px; margin-bottom: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px;">
+          <h4 style="margin: 0; font-size: 0.88rem; line-height: 1.4; color: #495057;">
+            原預約：<span id="originalVendor" style="color: #dc3545; font-weight: bold;"></span><br>
+            <span style="font-size: 0.82rem; color: #6c757d;">
+              <i class="fas fa-map-marker-alt" style="font-size: 0.75rem;"></i> <span id="takeoverLocation"></span> | 
+              <i class="fas fa-calendar" style="font-size: 0.75rem;"></i> <span id="takeoverDate"></span>
+            </span>
+          </h4>
+        </div>
+        
+        <div class="takeover-form">
+          <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #FF4B2B;">您的資訊</h4>
+          
+          <label style="margin-top: 8px; font-size: 0.85rem;">店名 <span style="color: red;">*</span></label>
+          <input type="text" id="takeoverVendorName" placeholder="請輸入餐車名稱" required style="margin-top: 4px; font-size: 0.9rem; padding: 8px;">
+          
+          <label style="margin-top: 8px; font-size: 0.85rem;">類型 <span style="color: red;">*</span></label>
+          <select id="takeoverFoodType" required style="margin-top: 4px; font-size: 0.9rem; padding: 8px;">
+            <option value="">請選擇</option>
+            <option value="主食類">主食類</option>
+            <option value="甜點類">甜點類</option>
+            <option value="小點類">小點類</option>
+            <option value="中式餐點">中式餐點</option>
+            <option value="烤腿套餐">烤腿套餐</option>
+            <option value="甜品類">甜品類</option>
+            <option value="小吃類型">小吃類型</option>
+          </select>
+          
+          <div class="locked-info" style="margin-top: 8px;">
+            <label style="margin: 0; font-size: 0.85rem;"><i class="fas fa-dollar-sign"></i> 場地費</label>
+            <div class="fee-input-group" style="margin-top: 4px;">
+              <i class="fas fa-coins" style="font-size: 0.9rem; left: 10px;"></i>
+              <input type="text" value="600元/天" disabled readonly style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; font-weight: bold; cursor: not-allowed; border: 2px solid #4caf50; padding: 8px; padding-left: 32px; font-size: 0.88rem;">
+            </div>
+          </div>
+          
+          <div class="takeover-notice" style="background: #e7f3ff; border: 1px solid #2196f3; border-radius: 6px; padding: 8px 10px; margin-top: 10px;">
+            <p style="font-size: 0.8rem; margin: 0; color: #1976d2;"><i class="fas fa-clock"></i> 接手後需在24小時內付款</p>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+            <button id="takeoverSubmitBtn" class="submit" onclick="submitTakeover()" style="background: linear-gradient(135deg,#ffc107,#ff9800); margin: 0; padding: 10px 8px; font-size: 0.88rem;">
+              <i class="fas fa-hand-holding"></i> 確認接手
+            </button>
+            <button class="submit" onclick="closeTakeoverModal(); showPaymentModal();" style="background: linear-gradient(135deg,#28a745,#20c997); margin: 0; padding: 10px 8px; font-size: 0.88rem;">
+              <i class="fas fa-credit-card"></i> 原班繳費
+            </button>
+          </div>
+          
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px 10px; margin-top: 10px;">
+            <p style="margin: 0; color: #856404; font-size: 0.78rem; line-height: 1.4;">
+              <i class="fas fa-exclamation-triangle"></i> <strong>原班繳費：</strong><span style="color: #dc3545; font-weight: bold;">遲繳</span>仍可能<span style="color: #dc3545; font-weight: bold;">被排班</span>，請儘快通知<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: underline;">小幫手</a>確認
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 外部JavaScript -->
+<script src="script.js"></script>
+
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- 載入狀態指示器 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p id="loadingMessage">處理中...</p>
+  </div>
+</div>
+
+<!-- 同步狀態指示器 -->
+<div id="syncStatus" class="sync-status">
+  <i class="fas fa-sync-alt"></i>
+  <span>同步中...</span>
+</div>
+
+<!-- 群組版規彈窗 -->
+<div id="rulesModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 750px; max-height: 90vh; overflow-y: auto;">
+    <div class="password-header" style="background: linear-gradient(135deg, #ffc107, #ff9800); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-book"></i> 四維商圈美食餐車群組版規</h3>
+      <span class="modal-close" onclick="closeRulesModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px;">
+      
+      <!-- 歡迎新夥伴加入 -->
+      <div class="rule-section" style="margin-bottom: 25px; padding: 18px; background: linear-gradient(135deg, #fff3cd, #ffe69c); border-left: 5px solid #ffc107; border-radius: 10px; box-shadow: 0 2px 8px rgba(255,193,7,0.2);">
+        <h4 style="color: #ff9800; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-star" style="font-size: 1.3rem;"></i> 歡迎新夥伴加入
+        </h4>
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px;">
+          <p style="line-height: 2; color: #333; margin: 0 0 10px 0; font-weight: 500;">
+            <i class="fas fa-check-circle" style="color: #28a745; margin-right: 8px;"></i>
+            進群前請先完成下列事項：
+          </p>
+          <ol style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+            <li style="margin-bottom: 8px;">將 <strong style="color: #ff9800;">LINE 名稱</strong>改為【品牌名稱】；如有兩人以上，另一位請使用【品牌名稱-小幫手】或【品牌名稱-2】。</li>
+            <li>名稱更改後，請將 <strong style="color: #ff9800;">品牌簡介、餐車品項、菜單價格</strong> 張貼至記事本，方便大家認識彼此。</li>
+          </ol>
+        </div>
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 15px; border-radius: 6px;">
+          <p style="margin: 0; color: #1976d2; font-size: 0.95rem; line-height: 1.6;">
+            <i class="fas fa-info-circle"></i> <strong>重要提醒：</strong>請於一週內詳細閱讀版規並於群組留言：「已詳細閱讀完成」
+          </p>
+        </div>
+      </div>
+
+      <!-- 版規標題 -->
+      <div style="text-align: center; margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg, #FF4B2B, #FF8A00); border-radius: 10px; color: white;">
+        <h3 style="margin: 0; font-size: 1.4rem; font-weight: bold;">
+          <i class="fas fa-gavel"></i> 四維商圈美食餐車版規
+        </h3>
+      </div>
+
+      <!-- 1. 營業公告與預訂規範 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #FF4B2B; border-radius: 8px;">
+        <h4 style="color: #FF4B2B; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-clipboard-check"></i> 1. 營業公告與預訂規範
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">營業日前 <strong style="color: #FF4B2B;">2 天</strong>，請於訂購群記事本張貼公告，內容包含：<strong>營業日期、時間、地點、菜單與價格、預訂截止時間</strong>（如無可省略）。</li>
+          <li style="margin-bottom: 8px;">推播僅限營業日前一日 <strong style="color: #FF4B2B;">19:00 後</strong>。未依規定者由小編刪除。</li>
+          <li style="margin-bottom: 8px;">若滿單請同步於群組及記事本公告「已滿單」。</li>
+          <li style="margin-bottom: 8px;">出餐以預訂單為優先，現場客人請排隊。如未依規定，嚴重者將<strong style="color: #dc3545;">暫停排班一個月</strong>。</li>
+        </ul>
+      </div>
+
+      <!-- 2. 場地費 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #28a745; border-radius: 8px;">
+        <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-dollar-sign"></i> 2. 場地費
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">完成線上排班後，請於 <strong style="color: #dc3545;">24 小時內</strong>繳交場租並截圖給小幫手。</li>
+          <li style="margin-bottom: 8px;">支援 <strong style="color: #28a745;">街口支付、LINE Pay、銀行轉帳</strong> 三種付款方式。</li>
+          <li style="margin-bottom: 8px;">超過 24 小時未繳者該場次自動下架，需重新報班。</li>
+          <li>付款完成後狀態將變更為「已付款」，排班確定。</li>
+        </ul>
+      </div>
+
+      <!-- 3. 設攤規定 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #17a2b8; border-radius: 8px;">
+        <h4 style="color: #17a2b8; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-store"></i> 3. 設攤規定
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">餐車可自備訂購群 QRCode（A4），於現場張貼推廣。</li>
+          <li style="margin-bottom: 8px;">宣傳文連結限粉絲專頁，其餘連結一律刪除。</li>
+          <li>若無法開攤，可請支援餐車代打，並可特例推播。</li>
+        </ul>
+      </div>
+
+      <!-- 4. 餐車異動與調班 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #6c5ce7; border-radius: 8px;">
+        <h4 style="color: #6c5ce7; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-exchange-alt"></i> 4. 餐車異動與調班
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">臨時請假或需調班，請於版主群尋求代班，自行交付場租。</li>
+          <li style="margin-bottom: 8px;">調班後請務必告知小幫手，以利管理。</li>
+          <li>場租由雙方各自負擔；若遇婚喪喜慶等特殊狀況請聯絡群主協調。</li>
+        </ul>
+      </div>
+
+      <!-- 5. 環境與清潔 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #ffc107; border-radius: 8px;">
+        <h4 style="color: #ff9800; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-broom"></i> 5. 環境與清潔
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">開攤與營業時請保持整潔，違者<strong style="color: #dc3545;">取消排班並酌收清潔費 $300</strong>，嚴重者 <strong style="color: #dc3545;">$5,000</strong>。</li>
+          <li style="margin-bottom: 8px;">開攤請上傳三張照片：<strong>(1)開攤前空地、(2)完成擺設、(3)備餐物品</strong>（油污請拍近遠照）；收攤時拍空地照。</li>
+          <li>未依規定依序處理：<strong style="color: #dc3545;">第一次警告、第二次停排一月、第三次停權</strong>。</li>
+        </ul>
+      </div>
+
+      <!-- 6. 食材與出餐 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #e91e63; border-radius: 8px;">
+        <h4 style="color: #e91e63; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-utensils"></i> 6. 食材與出餐
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">請備足食材，原則營業至 <strong>20:00</strong> 或售完為止，提前售完請公告。</li>
+          <li style="margin-bottom: 8px;">食材需新鮮衛生，湯水需安全封裝。</li>
+          <li style="margin-bottom: 8px;">出餐順序以預訂為優先，並鼓勵現場客加入預訂群。</li>
+          <li>建議配戴口罩、手套，若經提醒仍未改善則停排。</li>
+        </ul>
+      </div>
+
+      <!-- 7. 群組經營注意事項 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #00bcd4; border-radius: 8px;">
+        <h4 style="color: #00bcd4; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-users"></i> 7. 群組經營注意事項
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">收攤隔天中午前，請自行刪除記事本預訂資訊。</li>
+          <li style="margin-bottom: 8px;">群組僅限與客人互動，不得發其他餐車廣告。</li>
+          <li style="margin-bottom: 8px;">遇客訴或糾紛請避免衝突，可交由版主協調。</li>
+          <li>請注意語氣與禮貌，尊重每位成員。</li>
+        </ul>
+      </div>
+
+      <!-- 8. 現場爭議處理 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: #f8f9fa; border-left: 5px solid #9c27b0; border-radius: 8px;">
+        <h4 style="color: #9c27b0; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-handshake"></i> 8. 現場爭議處理
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 8px;">遇爭議請先保持冷靜，避免現場衝突。</li>
+          <li style="margin-bottom: 8px;">若無法協調，請立即通知管理員或群主協助處理。</li>
+          <li>重大事件將紀錄備查。</li>
+        </ul>
+      </div>
+
+      <!-- 據點細則 -->
+      <div class="rule-section" style="margin-bottom: 20px; padding: 18px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-left: 5px solid #2196f3; border-radius: 8px; box-shadow: 0 2px 8px rgba(33,150,243,0.2);">
+        <h4 style="color: #1976d2; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-map-marker-alt"></i> 據點細則
+        </h4>
+        <ul style="line-height: 2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 10px;">據點多，請避開同類型品項（複合式以主打品項認定）。</li>
+          <li style="margin-bottom: 10px;">狂風暴雨原則不取消，請自備防雨用品；若官方宣布取消則順延。</li>
+          <li style="margin-bottom: 10px;">工作區務必舖滿地墊，若遇客訴請於三天內到場清潔，否則由清潔公司處理費用自負。</li>
+          <li style="margin-bottom: 10px;"><strong style="color: #1976d2;">營業時間：14:00–20:00</strong></li>
+          <li style="margin-bottom: 10px;">
+            <strong style="color: #1976d2;">到場時間建議：</strong><br>
+            <span style="margin-left: 15px;">• 主食：15:00 到場、16:00 開賣</span><br>
+            <span style="margin-left: 15px;">• 點心：14:00 到場、15:00 開賣</span>
+          </li>
+          <li>可售完收攤。延長至宵夜請公告且不得影響居民。</li>
+        </ul>
+      </div>
+
+      <!-- 官方小幫手聯絡資訊 -->
+      <div style="padding: 18px; background: linear-gradient(135deg, #d4edda, #c3e6cb); border-left: 5px solid #28a745; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 8px rgba(40,167,69,0.2);">
+        <p style="margin: 0 0 10px 0; color: #155724; font-weight: bold; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-phone-alt" style="font-size: 1.2rem;"></i> 官方帳號小幫手
+        </p>
+        <a href="https://lin.ee/BStZlfM" target="_blank" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #00C300, #00A000); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,195,0,0.3);">
+          <i class="fab fa-line"></i> lin.ee/BStZlfM
+        </a>
+        <p style="margin: 12px 0 0 0; color: #155724; font-size: 0.9rem; line-height: 1.6;">
+          <i class="fas fa-info-circle"></i> 如有任何疑問或需要協助，歡迎隨時聯繫官方小幫手
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 下載素材彈窗 -->
+<div id="downloadModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 600px;">
+    <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-download"></i> 下載素材</h3>
+      <span class="modal-close" onclick="closeDownloadModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 20px;">
+      <div style="text-align: center;">
+        <img src="https://res.cloudinary.com/diiyszovx/image/upload/v1757929018/S__4653076_vzto17.jpg" 
+             alt="四維商圈餐車QR Code海報" 
+             style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 20px;"
+             loading="lazy">
+        
+        <h4 style="color: #667eea; margin-bottom: 10px;"><i class="fas fa-qrcode"></i> 四維商圈餐車QR Code海報</h4>
+        <p style="color: #666; line-height: 1.8; margin-bottom: 15px;">供餐車主自行下載使用，設攤時張貼於明顯處推廣</p>
+        <p style="color: #999; font-size: 0.9rem; margin-bottom: 20px;">規格：A4大小，高解析度</p>
+        
+        <a href="https://res.cloudinary.com/diiyszovx/image/upload/v1757929018/S__4653076_vzto17.jpg" 
+           download="四維商圈餐車QRCode海報.jpg"
+           class="btn btn-primary" 
+           style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
+          <i class="fas fa-download"></i> 下載海報
+        </a>
+      </div>
+      
+      <div style="margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h4 style="color: #495057; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> 使用說明</h4>
+        <ul style="line-height: 1.8; color: #666; padding-left: 20px;">
+          <li>請將海報列印成A4大小</li>
+          <li>設攤時張貼於餐車明顯處</li>
+          <li>方便客人掃描加入預訂社群</li>
+          <li>如有問題請聯絡管理員</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 活動詳細必看彈窗 -->
+<div id="activityModal" class="password-modal">
+  <div class="password-modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+    <div class="password-header" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53); padding: 20px;">
+      <h3 style="font-size: 1.3rem;"><i class="fas fa-star"></i> 四維商圈美食餐車合作公告</h3>
+      <span class="modal-close" onclick="closeActivityModal()">&times;</span>
+    </div>
+    <div class="password-body" style="padding: 25px;">
+      
+      <!-- 一、成立餐車群之目的 -->
+      <div class="rule-section" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #fff3cd, #ffe69c); border-left: 5px solid #ffc107; border-radius: 10px; box-shadow: 0 2px 8px rgba(255,193,7,0.2);">
+        <h4 style="color: #ff9800; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-bullseye"></i> 一、成立餐車群之目的
+        </h4>
+        <p style="line-height: 2; color: #555; margin-bottom: 12px;">
+          為提升商圈多元美食選擇，並吸引圈外客流進入四維商圈，本群組特別成立美食餐車合作機制。期望透過餐點與飲品之互補性，促進整體商圈消費氛圍與營業成長。
+        </p>
+        <div style="background: #fff; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;">
+          <p style="margin: 0; line-height: 1.8; color: #333;">
+            <i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 8px;"></i>
+            <strong>重要說明：</strong>因商圈內既有手搖飲店為固定店面，且手搖飲屬非必需品項，為避免同品項競爭與影響商圈均衡發展，<strong style="color: #dc3545;">本餐車合作制度不開放飲料車進駐</strong>，敬請理解與配合。
+          </p>
+        </div>
+      </div>
+
+      <!-- 二、現場活動與消費加值措施 -->
+      <div class="rule-section" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-left: 5px solid #2196f3; border-radius: 10px; box-shadow: 0 2px 8px rgba(33,150,243,0.2);">
+        <h4 style="color: #1976d2; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-gift"></i> 二、現場活動與消費加值措施
+        </h4>
+        <p style="line-height: 2; color: #555; margin-bottom: 20px;">
+          四維商圈鄰近補習班與親子客群，現場人流與家庭比例高。為提升消費體驗與提高客單價，現行提供以下加值措施：
+        </p>
+        
+        <!-- 1. 娃娃機代幣活動 -->
+        <div style="background: #fff; padding: 18px; border-radius: 8px; margin-bottom: 18px; border: 2px solid #ffc107;">
+          <h5 style="color: #ff9800; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-coins"></i> 1. 娃娃機代幣活動
+          </h5>
+          <p style="line-height: 2; color: #555; margin-bottom: 10px;">
+            <strong style="color: #ff9800;">消費滿 100 元贈送 1 枚代幣。</strong>
+          </p>
+          <div style="background: #fff3cd; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #ffc107;">
+            <p style="margin: 0 0 8px 0; color: #856404; font-weight: bold;">
+              <i class="fas fa-truck"></i> 餐車配合模式：
+            </p>
+            <ul style="margin: 0; padding-left: 25px; line-height: 2; color: #856404;">
+              <li>滿 100 元贈 1 張代幣券</li>
+              <li>滿 200 元贈 2 張代幣券（以此類推）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 2. 飲料折扣券 -->
+        <div style="background: #fff; padding: 18px; border-radius: 8px; border: 2px solid #28a745;">
+          <h5 style="color: #28a745; margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-ticket-alt"></i> 2. 飲料折扣券
+          </h5>
+          <p style="line-height: 2; color: #555; margin-bottom: 12px;">
+            每位消費者可索取 <strong style="color: #28a745;">1 張飲料折扣券</strong>。
+          </p>
+          <div style="background: #d4edda; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #28a745;">
+            <p style="margin: 0 0 8px 0; color: #155724; font-weight: bold;">
+              <i class="fas fa-map-marker-alt"></i> 領取地點：
+            </p>
+            <p style="margin: 0 0 8px 0; color: #155724;">
+              <strong>四維路 90 號 功夫茶</strong>
+            </p>
+            <a href="https://maps.app.goo.gl/RBv7XF6ikCkCBy9d7" target="_blank" 
+               style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #28a745, #20c997); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 8px;">
+              <i class="fas fa-map-marked-alt"></i> 查看地圖位置
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 三、活動目的與效益 -->
+      <div class="rule-section" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #f3e5f5, #e1bee7); border-left: 5px solid #9c27b0; border-radius: 10px; box-shadow: 0 2px 8px rgba(156,39,176,0.2);">
+        <h4 style="color: #9c27b0; margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-chart-line"></i> 三、活動目的與效益
+        </h4>
+        <ul style="line-height: 2.2; color: #555; padding-left: 25px; margin: 0;">
+          <li style="margin-bottom: 10px;"><i class="fas fa-users" style="color: #9c27b0; margin-right: 8px;"></i> 吸引穩定客源與來客回流</li>
+          <li style="margin-bottom: 10px;"><i class="fas fa-dollar-sign" style="color: #9c27b0; margin-right: 8px;"></i> 提升整體客單價與消費意願</li>
+          <li><i class="fas fa-heart" style="color: #9c27b0; margin-right: 8px;"></i> 建立親子與家庭友善的商圈特色</li>
+        </ul>
+      </div>
+
+      <!-- 結語 -->
+      <div style="padding: 20px; background: linear-gradient(135deg, #d4edda, #c3e6cb); border-left: 5px solid #28a745; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 8px rgba(40,167,69,0.2);">
+        <p style="margin: 0; line-height: 2; color: #155724; font-size: 1.05rem; text-align: center;">
+          <i class="fas fa-handshake" style="font-size: 1.3rem; margin-right: 8px;"></i>
+          四維商圈美食餐車合作機制旨在整合商圈與餐車之力量，共同維持良好營運環境、持續擴大客流與商圈特色發展。敬請各位夥伴共同遵守並配合執行。
+        </p>
+      </div>
+
+      <!-- 街景地圖 -->
+      <div style="margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6;">
+        <h4 style="color: #495057; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-street-view"></i> 街景位置
+        </h4>
+        <div style="width: 100%; max-width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+          <iframe src="https://www.google.com/maps/embed?pb=!4v1764663628690!6m8!1m7!1sfDaev9Lqy0Nu_NIMM7B_FA!2m2!1d24.91354068293751!2d121.1809388952454!3f250.550798894985!4f-10.203868478059832!5f0.7820865974627469" 
+                  width="100%" 
+                  height="450" 
+                  style="border:0; display: block;" 
+                  allowfullscreen="" 
+                  loading="lazy" 
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title="四維商圈街景地圖"
+                  aria-label="四維商圈街景地圖">
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 版權警語 -->
+<footer style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 20px 15px; text-align: center; margin-top: 30px; border-top: 3px solid #FF8A00;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">
+      系統開發：<a href="https://lin.ee/BStZlfM" target="_blank" style="color: #00C300; font-weight: bold; text-decoration: none; transition: all 0.3s;">快閃餐車小幫手</a> © 2025
+    </p>
+    <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ffc107;">
+      <i class="fas fa-exclamation-triangle"></i> 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </p>
+    <p style="margin: 0 0 8px 0; font-size: 0.8rem;">
+      <a href="https://foodcarshop.pages.dev/guide" target="_blank" style="color: #17a2b8; font-weight: bold; text-decoration: underline; transition: all 0.3s;">
+        <i class="fas fa-shopping-cart"></i> 客製化餐車預購系統(示範)
+      </a>
+    </p>
+    <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
+      <i class="fas fa-code-branch"></i> 系統版本：v3.2.3 | <span id="browserMode">檢測中...</span>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
+

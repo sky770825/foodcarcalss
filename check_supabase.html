@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase 連接診斷工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #1f2937;
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+    
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+    
+    .check-item {
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    
+    .check-item.success {
+      border-left-color: #10b981;
+      background: #d1fae5;
+    }
+    
+    .check-item.error {
+      border-left-color: #ef4444;
+      background: #fee2e2;
+    }
+    
+    .check-item.warning {
+      border-left-color: #f59e0b;
+      background: #fef3c7;
+    }
+    
+    .check-item.loading {
+      border-left-color: #3b82f6;
+      background: #dbeafe;
+    }
+    
+    .check-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #1f2937;
+    }
+    
+    .check-message {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+    
+    .check-details {
+      margin-top: 8px;
+      padding: 10px;
+      background: white;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Supabase 診斷工具</h1>
+    <p class="subtitle">檢查 Supabase 連接和資料表設定</p>
+    
+    <div id="checks">
+      <div class="check-item loading" id="check1">
+        <div class="check-title">1. 檢查 Supabase 連接</div>
+        <div class="check-message">測試中...</div>
+      </div>
+      
+      <div class="check-item loading" id="check2">
+        <div class="check-title">2. 檢查資料表是否存在</div>
+        <div class="check-message">測試中...</div>
+      </div>
+      
+      <div class="check-item loading" id="check3">
+        <div class="check-title">3. 檢查 RLS 政策</div>
+        <div class="check-message">測試中...</div>
+      </div>
+      
+      <div class="check-item loading" id="check4">
+        <div class="check-title">4. 測試插入權限</div>
+        <div class="check-message">測試中...</div>
+      </div>
+      
+      <div class="check-item loading" id="check5">
+        <div class="check-title">5. 檢查現有資料</div>
+        <div class="check-message">測試中...</div>
+      </div>
+    </div>
+    
+    <button id="recheckBtn">重新診斷</button>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sqgrnowrcvspxhuudrqc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ3Jub3dyY3ZzcHhodXVkcnFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMTExNjYsImV4cCI6MjA4Mzc4NzE2Nn0.VMg-7oQTmPapHLGeLzEZ3l_5zcyCZRjJdw_X2J-8kRw';
+    
+    let supabaseClient;
+    
+    function updateCheck(id, status, title, message, details = '') {
+      const check = document.getElementById(id);
+      check.className = `check-item ${status}`;
+      check.querySelector('.check-title').textContent = title;
+      check.querySelector('.check-message').textContent = message;
+      
+      if (details) {
+        let detailsDiv = check.querySelector('.check-details');
+        if (!detailsDiv) {
+          detailsDiv = document.createElement('div');
+          detailsDiv.className = 'check-details';
+          check.appendChild(detailsDiv);
+        }
+        detailsDiv.textContent = details;
+      }
+    }
+    
+    async function runDiagnostics() {
+      // 初始化 Supabase
+      if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+      const supabase = supabaseClient;
+      
+      // 1. 檢查連接
+      updateCheck('check1', 'loading', '1. 檢查 Supabase 連接', '測試中...');
+      try {
+        const { data, error } = await supabase.from('foodcarcalss').select('count').limit(0);
+        if (error && error.code !== 'PGRST116') { // PGRST116 是表不存在的錯誤，我們會在下一步檢查
+          throw error;
+        }
+        updateCheck('check1', 'success', '1. 檢查 Supabase 連接', '✅ 連接成功', `URL: ${SUPABASE_URL}`);
+      } catch (error) {
+        updateCheck('check1', 'error', '1. 檢查 Supabase 連接', '❌ 連接失敗', error.message);
+        return;
+      }
+      
+      // 2. 檢查資料表
+      updateCheck('check2', 'loading', '2. 檢查資料表是否存在', '測試中...');
+      try {
+        const { data, error } = await supabase.from('foodcarcalss').select('id').limit(1);
+        if (error) {
+          if (error.code === '42P01' || error.message.includes('does not exist')) {
+            updateCheck('check2', 'error', '2. 檢查資料表是否存在', '❌ 資料表不存在', '請執行 supabase_setup.sql 建立資料表');
+            return;
+          }
+          throw error;
+        }
+        updateCheck('check2', 'success', '2. 檢查資料表是否存在', '✅ 資料表存在', '資料表名稱: foodcarcalss');
+      } catch (error) {
+        updateCheck('check2', 'error', '2. 檢查資料表是否存在', '❌ 檢查失敗', error.message);
+        return;
+      }
+      
+      // 3. 檢查 RLS 政策（通過嘗試讀取）
+      updateCheck('check3', 'loading', '3. 檢查 RLS 政策', '測試中...');
+      try {
+        const { data, error } = await supabase.from('foodcarcalss').select('*').limit(1);
+        if (error) {
+          if (error.code === '42501' || error.message.includes('permission denied')) {
+            updateCheck('check3', 'error', '3. 檢查 RLS 政策', '❌ RLS 政策不允許讀取', '請檢查 RLS 政策設定，確保允許公開讀取');
+            return;
+          }
+          throw error;
+        }
+        updateCheck('check3', 'success', '3. 檢查 RLS 政策', '✅ RLS 政策正常', '可以讀取資料');
+      } catch (error) {
+        updateCheck('check3', 'warning', '3. 檢查 RLS 政策', '⚠️ 讀取測試失敗', error.message);
+      }
+      
+      // 4. 測試插入權限
+      updateCheck('check4', 'loading', '4. 測試插入權限', '測試中...');
+      try {
+        const testData = {
+          vendor: '測試餐車',
+          location: '測試場地',
+          booking_date: '測試日期',
+          payment: '未繳款'
+        };
+        
+        const { data, error } = await supabase
+          .from('foodcarcalss')
+          .insert(testData)
+          .select();
+        
+        if (error) {
+          if (error.code === '42501' || error.message.includes('permission denied')) {
+            updateCheck('check4', 'error', '4. 測試插入權限', '❌ RLS 政策不允許插入', 
+              `錯誤: ${error.message}\n\n請執行以下 SQL 來修復：\n\nCREATE POLICY "Allow public insert" ON foodcarcalss\n  FOR INSERT\n  WITH CHECK (true);`);
+            return;
+          }
+          throw error;
+        }
+        
+        // 刪除測試資料
+        if (data && data[0]) {
+          await supabase.from('foodcarcalss').delete().eq('id', data[0].id);
+        }
+        
+        updateCheck('check4', 'success', '4. 測試插入權限', '✅ 插入權限正常', '可以插入資料');
+      } catch (error) {
+        updateCheck('check4', 'error', '4. 測試插入權限', '❌ 插入測試失敗', 
+          `錯誤: ${error.message}\n錯誤代碼: ${error.code || 'N/A'}\n\n可能原因：\n1. RLS 政策未正確設定\n2. 資料表欄位不匹配\n3. 必填欄位缺失`);
+      }
+      
+      // 5. 檢查現有資料
+      updateCheck('check5', 'loading', '5. 檢查現有資料', '測試中...');
+      try {
+        const { data, error, count } = await supabase
+          .from('foodcarcalss')
+          .select('*', { count: 'exact' })
+          .limit(10);
+        
+        if (error) throw error;
+        
+        const totalCount = count || (data ? data.length : 0);
+        updateCheck('check5', 'success', '5. 檢查現有資料', 
+          `✅ 資料表中有 ${totalCount} 筆資料`, 
+          data && data.length > 0 ? `前 ${Math.min(data.length, 5)} 筆資料：\n${JSON.stringify(data.slice(0, 5), null, 2)}` : '目前沒有資料');
+      } catch (error) {
+        updateCheck('check5', 'warning', '5. 檢查現有資料', '⚠️ 查詢失敗', error.message);
+      }
+    }
+    
+    // 頁面載入時自動執行
+    window.addEventListener('DOMContentLoaded', () => {
+      // 綁定按鈕事件
+      document.getElementById('recheckBtn').addEventListener('click', runDiagnostics);
+      
+      // 延遲執行診斷，確保 Supabase 庫已載入
+      setTimeout(() => {
+        if (typeof window.supabase !== 'undefined') {
+          runDiagnostics();
+        } else {
+          updateCheck('check1', 'error', '1. 檢查 Supabase 連接', '❌ Supabase 庫未載入', '請檢查網路連線或重新整理頁面');
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>

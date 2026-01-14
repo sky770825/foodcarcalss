@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>測試場地顯示</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>場地管理測試</h1>
+  <div id="testResults"></div>
+  
+  <script>
+    const SUPABASE_URL = 'https://sqgrnowrcvspxhuudrqc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ3Jub3dyY3ZzcHhodXVkcnFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMTExNjYsImV4cCI6MjA4Mzc4NzE2Nn0.VMg-7oQTmPapHLGeLzEZ3l_5zcyCZRjJdw_X2J-8kRw';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    async function testLoadLocations() {
+      const results = document.getElementById('testResults');
+      results.innerHTML = '<p>載入中...</p>';
+      
+      try {
+        const { data, error } = await supabase
+          .from('location_settings')
+          .select('*')
+          .order('location_key', { ascending: true });
+        
+        if (error) {
+          results.innerHTML = `<p style="color: red;">錯誤: ${error.message}</p>`;
+          return;
+        }
+        
+        if (!data || data.length === 0) {
+          results.innerHTML = '<p>沒有場地資料</p>';
+          return;
+        }
+        
+        let html = '<h2>找到 ' + data.length + ' 個場地：</h2><ul>';
+        data.forEach(location => {
+          html += `<li><strong>${location.location_name || location.location_key}</strong> (ID: ${location.id}, 啟用: ${location.enabled ? '是' : '否'})</li>`;
+        });
+        html += '</ul>';
+        
+        results.innerHTML = html;
+      } catch (error) {
+        results.innerHTML = `<p style="color: red;">異常: ${error.message}</p>`;
+      }
+    }
+    
+    testLoadLocations();
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "foodcarcalss-migration",
+  "version": "1.0.0",
+  "description": "Google Sheets to Supabase migration tool",
+  "main": "migrate_to_supabase.js",
+  "scripts": {
+    "migrate": "node migrate_to_supabase.js",
+    "dev": "npx http-server . -p 5000 -o",
+    "serve": "npx http-server . -p 5000",
+    "auto": "node auto_test.js",
+    "test": "node auto_test.js",
+    "test:location": "node test_location_notice_management.js",
+    "test:full": "node 完整功能測試.js",
+    "test:tabs": "node test_tab_switching.js",
+    "test:tabs:auto": "./run_tab_test.sh",
+    "test:all": "npm run test && npm run test:location && npm run test:tabs"
+  },
+  "keywords": [
+    "supabase",
+    "migration",
+    "google-sheets"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "puppeteer": "^21.0.0"
+  }
+}

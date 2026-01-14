@@ -1,0 +1,69 @@
+# 備份檔案
+*.bak
+*~
+*.swp
+*.swo
+*copy*.html
+index copy*.html
+
+# 作業系統生成的檔案
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE 和編輯器
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# 日誌檔案
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 環境變數
+.env
+.env.local
+.env.*.local
+
+# 測試覆蓋率
+coverage/
+*.lcov
+.nyc_output
+
+# 依賴套件
+node_modules/
+jspm_packages/
+
+# 打包檔案
+dist/
+build/
+*.zip
+*.tar.gz
+
+# 快取檔案
+.cache
+.parcel-cache
+
+# 臨時檔案
+tmp/
+temp/
+*.tmp
+
+# 敏感資訊（請勿上傳）
+# config.local.js
+# credentials.json
+# secrets.json
+
+# 特定平台
+.vercel
+.netlify
+
