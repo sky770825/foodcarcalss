@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- 安全標頭 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://sqgrnowrcvspxhuudrqc.supabase.co;">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>餐車排班管理後台 v3.2.3</title>
 
 <!-- Font Awesome -->
@@ -32,14 +38,14 @@
         <button onclick="handleLogin()" class="login-btn">
           <i class="fas fa-sign-in-alt"></i> 登入
         </button>
-        <div id="loginError" class="error-message" style="display: none;"></div>
+        <div id="loginError" class="error-message hidden"></div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- 主內容區域 -->
-<div id="mainAdminContent" style="display: none;">
+<div id="mainAdminContent" class="hidden">
   
   <!-- 頂部導航欄 -->
   <header class="admin-header">
@@ -90,7 +96,7 @@
     <div class="filter-grid">
       <div class="filter-item filter-item-full">
         <label><i class="fas fa-search"></i> 搜尋</label>
-        <input type="text" id="searchInput" placeholder="搜尋餐車名稱、場地、日期..." oninput="filterBookings()">
+        <input type="text" id="searchInput" placeholder="搜尋餐車名稱、場地、日期..." oninput="debouncedFilterBookings()">
       </div>
       <div class="filter-item">
         <label><i class="fas fa-map-marker-alt"></i> 場地</label>
@@ -118,7 +124,7 @@
   <!-- 統計資訊 -->
   <div class="stats-section">
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+      <div class="stat-icon stat-primary">
         <i class="fas fa-calendar-check"></i>
       </div>
       <div class="stat-info">
@@ -127,7 +133,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
+      <div class="stat-icon stat-success">
         <i class="fas fa-check-circle"></i>
       </div>
       <div class="stat-info">
@@ -136,7 +142,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #ffc107, #ff9800);">
+      <div class="stat-icon stat-warning">
         <i class="fas fa-clock"></i>
       </div>
       <div class="stat-info">
@@ -145,7 +151,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+      <div class="stat-icon stat-danger">
         <i class="fas fa-exclamation-triangle"></i>
       </div>
       <div class="stat-info">
@@ -156,7 +162,7 @@
   </div>
 
   <!-- 新預約快速操作區域 -->
-  <div id="newBookingsSection" class="new-bookings-section" style="display: none;">
+  <div id="newBookingsSection" class="new-bookings-section hidden">
     <div class="section-header">
       <div>
         <h2><i class="fas fa-bell"></i> 新預約快速操作</h2>
@@ -177,7 +183,7 @@
       <!-- 新預約卡片將由 JavaScript 動態生成 -->
     </div>
     
-    <div id="noNewBookings" class="no-new-bookings" style="display: none;">
+    <div id="noNewBookings" class="no-new-bookings hidden">
       <i class="fas fa-check-circle"></i>
       <p>目前沒有新的預約</p>
     </div>
@@ -304,6 +310,46 @@
         </div>
       </div>
       
+      <!-- 篩選和搜尋區域 -->
+      <div class="filter-section">
+        <div class="filter-grid">
+          <div class="filter-item filter-item-full">
+            <label><i class="fas fa-search"></i> 搜尋</label>
+            <input type="text" id="noticeSearchInput" placeholder="搜尋標題、內容、識別碼..." oninput="debouncedFilterNotices()">
+          </div>
+          <div class="filter-item">
+            <label><i class="fas fa-tag"></i> 類型</label>
+            <select id="noticeTypeFilter" onchange="filterNotices()">
+              <option value="">全部類型</option>
+              <option value="general">一般</option>
+              <option value="warning">警告</option>
+              <option value="info">資訊</option>
+              <option value="success">成功</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label><i class="fas fa-toggle-on"></i> 狀態</label>
+            <select id="noticeStatusFilter" onchange="filterNotices()">
+              <option value="">全部狀態</option>
+              <option value="enabled">啟用中</option>
+              <option value="disabled">已停用</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label><i class="fas fa-map-marker-alt"></i> 場地</label>
+            <select id="noticeLocationFilter" onchange="filterNotices()">
+              <option value="">全部場地</option>
+              <option value="通用">通用（所有場地）</option>
+              <option value="四維路59號">四維路59號</option>
+              <option value="漢堡大亨">漢堡大亨</option>
+              <option value="自由風">自由風</option>
+              <option value="蔬蒔">蔬蒔</option>
+              <option value="金正好吃">金正好吃</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
       <div id="noticesList" class="notices-list">
         <div class="loading-row">
           <i class="fas fa-spinner fa-spin"></i> 載入中...
@@ -317,25 +363,25 @@
 
 <!-- 刪除預約確認彈窗 -->
 <div id="deleteConfirmModal" class="modal">
-  <div class="modal-content" style="max-width: 500px;">
+  <div class="modal-content modal-sm">
     <div class="modal-header">
       <h3><i class="fas fa-exclamation-triangle"></i> 確認刪除預約</h3>
       <span class="modal-close" onclick="closeDeleteConfirmModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <div class="modal-confirm-warning" style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-left-color: #ef4444;">
+      <div class="modal-confirm-warning danger">
         <div class="modal-confirm-warning-content">
-          <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.8rem;"></i>
+          <i class="fas fa-exclamation-triangle"></i>
           <div class="modal-confirm-warning-text">
-            <div class="modal-confirm-warning-label" style="color: #991b1b;">警告</div>
-            <div class="modal-confirm-warning-value" style="color: #dc2626; font-size: 1.15rem;">此操作無法復原！</div>
+            <div class="modal-confirm-warning-label">警告</div>
+            <div class="modal-confirm-warning-value">此操作無法復原！</div>
           </div>
         </div>
       </div>
       
-      <div class="modal-confirm-info" style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-color: #fecaca;">
-        <h4 style="color: #991b1b;">
-          <i class="fas fa-info-circle" style="color: #ef4444;"></i>
+      <div class="modal-confirm-info danger">
+        <h4>
+          <i class="fas fa-info-circle"></i>
           預約資訊
         </h4>
         <div class="modal-confirm-info-grid">
@@ -368,7 +414,7 @@
 
 <!-- 付款狀態變更確認彈窗 -->
 <div id="paymentConfirmModal" class="modal">
-  <div class="modal-content" style="max-width: 500px;">
+  <div class="modal-content modal-sm">
     <div class="modal-header">
       <h3><i class="fas fa-exclamation-circle"></i> 確認變更付款狀態</h3>
       <span class="modal-close" onclick="closePaymentConfirmModal()">&times;</span>
@@ -517,7 +563,7 @@
 
 <!-- 新增/編輯場地彈窗 -->
 <div id="locationModal" class="modal">
-  <div class="modal-content" style="max-width: 600px;">
+  <div class="modal-content modal-md">
     <div class="modal-header">
       <h3><i class="fas fa-map-marker-alt"></i> <span id="locationModalTitle">新增場地</span></h3>
       <span class="modal-close" onclick="closeLocationModal()">&times;</span>
@@ -620,7 +666,7 @@
 
 <!-- 新增/編輯注意事項彈窗 -->
 <div id="noticeModal" class="modal">
-  <div class="modal-content" style="max-width: 600px;">
+  <div class="modal-content modal-md">
     <div class="modal-header">
       <h3><i class="fas fa-exclamation-triangle"></i> <span id="noticeModalTitle">新增注意事項</span></h3>
       <span class="modal-close" onclick="closeNoticeModal()">&times;</span>
@@ -703,18 +749,18 @@
 
 <!-- 已處理預約查看模態框 -->
 <div id="processedBookingsModal" class="modal">
-  <div class="modal-content" style="max-width: 800px;">
+  <div class="modal-content modal-lg">
     <div class="modal-header">
       <h3><i class="fas fa-eye"></i> 已處理的預約</h3>
       <span class="modal-close" onclick="closeProcessedBookingsModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <div id="processedBookingsList" style="max-height: 600px; overflow-y: auto;">
+      <div id="processedBookingsList">
         <div class="loading-row">
           <i class="fas fa-spinner fa-spin"></i> 載入中...
         </div>
       </div>
-      <div class="form-actions" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <div class="form-actions processed-bookings-actions">
         <button onclick="clearAllProcessedBookings()" class="btn btn-danger">
           <i class="fas fa-trash"></i> 清除所有已處理記錄
         </button>
@@ -730,7 +776,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- 載入指示器 -->
-<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+<div class="loading-overlay hidden" id="loadingOverlay">
   <div class="loading-spinner">
     <div class="spinner"></div>
     <p id="loadingMessage">處理中...</p>

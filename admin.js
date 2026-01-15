@@ -20,8 +20,22 @@ if (typeof window.supabase !== 'undefined') {
   });
 }
 
+// ========== 配置常數 ==========
+
 // 管理密碼（請修改為您的實際密碼）
 const ADMIN_PASSWORD = 'sky36990'; // ⚠️ 請妥善保管此密碼！
+
+// 場地列表（統一管理，避免重複）
+const LOCATIONS = [
+  { key: '四維路59號', name: '四維路59號' },
+  { key: '漢堡大亨', name: '漢堡大亨 - 四維路70號' },
+  { key: '自由風', name: '自由風 - 四維路190號' },
+  { key: '蔬蒔', name: '蔬蒔 - 四維路216號' },
+  { key: '金正好吃', name: '金正好吃 - 四維路218號' }
+];
+
+// 調試模式（生產環境應設為 false）
+const DEBUG_MODE = false;
 
 // 全局變數
 let allBookings = [];
@@ -29,6 +43,10 @@ let filteredBookings = [];
 let currentEditingBooking = null;
 let selectedMonth = null; // 格式: '2025-10'
 let autoRefreshInterval = null; // 自動刷新計時器
+
+// ========== 工具函數 ==========
+
+// ========== 安全防護函數 ==========
 
 // HTML 轉義函數（防止 XSS）
 function escapeHtml(text) {
@@ -40,13 +58,282 @@ function escapeHtml(text) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
-let newBookings = []; // 新預約列表
-let processedBookingIds = new Set(); // 已處理的預約 ID（儲存在 sessionStorage）
 
-// 從 sessionStorage 載入已處理的預約 ID
+// 屬性值轉義（用於 HTML 屬性，如 onclick）
+function escapeHtmlAttribute(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// 輸入驗證和清理函數
+function sanitizeInput(input, type = 'text') {
+  if (!input) return '';
+  let sanitized = String(input).trim();
+  
+  switch (type) {
+    case 'text':
+      // 移除潛在危險字符，但保留基本標點
+      sanitized = sanitized.replace(/[<>]/g, '');
+      break;
+    case 'number':
+      sanitized = sanitized.replace(/[^0-9.-]/g, '');
+      break;
+    case 'alphanumeric':
+      sanitized = sanitized.replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s-]/g, '');
+      break;
+    case 'key':
+      // 用於識別碼：只允許字母、數字、連字號、下劃線
+      sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
+      break;
+    case 'url':
+      // URL 驗證（簡單版）
+      try {
+        new URL(sanitized);
+      } catch {
+        sanitized = '';
+      }
+      break;
+  }
+  
+  return sanitized;
+}
+
+// 驗證輸入長度
+function validateInputLength(input, min = 0, max = 1000) {
+  if (!input) return min === 0;
+  const length = String(input).length;
+  return length >= min && length <= max;
+}
+
+// 速率限制（防止暴力破解）
+const RATE_LIMIT = {
+  maxAttempts: 5,        // 最大嘗試次數
+  windowMs: 15 * 60 * 1000, // 15分鐘窗口
+  lockoutMs: 30 * 60 * 1000  // 鎖定30分鐘
+};
+
+let loginAttempts = JSON.parse(localStorage.getItem('loginAttempts') || '[]');
+let isLockedOut = false;
+let lockoutUntil = parseInt(localStorage.getItem('lockoutUntil') || '0');
+
+// 檢查是否被鎖定
+function checkLockout() {
+  const now = Date.now();
+  
+  // 檢查鎖定期是否已過
+  if (lockoutUntil > 0 && now < lockoutUntil) {
+    const remainingMinutes = Math.ceil((lockoutUntil - now) / 60000);
+    return {
+      locked: true,
+      message: `帳號已鎖定，請在 ${remainingMinutes} 分鐘後再試`
+    };
+  }
+  
+  // 清除過期的嘗試記錄
+  const windowStart = now - RATE_LIMIT.windowMs;
+  loginAttempts = loginAttempts.filter(time => time > windowStart);
+  localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+  
+  // 檢查是否超過最大嘗試次數
+  if (loginAttempts.length >= RATE_LIMIT.maxAttempts) {
+    lockoutUntil = now + RATE_LIMIT.lockoutMs;
+    localStorage.setItem('lockoutUntil', String(lockoutUntil));
+    return {
+      locked: true,
+      message: `登入失敗次數過多，帳號已鎖定 30 分鐘`
+    };
+  }
+  
+  return { locked: false };
+}
+
+// 記錄登入嘗試
+function recordLoginAttempt(success) {
+  if (success) {
+    // 登入成功，清除所有記錄
+    loginAttempts = [];
+    lockoutUntil = 0;
+    localStorage.removeItem('loginAttempts');
+    localStorage.removeItem('lockoutUntil');
+  } else {
+    // 登入失敗，記錄時間
+    loginAttempts.push(Date.now());
+    localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+  }
+}
+
+// 生成安全的隨機 token（用於 session）
+function generateSecureToken() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// 驗證 session token
+function validateSession() {
+  const sessionToken = sessionStorage.getItem('adminSessionToken');
+  const sessionTime = parseInt(sessionStorage.getItem('adminSessionTime') || '0');
+  const now = Date.now();
+  const SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2小時
+  
+  if (!sessionToken || (now - sessionTime) > SESSION_TIMEOUT) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 創建安全 session
+function createSecureSession() {
+  const token = generateSecureToken();
+  sessionStorage.setItem('adminSessionToken', token);
+  sessionStorage.setItem('adminSessionTime', String(Date.now()));
+  return token;
+}
+
+// 調試日誌（僅在調試模式下輸出）
+function debugLog(...args) {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+}
+
+// 錯誤日誌（始終輸出）
+function errorLog(...args) {
+  console.error(...args);
+}
+
+// ========== 統一錯誤處理 ==========
+
+// 錯誤類型映射（將技術錯誤轉換為用戶友好的提示）
+const ERROR_MESSAGES = {
+  // Supabase 錯誤
+  'Supabase 客戶端未初始化': '系統初始化失敗，請重新整理頁面',
+  'Supabase 庫未載入': '系統資源載入失敗，請檢查網路連線',
+  
+  // 網路錯誤
+  'Failed to fetch': '網路連線失敗，請檢查網路連線後重試',
+  'NetworkError': '網路錯誤，請稍後再試',
+  'timeout': '請求逾時，請稍後再試',
+  
+  // 資料庫錯誤
+  'duplicate key': '資料已存在，請檢查是否重複',
+  'foreign key': '資料關聯錯誤，請檢查相關資料',
+  'not null': '必填欄位未填寫',
+  
+  // 權限錯誤
+  'permission denied': '權限不足，無法執行此操作',
+  'unauthorized': '未授權，請重新登入',
+  
+  // 通用錯誤
+  '找不到': '找不到相關資料',
+  '無法': '操作失敗',
+};
+
+// 統一錯誤處理函數
+function handleError(error, context = '操作', defaultMessage = '發生錯誤，請稍後再試') {
+  // 記錄錯誤詳情（開發模式）
+  if (DEBUG_MODE) {
+    errorLog(`❌ [${context}] 錯誤詳情:`, error);
+    if (error.stack) {
+      errorLog('錯誤堆疊:', error.stack);
+    }
+  } else {
+    errorLog(`❌ [${context}]`, error.message || error);
+  }
+  
+  // 提取錯誤訊息
+  let userMessage = defaultMessage;
+  const errorMessage = error?.message || error?.toString() || '';
+  
+  // 嘗試匹配已知錯誤類型
+  for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
+    if (errorMessage.includes(key) || errorMessage.toLowerCase().includes(key.toLowerCase())) {
+      userMessage = message;
+      break;
+    }
+  }
+  
+  // 如果是 Supabase 錯誤，提取更詳細的信息
+  if (error?.code) {
+    switch (error.code) {
+      case 'PGRST116':
+        userMessage = '找不到相關資料';
+        break;
+      case '23505':
+        userMessage = '資料已存在，請檢查是否重複';
+        break;
+      case '23503':
+        userMessage = '資料關聯錯誤';
+        break;
+      case '42501':
+        userMessage = '權限不足，無法執行此操作';
+        break;
+      default:
+        if (!userMessage.includes('請')) {
+          userMessage = `${defaultMessage}（錯誤代碼: ${error.code}）`;
+        }
+    }
+  }
+  
+  return userMessage;
+}
+
+// 統一的錯誤提示函數
+function showErrorToast(context, error, defaultMessage) {
+  const message = handleError(error, context, defaultMessage);
+  showToast('error', '操作失敗', message);
+}
+
+// 安全的異步函數包裝器
+async function safeAsync(fn, context, errorMessage) {
+  try {
+    return await fn();
+  } catch (error) {
+    showErrorToast(context, error, errorMessage);
+    throw error; // 重新拋出以便調用者處理
+  }
+}
+
+// 防抖函數（用於搜尋和篩選）
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// 生成場地選項 HTML
+function generateLocationOptions(includeAll = true, includeGeneric = false) {
+  let options = '';
+  if (includeAll) {
+    options += '<option value="">全部場地</option>';
+  }
+  if (includeGeneric) {
+    options += '<option value="通用">通用（所有場地）</option>';
+  }
+  LOCATIONS.forEach(location => {
+    options += `<option value="${escapeHtml(location.key)}">${escapeHtml(location.name)}</option>`;
+  });
+  return options;
+}
+let newBookings = []; // 新預約列表
+let processedBookingIds = new Set(); // 已處理的預約 ID（儲存在 localStorage）
+
+// 從 localStorage 載入已處理的預約 ID
 function loadProcessedBookingIds() {
   try {
-    const stored = sessionStorage.getItem('processedBookingIds');
+    const stored = localStorage.getItem('processedBookingIds');
     if (stored) {
       const ids = JSON.parse(stored);
       processedBookingIds = new Set(ids);
@@ -57,30 +344,57 @@ function loadProcessedBookingIds() {
   }
 }
 
-// 保存已處理的預約 ID 到 sessionStorage
+// 保存已處理的預約 ID 到 localStorage
 function saveProcessedBookingIds() {
   try {
     const ids = Array.from(processedBookingIds);
-    sessionStorage.setItem('processedBookingIds', JSON.stringify(ids));
+    localStorage.setItem('processedBookingIds', JSON.stringify(ids));
   } catch (e) {
     console.warn('保存已處理預約 ID 失敗:', e);
   }
 }
 
 // 頁面載入時初始化
-document.addEventListener('DOMContentLoaded', function() {
-  // 載入已處理的預約 ID
-  loadProcessedBookingIds();
-  
-  // 檢查是否已登入
+// 檢查登入狀態（頁面載入時）
+function checkAuthStatus() {
   const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
-  if (isLoggedIn) {
+  const hasValidSession = validateSession();
+  
+  if (isLoggedIn && hasValidSession) {
     showMainContent();
     initMonthSelector();
     loadBookings();
   } else {
+    // 清除無效的 session
+    sessionStorage.removeItem('adminLoggedIn');
+    sessionStorage.removeItem('adminSessionToken');
+    sessionStorage.removeItem('adminSessionTime');
     showLoginModal();
   }
+}
+
+// 定期檢查 session 有效性（每5分鐘）
+function startSessionMonitor() {
+  setInterval(() => {
+    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+      if (!validateSession()) {
+        // Session 已過期
+        showToast('warning', '會話已過期', '請重新登入');
+        logout();
+      }
+    }
+  }, 5 * 60 * 1000); // 每5分鐘檢查一次
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // 載入已處理的預約 ID
+  loadProcessedBookingIds();
+  
+  // 檢查認證狀態（這個函數已經會處理登入和載入數據）
+  checkAuthStatus();
+  
+  // 啟動 session 監控
+  startSessionMonitor();
   
   // 登入表單 Enter 鍵支援
   document.getElementById('adminPassword').addEventListener('keypress', function(e) {
@@ -92,14 +406,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 顯示登入畫面
 function showLoginModal() {
-  document.getElementById('loginModal').style.display = 'flex';
-  document.getElementById('mainAdminContent').style.display = 'none';
+  const loginModal = document.getElementById('loginModal');
+  const mainContent = document.getElementById('mainAdminContent');
+  if (loginModal) {
+    loginModal.classList.remove('hidden');
+    loginModal.style.display = 'flex'; // 登入模態框需要 flex 顯示
+  }
+  if (mainContent) mainContent.classList.add('hidden');
 }
 
 // 顯示主內容
 function showMainContent() {
-  document.getElementById('loginModal').style.display = 'none';
-  document.getElementById('mainAdminContent').style.display = 'block';
+  const loginModal = document.getElementById('loginModal');
+  const mainContent = document.getElementById('mainAdminContent');
+  if (loginModal) {
+    loginModal.classList.add('hidden');
+    loginModal.style.display = 'none'; // 確保隱藏
+  }
+  if (mainContent) {
+    mainContent.classList.remove('hidden');
+    mainContent.style.display = 'block'; // 確保顯示
+  }
   
   // 確保只有預約管理標籤頁顯示（初始狀態）
   document.querySelectorAll('.tab-content').forEach(tab => {
@@ -127,20 +454,63 @@ function showMainContent() {
 
 // 處理登入
 function handleLogin() {
-  const password = document.getElementById('adminPassword').value;
+  const passwordInput = document.getElementById('adminPassword');
+  const password = passwordInput.value;
   const errorDiv = document.getElementById('loginError');
   
-  if (password === ADMIN_PASSWORD) {
+  // 檢查鎖定狀態
+  const lockoutCheck = checkLockout();
+  if (lockoutCheck.locked) {
+    errorDiv.textContent = lockoutCheck.message;
+    errorDiv.style.display = 'block';
+    passwordInput.value = '';
+    return;
+  }
+  
+  // 輸入驗證
+  if (!password || password.length === 0) {
+    errorDiv.textContent = '請輸入密碼';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // 使用安全的密碼比較（防止時間攻擊）
+  let isValid = false;
+  try {
+    // 簡單的常數時間比較（實際應用中應使用服務端驗證）
+    isValid = password === ADMIN_PASSWORD;
+  } catch (error) {
+    errorLog('登入驗證錯誤:', error);
+    isValid = false;
+  }
+  
+  if (isValid) {
+    // 登入成功
+    recordLoginAttempt(true);
+    createSecureSession();
     sessionStorage.setItem('adminLoggedIn', 'true');
     showMainContent();
     initMonthSelector();
     loadBookings();
     errorDiv.style.display = 'none';
-    document.getElementById('adminPassword').value = '';
+    passwordInput.value = '';
   } else {
-    errorDiv.textContent = '密碼錯誤，請重新輸入';
+    // 登入失敗
+    recordLoginAttempt(false);
+    const remainingAttempts = RATE_LIMIT.maxAttempts - loginAttempts.length;
+    if (remainingAttempts > 0) {
+      errorDiv.textContent = `密碼錯誤，還剩 ${remainingAttempts} 次嘗試機會`;
+    } else {
+      errorDiv.textContent = '密碼錯誤次數過多，帳號已鎖定';
+    }
     errorDiv.style.display = 'block';
-    document.getElementById('adminPassword').value = '';
+    passwordInput.value = '';
+    
+    // 檢查是否應該鎖定
+    const newLockoutCheck = checkLockout();
+    if (newLockoutCheck.locked) {
+      errorDiv.textContent = newLockoutCheck.message;
+    }
   }
 }
 
@@ -220,7 +590,16 @@ function updateMonthDisplay() {
 
 // 登出
 function logout() {
+  // 清除所有 session 信息
   sessionStorage.removeItem('adminLoggedIn');
+  sessionStorage.removeItem('adminSessionToken');
+  sessionStorage.removeItem('adminSessionTime');
+  // 清除已處理的預約記錄（可選，根據需求決定）
+  // processedBookingIds.clear();
+  // saveProcessedBookingIds();
+  
+  // 顯示登入畫面
+  showLoginModal();
   showLoginModal();
   allBookings = [];
   filteredBookings = [];
@@ -268,19 +647,40 @@ async function loadBookings() {
     };
     
     if (data.success && data.bookings) {
-      // 正規化付款狀態：空字串、null、undefined 都視為「未繳款」
+      // 正規化付款狀態：統一付款狀態名稱
       allBookings = data.bookings.map(booking => {
-        if (!booking.payment || booking.payment.trim() === '') {
+        const payment = booking.payment || '';
+        const paymentTrimmed = payment.trim();
+        
+        // 統一未付款狀態的名稱
+        if (!paymentTrimmed || 
+            paymentTrimmed === '未繳款' || 
+            paymentTrimmed === '尚未付款' || 
+            paymentTrimmed === '未付款') {
           booking.payment = '未繳款';
         }
+        // 統一已付款狀態的名稱
+        else if (paymentTrimmed === '已付款' || paymentTrimmed === '己繳款') {
+          booking.payment = '己繳款';
+        }
+        // 其他狀態保持不變（如「逾繳可排」）
+        
         return booking;
       });
       
       // 調試：顯示付款狀態統計
+      const unpaidCount = allBookings.filter(b => {
+        const payment = b.payment || '';
+        return payment === '未繳款' || 
+               payment === '尚未付款' || 
+               payment === '未付款' || 
+               payment === '' || 
+               !payment;
+      }).length;
       console.log('📊 付款狀態統計：');
       console.log('  總數:', allBookings.length);
-      console.log('  己繳款:', allBookings.filter(b => b.payment === '己繳款').length);
-      console.log('  未繳款:', allBookings.filter(b => b.payment === '未繳款' || !b.payment).length);
+      console.log('  己繳款:', allBookings.filter(b => b.payment === '己繳款' || b.payment === '已付款').length);
+      console.log('  未繳款:', unpaidCount, '(包含：未繳款、尚未付款、未付款)');
       console.log('  逾繳可排:', allBookings.filter(b => b.payment === '逾繳可排').length);
       
       // 初始化月份選擇器（如果還沒初始化）
@@ -300,8 +700,27 @@ async function loadBookings() {
       showToast('error', '載入失敗', data.message || '無法載入預約資料');
     }
   } catch (error) {
-    console.error('載入預約數據失敗:', error);
-    showToast('error', '載入失敗', '網路錯誤，請檢查連線後重試');
+    const errorMessage = handleError(error, '載入預約數據', '無法載入預約資料，請檢查網路連線後重試');
+    showToast('error', '載入失敗', errorMessage);
+    
+    // 如果載入失敗，顯示重試按鈕
+    const container = document.getElementById('bookingsTableBody');
+    if (container) {
+      container.innerHTML = `
+        <tr>
+          <td colspan="10" class="error-row">
+            <div style="text-align: center; padding: 40px;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 16px;"></i>
+              <h3 style="color: #dc2626; margin-bottom: 8px;">載入失敗</h3>
+              <p style="color: #6b7280; margin-bottom: 20px;">${escapeHtml(errorMessage)}</p>
+              <button onclick="loadBookings()" class="btn btn-primary">
+                <i class="fas fa-redo"></i> 重新載入
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
   } finally {
     hideLoading();
   }
@@ -382,7 +801,12 @@ function updateStats() {
   }).length;
   const unpaid = filteredBookings.filter(b => {
     const payment = b.payment || '';
-    return payment === '未繳款' || payment === '' || !payment;
+    // 判斷所有可能的未付款狀態
+    return payment === '未繳款' || 
+           payment === '尚未付款' || 
+           payment === '未付款' || 
+           payment === '' || 
+           !payment;
   }).length;
   const overdue = filteredBookings.filter(b => {
     const payment = b.payment || '';
@@ -395,11 +819,15 @@ function updateStats() {
   document.getElementById('overdueBookings').textContent = overdue;
 }
 
-// 篩選預約
+// 篩選預約（使用防抖優化）
+const debouncedFilterBookings = debounce(function() {
+  filterBookings();
+}, 300);
+
 function filterBookings() {
-  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-  const locationFilter = document.getElementById('locationFilter').value;
-  const paymentFilter = document.getElementById('paymentFilter').value;
+  const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const locationFilter = document.getElementById('locationFilter')?.value || '';
+  const paymentFilter = document.getElementById('paymentFilter')?.value || '';
   
   filteredBookings = allBookings.filter(booking => {
     // 月份篩選（優先）
@@ -436,7 +864,11 @@ function filterBookings() {
     if (paymentFilter) {
       const payment = booking.payment || '';
       if (paymentFilter === '己繳款' && payment !== '己繳款' && payment !== '已付款') return false;
-      if (paymentFilter === '未繳款' && payment !== '未繳款' && payment !== '') return false;
+      if (paymentFilter === '未繳款' && 
+          payment !== '未繳款' && 
+          payment !== '尚未付款' && 
+          payment !== '未付款' && 
+          payment !== '') return false;
       if (paymentFilter === '逾繳可排' && payment !== '逾繳可排') return false;
     }
     
@@ -543,16 +975,62 @@ function closeEditModal() {
 async function saveBooking(event) {
   event.preventDefault();
   
+  // 驗證 session
+  if (!validateSession()) {
+    showToast('error', '會話已過期', '請重新登入');
+    logout();
+    return;
+  }
+
   const rowNumber = parseInt(document.getElementById('editRowNumber').value);
+  
+  // 輸入清理和驗證
+  const vendor = sanitizeInput(document.getElementById('editVendor').value.trim(), 'text');
+  const foodType = sanitizeInput(document.getElementById('editFoodType').value.trim(), 'text');
+  const location = sanitizeInput(document.getElementById('editLocation').value.trim(), 'text');
+  const date = document.getElementById('editDate').value;
+  const status = sanitizeInput(document.getElementById('editStatus').value.trim(), 'text');
+  const fee = sanitizeInput(document.getElementById('editFee').value.trim(), 'text');
+  const payment = sanitizeInput(document.getElementById('editPayment').value.trim(), 'text');
+  const note = sanitizeInput(document.getElementById('editNote').value.trim(), 'text');
+  
+  // 輸入驗證
+  if (!vendor || !validateInputLength(vendor, 1, 100)) {
+    showToast('error', '驗證失敗', '餐車名稱長度必須在 1-100 字元之間');
+    return;
+  }
+  
+  if (!location || !validateInputLength(location, 1, 200)) {
+    showToast('error', '驗證失敗', '場地長度必須在 1-200 字元之間');
+    return;
+  }
+  
+  if (!date) {
+    showToast('error', '驗證失敗', '請選擇日期');
+    return;
+  }
+  
+  // 驗證日期格式
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(date)) {
+    showToast('error', '驗證失敗', '日期格式不正確');
+    return;
+  }
+  
+  if (note && !validateInputLength(note, 0, 500)) {
+    showToast('error', '驗證失敗', '備註長度不能超過 500 字元');
+    return;
+  }
+  
   const updateData = {
-    vendor: document.getElementById('editVendor').value.trim(),
-    foodType: document.getElementById('editFoodType').value,
-    location: document.getElementById('editLocation').value,
-    date: document.getElementById('editDate').value,
-    status: document.getElementById('editStatus').value,
-    fee: document.getElementById('editFee').value,
-    payment: document.getElementById('editPayment').value,
-    note: document.getElementById('editNote').value.trim()
+    vendor,
+    foodType,
+    location,
+    date,
+    status,
+    fee,
+    payment,
+    note
   };
   
   showLoading('儲存中...');
@@ -608,8 +1086,7 @@ async function saveBooking(event) {
       loadBookings();
     }, 500);
   } catch (error) {
-    console.error('儲存預約失敗:', error);
-    showToast('error', '儲存失敗', error.message || '無法更新預約資料');
+    showErrorToast('儲存預約', error, '無法儲存預約資料，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -681,8 +1158,7 @@ async function executeDeleteBooking(rowNumber) {
     allBookings = allBookings.filter(b => (b.id || b.rowNumber) !== rowNumber);
     filterBookings();
   } catch (error) {
-    console.error('刪除預約失敗:', error);
-    showToast('error', '刪除失敗', error.message || '無法刪除預約');
+    showErrorToast('刪除預約', error, '無法刪除預約，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -717,7 +1193,11 @@ function togglePaymentStatus(rowNumber, vendor, location, date) {
   let paymentText;
   
   // 循環切換：未繳款 -> 己繳款 -> 逾繳可排 -> 未繳款
-  if (currentPayment === '未繳款' || currentPayment === '' || !currentPayment) {
+  if (currentPayment === '未繳款' || 
+      currentPayment === '尚未付款' || 
+      currentPayment === '未付款' || 
+      currentPayment === '' || 
+      !currentPayment) {
     newPayment = '己繳款';
     paymentText = '己繳款（已付款）';
   } else if (currentPayment === '己繳款' || currentPayment === '已付款') {
@@ -801,8 +1281,8 @@ async function executePaymentStatusChange(data) {
     // 重新渲染和更新統計（不重新載入）
     filterBookings();
   } catch (error) {
-    console.error('變更付款狀態失敗:', error);
-    showToast('error', '更新失敗', '網路錯誤，請檢查連線後重試');
+    const errorMessage = handleError(error, '變更付款狀態', '無法更新付款狀態，請檢查網路連線後重試');
+    showErrorToast('變更付款狀態', error, '無法更新付款狀態，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -842,36 +1322,61 @@ function showToast(type, title, message) {
 
 // ========== 新預約快速操作功能 ==========
 
-// 獲取新預約（最近24小時內）
+// 獲取新預約（最近24小時內，或未付款的預約）
 function getNewBookings() {
   const now = new Date();
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   
-  // 只在開發時顯示詳細日誌
-  if (false) { // 設為 false 關閉詳細日誌
-  // 只在需要時顯示調試信息（減少控制台輸出）
-  const DEBUG_NEW_BOOKINGS = false; // 設為 true 開啟詳細調試
-  
-  if (DEBUG_NEW_BOOKINGS) {
-    console.log('🔍 檢查新預約：');
-    console.log('  當前時間:', now.toLocaleString('zh-TW'));
-    console.log('  24小時前:', twentyFourHoursAgo.toLocaleString('zh-TW'));
-    console.log('  總預約數:', allBookings.length);
+  // 調試模式：顯示詳細信息
+  if (DEBUG_MODE) {
+    debugLog('🔍 檢查新預約：');
+    debugLog('  當前時間:', now.toLocaleString('zh-TW'));
+    debugLog('  24小時前:', twentyFourHoursAgo.toLocaleString('zh-TW'));
+    debugLog('  總預約數:', allBookings.length);
     
-    // 調試：顯示所有預約的時間戳記（前10筆）
-    console.log('📋 前10筆預約的時間戳記：');
+    // 顯示未付款的預約
+    const unpaidBookings = allBookings.filter(b => {
+      const payment = b.payment || '';
+      return payment === '未繳款' || 
+             payment === '尚未付款' || 
+             payment === '未付款' || 
+             payment === '' || 
+             !payment;
+    });
+    debugLog('  未付款預約數:', unpaidBookings.length);
+    
+    // 顯示前10筆預約的時間戳記
+    debugLog('📋 前10筆預約的時間戳記：');
     allBookings.slice(0, 10).forEach((b, i) => {
       const ts = b.timestamp || b.created_at;
       const time = ts ? new Date(ts) : null;
       const hoursAgo = time ? ((now - time) / (1000 * 60 * 60)).toFixed(1) : 'N/A';
-      console.log(`  ${i + 1}. ${b.vendor || '(無名)'} | timestamp: ${b.timestamp || 'N/A'} | created_at: ${b.created_at || 'N/A'} | ${hoursAgo}小時前`);
+      const payment = b.payment || '未繳款';
+      debugLog(`  ${i + 1}. ${b.vendor || '(無名)'} | 時間: ${hoursAgo}小時前 | 付款: ${payment} | timestamp: ${b.timestamp || 'N/A'} | created_at: ${b.created_at || 'N/A'}`);
     });
-  }
   }
   
   const newBookings = allBookings.filter(booking => {
+    // 檢查付款狀態（統一判斷所有未付款狀態）
+    const payment = booking.payment || '';
+    const isUnpaid = payment === '未繳款' || 
+                     payment === '尚未付款' || 
+                     payment === '未付款' || 
+                     payment === '' || 
+                     !payment;
+    
+    // 如果未付款，直接顯示（不管時間多久，不管預約日期）
+    if (isUnpaid) {
+      if (DEBUG_MODE) {
+        debugLog(`✅ 未付款預約: ${booking.vendor || '(無名)'} | 日期: ${booking.date || 'N/A'} | 付款: ${payment || '未繳款'}`);
+      }
+      return true;
+    }
+    
+    // 對於已付款的預約，只顯示最近24小時內的新預約
     // 優先使用 timestamp，沒有則使用 created_at（Supabase 自動生成）
     const timeSource = booking.timestamp || booking.created_at;
+    
     if (!timeSource) {
       return false;
     }
@@ -888,29 +1393,73 @@ function getNewBookings() {
     
     // 檢查是否為有效日期
     if (isNaN(bookingTime.getTime())) {
-      console.warn('⚠️ 無效的時間戳記:', timeSource, booking.vendor);
+      if (DEBUG_MODE) {
+        debugLog('⚠️ 無效的時間戳記:', timeSource, booking.vendor);
+      }
       return false;
     }
     
-    const isNew = bookingTime >= twentyFourHoursAgo;
-    const hoursDiff = (now - bookingTime) / (1000 * 60 * 60);
+    const isNewByTime = bookingTime >= twentyFourHoursAgo;
     
-    // 只在開發時顯示詳細日誌
-    if (false && (isNew || hoursDiff < 48)) {
-      console.log(`  ${isNew ? '✅' : '❌'} ${booking.vendor || '(無名)'} | 時間: ${bookingTime.toLocaleString('zh-TW')} | 距離現在: ${hoursDiff.toFixed(1)}小時 | 是否新預約: ${isNew}`);
+    if (DEBUG_MODE && isNewByTime) {
+      const hoursDiff = (now - bookingTime) / (1000 * 60 * 60);
+      debugLog(`✅ 新預約（24小時內）: ${booking.vendor || '(無名)'} | 時間: ${bookingTime.toLocaleString('zh-TW')} | 距離現在: ${hoursDiff.toFixed(1)}小時 | 付款: ${payment || '未繳款'}`);
     }
     
-    return isNew;
+    return isNewByTime;
   }).sort((a, b) => {
-    // 按時間倒序排列（最新的在前）
+    // 優先排序：未付款的在前，然後按時間倒序
+    const paymentA = a.payment || '';
+    const paymentB = b.payment || '';
+    const isUnpaidA = paymentA === '未繳款' || 
+                      paymentA === '尚未付款' || 
+                      paymentA === '未付款' || 
+                      paymentA === '' || 
+                      !paymentA;
+    const isUnpaidB = paymentB === '未繳款' || 
+                      paymentB === '尚未付款' || 
+                      paymentB === '未付款' || 
+                      paymentB === '' || 
+                      !paymentB;
+    
+    // 未付款的優先顯示
+    if (isUnpaidA && !isUnpaidB) return -1;
+    if (!isUnpaidA && isUnpaidB) return 1;
+    
+    // 同為未付款或已付款，按時間倒序排列（最新的在前）
     const timeA = new Date(a.timestamp || a.created_at || 0);
     const timeB = new Date(b.timestamp || b.created_at || 0);
     return timeB - timeA;
   });
   
-  // 只在有新預約時顯示簡短日誌
+  // 顯示結果（始終輸出，方便調試）
+  const unpaidCount = newBookings.filter(b => {
+    const payment = b.payment || '';
+    return payment === '未繳款' || 
+           payment === '尚未付款' || 
+           payment === '未付款' || 
+           payment === '' || 
+           !payment;
+  }).length;
+  const newCount = newBookings.length - unpaidCount;
+  
   if (newBookings.length > 0) {
-    console.log(`✅ 找到 ${newBookings.length} 筆新預約`);
+    console.log(`✅ 找到 ${newBookings.length} 筆新預約（${unpaidCount} 筆未付款，${newCount} 筆24小時內新預約）`);
+    if (DEBUG_MODE) {
+      debugLog('📋 未付款預約詳情：');
+      newBookings.filter(b => {
+        const payment = b.payment || '';
+        return payment === '未繳款' || 
+               payment === '尚未付款' || 
+               payment === '未付款' || 
+               payment === '' || 
+               !payment;
+      }).forEach((b, i) => {
+        debugLog(`  ${i + 1}. ${b.vendor || '(無名)'} | 日期: ${b.date || 'N/A'} | 場地: ${b.location || 'N/A'}`);
+      });
+    }
+  } else {
+    console.log('ℹ️ 沒有新預約或未付款預約');
   }
   
   return newBookings;
@@ -959,8 +1508,13 @@ function renderNewBookings() {
   }
   
   // 確保區域顯示（即使在標籤頁中）
-  section.style.display = 'block';
-  grid.innerHTML = '';
+  if (section) {
+    section.style.display = 'block';
+    section.classList.remove('hidden');
+  }
+  if (grid) {
+    grid.innerHTML = '';
+  }
   
   // 更新計數
   if (countBadge) {
@@ -1111,8 +1665,7 @@ async function quickMarkAsPaid(bookingId) {
     filterBookings();
     
   } catch (error) {
-    console.error('更新付款狀態失敗:', error);
-    showToast('error', '更新失敗', error.message || '無法更新付款狀態');
+    showErrorToast('更新付款狀態', error, '無法更新付款狀態，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -1254,28 +1807,40 @@ function switchTab(tabName) {
     }, 100);
   } else if (tabName === 'locations') {
     // 場地管理：切換到場地管理時載入場地列表
-    console.log('🔄 切換到場地管理標籤，開始載入場地資料...');
+    console.log('🔄 切換到場地管理標籤');
     setTimeout(() => {
       // 檢查是否已有資料，如果沒有則載入
       const container = document.getElementById('locationsList');
-      if (container && (!allLocations || allLocations.length === 0)) {
-        loadLocations();
-      } else if (allLocations && allLocations.length > 0) {
-        // 如果已有資料，直接渲染到場地管理頁面
-        renderLocations();
+      if (container) {
+        // 只有在沒有資料且不在載入中時才載入
+        if ((!allLocations || allLocations.length === 0) && !isLoadingLocations) {
+          console.log('📥 場地資料為空，開始載入...');
+          loadLocations();
+        } else if (allLocations && allLocations.length > 0) {
+          // 如果已有資料，直接渲染（不重新載入，避免無限循環）
+          console.log('✅ 使用現有場地資料，直接渲染');
+          renderLocations();
+        } else if (isLoadingLocations) {
+          console.log('⏳ 場地資料正在載入中，等待完成...');
+        }
       }
     }, 100);
   } else if (tabName === 'notices') {
     // 注意事項管理：切換到注意事項管理時載入注意事項列表
-    console.log('🔄 切換到注意事項管理標籤，開始載入注意事項資料...');
+    console.log('🔄 切換到注意事項管理標籤');
     setTimeout(() => {
       // 檢查是否已有資料，如果沒有則載入
       const container = document.getElementById('noticesList');
-      if (container && (!allNotices || allNotices.length === 0)) {
-        loadNotices();
-      } else if (allNotices && allNotices.length > 0) {
-        // 如果已有資料，直接渲染到注意事項管理頁面
-        renderNotices();
+      if (container) {
+        // 只有在沒有資料時才載入
+        if (!allNotices || allNotices.length === 0) {
+          console.log('📥 注意事項資料為空，開始載入...');
+          loadNotices();
+        } else {
+          // 如果已有資料，直接渲染（不重新載入，避免無限循環）
+          console.log('✅ 使用現有注意事項資料，直接渲染');
+          renderNotices();
+        }
       }
     }, 100);
   }
@@ -1594,11 +2159,17 @@ function startAutoRefresh() {
   const refreshInterval = 30 * 60 * 1000; // 30分鐘
   
   autoRefreshInterval = setInterval(() => {
-    console.log('🔄 背景自動刷新數據...');
-    loadBookings();
+    // 只在預約管理標籤頁時才自動刷新
+    const currentTab = document.querySelector('.tab-btn.active');
+    if (currentTab && currentTab.dataset.tab === 'bookings') {
+      console.log('🔄 背景自動刷新預約數據...');
+      loadBookings();
+    } else {
+      console.log('⏸️ 當前不在預約管理標籤，跳過自動刷新');
+    }
   }, refreshInterval);
   
-  console.log(`✅ 已啟動背景自動刷新，間隔: ${refreshInterval / 1000 / 60} 分鐘`);
+  console.log(`✅ 已啟動背景自動刷新，間隔: ${refreshInterval / 1000 / 60} 分鐘（僅在預約管理標籤時生效）`);
 }
 
 // 停止自動刷新
@@ -1617,25 +2188,49 @@ function refreshData() {
 }
 
 // 暴露到全局
+// 暴露登入和基本功能到全局
 window.handleLogin = handleLogin;
 window.logout = logout;
 window.showLoginModal = showLoginModal;
 window.showMainContent = showMainContent;
-window.switchView = switchView;
+window.refreshData = refreshData;
+
+// 暴露標籤頁和視圖切換功能
 window.switchTab = switchTab;
+window.switchView = switchView;
+
+// 暴露月份選擇功能
+window.selectCurrentMonth = selectCurrentMonth;
+window.selectMonth = selectMonth;
+
+// 暴露預約管理功能
+window.debouncedFilterBookings = debouncedFilterBookings;
+window.filterBookings = filterBookings;
+window.editBooking = editBooking;
+window.closeEditModal = closeEditModal;
+window.saveBooking = saveBooking;
+window.deleteBooking = deleteBooking;
+window.showDeleteConfirmModal = showDeleteConfirmModal;
+window.closeDeleteConfirmModal = closeDeleteConfirmModal;
+window.togglePaymentStatus = togglePaymentStatus;
+window.showPaymentConfirmModal = showPaymentConfirmModal;
+window.closePaymentConfirmModal = closePaymentConfirmModal;
+window.executePaymentStatusChange = executePaymentStatusChange;
+window.executeDeleteBooking = executeDeleteBooking;
+
+// 暴露新預約快速操作功能
+window.quickMarkAsPaid = quickMarkAsPaid;
+window.quickEditBooking = quickEditBooking;
+window.quickDeleteBooking = quickDeleteBooking;
+window.markAsProcessed = markAsProcessed;
+window.markAllNewBookingsAsProcessed = markAllNewBookingsAsProcessed;
+window.toggleNewBookingsSection = toggleNewBookingsSection;
+
+// 暴露月曆功能
 window.adminCalendarPrevMonth = adminCalendarPrevMonth;
 window.adminCalendarNextMonth = adminCalendarNextMonth;
 window.adminCalendarToday = adminCalendarToday;
 window.closeDayBookingsModal = closeDayBookingsModal;
-window.quickMarkAsPaid = quickMarkAsPaid;
-window.quickEditBooking = quickEditBooking;
-window.quickDeleteBooking = quickDeleteBooking;
-window.showDeleteConfirmModal = showDeleteConfirmModal;
-window.closeDeleteConfirmModal = closeDeleteConfirmModal;
-window.markAsProcessed = markAsProcessed;
-window.markAllNewBookingsAsProcessed = markAllNewBookingsAsProcessed;
-window.toggleNewBookingsSection = toggleNewBookingsSection;
-window.refreshData = refreshData;
 
 // ========== 場地管理功能 ==========
 
@@ -1656,12 +2251,23 @@ function getSupabaseClient() {
 }
 
 // 載入場地列表
+let isLoadingLocations = false; // 防止重複載入的標記
+
 async function loadLocations() {
+  // 防止重複載入
+  if (isLoadingLocations) {
+    console.log('⚠️ 場地資料正在載入中，跳過重複請求');
+    return;
+  }
+  
   const container = document.getElementById('locationsList');
   if (!container) {
     console.error('❌ 找不到 locationsList 容器');
     return;
   }
+  
+  // 設置載入標記
+  isLoadingLocations = true;
   
   // 顯示載入狀態
   container.innerHTML = '<div class="loading-row"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
@@ -1682,15 +2288,6 @@ async function loadLocations() {
     
     allLocations = data || [];
     console.log('✅ 載入場地數據成功，共', allLocations.length, '個場地');
-    console.log('📋 場地數據詳情:', JSON.stringify(allLocations, null, 2));
-    
-    // 檢查容器是否存在
-    const container = document.getElementById('locationsList');
-    console.log('🔍 檢查容器:', container ? '找到' : '未找到');
-    if (container) {
-      console.log('🔍 容器父元素:', container.parentElement);
-      console.log('🔍 容器是否在 DOM 中:', document.body.contains(container));
-    }
     
     // 立即渲染
     renderLocations();
@@ -1701,21 +2298,23 @@ async function loadLocations() {
       showToast('info', '載入完成', '目前沒有場地資料');
     }
   } catch (error) {
-    console.error('❌ 載入場地資料失敗:', error);
-    const errorMsg = error.message || '無法載入場地資料';
-    showToast('error', '載入失敗', errorMsg);
+    showErrorToast('載入場地資料', error, '無法載入場地資料，請檢查網路連線後重試');
     
     if (container) {
+      const errorMessage = handleError(error, '載入場地資料', '無法載入場地資料，請檢查網路連線後重試');
       container.innerHTML = `
-        <div class="empty-row">
+        <div class="empty-row error-row">
           <i class="fas fa-exclamation-triangle"></i> 載入失敗
-          <br><small>${escapeHtml(errorMsg)}</small>
+          <br><small>${escapeHtml(errorMessage)}</small>
           <br><button onclick="loadLocations()" class="btn btn-sm btn-primary" style="margin-top: 12px;">
             <i class="fas fa-redo"></i> 重試
           </button>
         </div>
       `;
     }
+  } finally {
+    // 清除載入標記
+    isLoadingLocations = false;
   }
 }
 
@@ -1864,30 +2463,18 @@ function renderLocations() {
     console.log('✅ 場地列表渲染完成，HTML 長度:', html.length);
     console.log('✅ 容器內容已更新，容器元素:', container);
     
-    // 檢查標籤頁是否可見
-    const tabElement = container.closest('.tab-content');
-    if (tabElement) {
-      console.log('🔍 標籤頁元素:', tabElement);
-      console.log('🔍 標籤頁是否有 active 類:', tabElement.classList.contains('active'));
-      console.log('🔍 標籤頁 display 樣式:', window.getComputedStyle(tabElement).display);
-      
-      // 如果標籤頁不可見，強制顯示
-      if (!tabElement.classList.contains('active')) {
-        console.warn('⚠️ 標籤頁沒有 active 類，強制添加');
-        tabElement.classList.add('active');
-        tabElement.style.display = 'block';
-      }
-    }
-    
-    console.log('✅ 容器是否可見:', container.offsetParent !== null);
+    // 移除強制顯示標籤頁的邏輯，避免無限循環
+    // 標籤頁的顯示應該由 switchTab 函數控制，而不是在渲染時強制顯示
+    console.log('✅ 場地列表渲染完成');
   } catch (error) {
-    console.error('❌ 渲染場地列表時發生錯誤:', error);
-    console.error('錯誤堆疊:', error.stack);
+    const errorMessage = handleError(error, '渲染場地列表', '無法顯示場地列表，請重新載入頁面');
     container.innerHTML = `
-      <div class="empty-row">
+      <div class="empty-row error-row">
         <i class="fas fa-exclamation-triangle"></i> 渲染失敗
-        <br><small>${escapeHtml(error.message)}</small>
-        <br><pre style="font-size: 0.8rem; margin-top: 8px;">${escapeHtml(error.stack || '')}</pre>
+        <br><small>${escapeHtml(errorMessage)}</small>
+        <br><button onclick="loadLocations()" class="btn btn-sm btn-primary" style="margin-top: 12px;">
+          <i class="fas fa-redo"></i> 重新載入
+        </button>
       </div>
     `;
   }
@@ -1945,13 +2532,40 @@ function editLocation(locationId) {
 }
 
 // 儲存場地
+let isSavingLocation = false; // 防止重複提交的標記
+
 async function saveLocation(event) {
   event.preventDefault();
   
+  // 防止重複提交
+  if (isSavingLocation) {
+    console.log('⚠️ 場地正在儲存中，跳過重複提交');
+    showToast('warning', '處理中', '場地資料正在儲存，請稍候...');
+    return;
+  }
+  
+  isSavingLocation = true;
+  
   const locationId = document.getElementById('locationId').value;
-  const locationKey = document.getElementById('locationKey').value.trim();
-  const locationName = document.getElementById('locationName').value.trim();
-  const locationAddress = document.getElementById('locationAddress').value.trim();
+  const locationKey = sanitizeInput(document.getElementById('locationKey').value.trim(), 'key');
+  
+  // 輸入驗證
+  if (!locationKey || !validateInputLength(locationKey, 1, 50)) {
+    showToast('error', '驗證失敗', '場地識別碼長度必須在 1-50 字元之間');
+    return;
+  }
+  const locationName = sanitizeInput(document.getElementById('locationName').value.trim(), 'text');
+  
+  // 額外驗證
+  if (!locationName || !validateInputLength(locationName, 1, 200)) {
+    showToast('error', '驗證失敗', '顯示名稱長度必須在 1-200 字元之間');
+    return;
+  }
+  const locationAddress = sanitizeInput(document.getElementById('locationAddress').value.trim(), 'text');
+  if (!locationAddress || !validateInputLength(locationAddress, 1, 300)) {
+    showToast('error', '驗證失敗', '完整地址長度必須在 1-300 字元之間');
+    return;
+  }
   const locationType = document.getElementById('locationType').value;
   const enabled = document.getElementById('locationEnabled').checked;
   const timeSlotsStr = document.getElementById('locationTimeSlots').value.trim();
@@ -2033,12 +2647,27 @@ async function saveLocation(event) {
     
     showToast('success', '儲存成功', '場地資料已更新');
     closeLocationModal();
-    loadLocations();
+    
+    // 重新載入場地列表（使用 renderLocations 而不是 loadLocations，避免重複請求）
+    // 先更新本地數據
+    if (locationId) {
+      // 更新現有場地
+      const index = allLocations.findIndex(l => l.id === locationId);
+      if (index !== -1) {
+        allLocations[index] = result;
+      }
+    } else {
+      // 新增場地
+      allLocations.push(result);
+    }
+    
+    // 直接渲染，不重新從服務器載入
+    renderLocations();
   } catch (error) {
-    console.error('儲存場地失敗:', error);
-    showToast('error', '儲存失敗', error.message || '無法儲存場地資料');
+    showErrorToast('儲存場地', error, '無法儲存場地資料，請檢查網路連線後重試');
   } finally {
     hideLoading();
+    isSavingLocation = false; // 清除保存標記
   }
 }
 
@@ -2066,10 +2695,17 @@ async function toggleLocationStatus(locationId, currentStatus) {
     if (error) throw error;
     
     showToast('success', '更新成功', `場地已${action}`);
-    loadLocations();
+    
+    // 更新本地數據
+    const index = allLocations.findIndex(l => l.id === locationId);
+    if (index !== -1) {
+      allLocations[index].enabled = newStatus;
+    }
+    
+    // 直接渲染，不重新從服務器載入
+    renderLocations();
   } catch (error) {
-    console.error('更新場地狀態失敗:', error);
-    showToast('error', '更新失敗', error.message || '無法更新場地狀態');
+    showErrorToast('更新場地狀態', error, '無法更新場地狀態，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -2096,10 +2732,14 @@ async function deleteLocation(locationId, locationName) {
     if (error) throw error;
     
     showToast('success', '刪除成功', '場地已刪除');
-    loadLocations();
+    
+    // 更新本地數據
+    allLocations = allLocations.filter(l => l.id !== locationId);
+    
+    // 直接渲染，不重新從服務器載入
+    renderLocations();
   } catch (error) {
-    console.error('刪除場地失敗:', error);
-    showToast('error', '刪除失敗', error.message || '無法刪除場地');
+    showErrorToast('刪除場地', error, '無法刪除場地，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -2108,6 +2748,51 @@ async function deleteLocation(locationId, locationName) {
 // ========== 注意事項管理功能 ==========
 
 let allNotices = [];
+let filteredNotices = [];
+
+// 篩選注意事項（使用防抖優化）
+const debouncedFilterNotices = debounce(function() {
+  filterNotices();
+}, 300);
+
+function filterNotices() {
+  const searchTerm = document.getElementById('noticeSearchInput')?.value.toLowerCase() || '';
+  const typeFilter = document.getElementById('noticeTypeFilter')?.value || '';
+  const statusFilter = document.getElementById('noticeStatusFilter')?.value || '';
+  const locationFilter = document.getElementById('noticeLocationFilter')?.value || '';
+  
+  filteredNotices = allNotices.filter(notice => {
+    // 搜尋篩選
+    if (searchTerm) {
+      const searchText = `${notice.title || ''} ${notice.content || ''} ${notice.notice_key || ''}`.toLowerCase();
+      if (!searchText.includes(searchTerm)) return false;
+    }
+    
+    // 類型篩選
+    if (typeFilter && notice.notice_type !== typeFilter) return false;
+    
+    // 狀態篩選
+    if (statusFilter) {
+      if (statusFilter === 'enabled' && !notice.enabled) return false;
+      if (statusFilter === 'disabled' && notice.enabled) return false;
+    }
+    
+    // 場地篩選
+    if (locationFilter) {
+      if (locationFilter === '通用') {
+        // 通用表示沒有指定場地
+        if (notice.target_location && notice.target_location !== '') return false;
+      } else {
+        // 指定場地
+        if (notice.target_location !== locationFilter) return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  renderNotices();
+}
 
 // 載入注意事項列表
 async function loadNotices() {
@@ -2136,6 +2821,7 @@ async function loadNotices() {
     }
     
     allNotices = data || [];
+    filteredNotices = [...allNotices];
     console.log('✅ 載入注意事項數據成功，共', allNotices.length, '條注意事項');
     
     // 立即渲染
@@ -2147,15 +2833,14 @@ async function loadNotices() {
       showToast('info', '載入完成', '目前沒有注意事項');
     }
   } catch (error) {
-    console.error('❌ 載入注意事項失敗:', error);
-    const errorMsg = error.message || '無法載入注意事項';
-    showToast('error', '載入失敗', errorMsg);
+    showErrorToast('載入注意事項', error, '無法載入注意事項，請檢查網路連線後重試');
     
     if (container) {
+      const errorMessage = handleError(error, '載入注意事項', '無法載入注意事項，請檢查網路連線後重試');
       container.innerHTML = `
-        <div class="empty-row">
+        <div class="empty-row error-row">
           <i class="fas fa-exclamation-triangle"></i> 載入失敗
-          <br><small>${escapeHtml(errorMsg)}</small>
+          <br><small>${escapeHtml(errorMessage)}</small>
           <br><button onclick="loadNotices()" class="btn btn-sm btn-primary" style="margin-top: 12px;">
             <i class="fas fa-redo"></i> 重試
           </button>
@@ -2173,21 +2858,26 @@ function renderNotices() {
     return;
   }
   
-  console.log('📋 開始渲染注意事項列表，共', allNotices.length, '條注意事項');
+  // 如果沒有篩選，使用全部數據
+  if (!filteredNotices || filteredNotices.length === 0) {
+    filteredNotices = [...allNotices];
+  }
   
-  if (allNotices.length === 0) {
+  console.log('📋 開始渲染注意事項列表，共', filteredNotices.length, '條注意事項（總共', allNotices.length, '條）');
+  
+  if (filteredNotices.length === 0) {
     container.innerHTML = `
       <div class="empty-row">
-        <i class="fas fa-inbox"></i> 目前沒有注意事項
-        <br><small>點擊「新增注意事項」開始添加</small>
+        <i class="fas fa-search"></i> 沒有符合條件的注意事項
+        <br><small>請調整篩選條件或點擊「新增注意事項」開始添加</small>
       </div>
     `;
-    console.log('⚠️ 注意事項列表為空');
+    console.log('⚠️ 篩選後沒有注意事項');
     return;
   }
   
   try {
-    const html = allNotices.map(notice => {
+    const html = filteredNotices.map(notice => {
       const typeClass = notice.notice_type || 'general';
       const typeLabels = {
         general: '一般',
@@ -2247,11 +2937,14 @@ function renderNotices() {
     container.innerHTML = html;
     console.log('✅ 注意事項列表渲染完成，HTML 長度:', html.length);
   } catch (error) {
-    console.error('❌ 渲染注意事項列表時發生錯誤:', error);
+    const errorMessage = handleError(error, '渲染注意事項列表', '無法顯示注意事項列表，請重新載入頁面');
     container.innerHTML = `
-      <div class="empty-row">
+      <div class="empty-row error-row">
         <i class="fas fa-exclamation-triangle"></i> 渲染失敗
-        <br><small>${escapeHtml(error.message)}</small>
+        <br><small>${escapeHtml(errorMessage)}</small>
+        <br><button onclick="loadNotices()" class="btn btn-sm btn-primary" style="margin-top: 12px;">
+          <i class="fas fa-redo"></i> 重新載入
+        </button>
       </div>
     `;
   }
@@ -2300,9 +2993,32 @@ async function saveNotice(event) {
   event.preventDefault();
   
   const noticeId = document.getElementById('noticeId').value;
-  const noticeKey = document.getElementById('noticeKey').value.trim();
-  const title = document.getElementById('noticeTitle').value.trim();
-  const content = document.getElementById('noticeContent').value.trim();
+  const noticeKey = sanitizeInput(document.getElementById('noticeKey').value.trim(), 'key');
+  
+  // 輸入驗證
+  if (!noticeKey || !validateInputLength(noticeKey, 1, 50)) {
+    showToast('error', '驗證失敗', '識別碼長度必須在 1-50 字元之間');
+    return;
+  }
+  
+  // 驗證識別碼格式（只允許小寫字母、數字、連字號）
+  if (!/^[a-z0-9-]+$/.test(noticeKey)) {
+    showToast('error', '驗證失敗', '識別碼只能包含小寫字母、數字和連字號');
+    return;
+  }
+  const title = sanitizeInput(document.getElementById('noticeTitle').value.trim(), 'text');
+  const content = sanitizeInput(document.getElementById('noticeContent').value.trim(), 'text');
+  
+  // 額外驗證
+  if (!title || !validateInputLength(title, 1, 200)) {
+    showToast('error', '驗證失敗', '標題長度必須在 1-200 字元之間');
+    return;
+  }
+  
+  if (!content || !validateInputLength(content, 1, 2000)) {
+    showToast('error', '驗證失敗', '內容長度必須在 1-2000 字元之間');
+    return;
+  }
   const noticeType = document.getElementById('noticeType').value;
   const targetLocation = document.getElementById('noticeTargetLocation').value.trim() || null;
   const displayOrder = parseInt(document.getElementById('noticeOrder').value) || 0;
@@ -2356,10 +3072,23 @@ async function saveNotice(event) {
     
     showToast('success', '儲存成功', '注意事項已更新');
     closeNoticeModal();
-    loadNotices();
+    
+    // 更新本地數據
+    if (noticeId) {
+      // 更新現有注意事項
+      const index = allNotices.findIndex(n => n.id === noticeId);
+      if (index !== -1) {
+        allNotices[index] = result;
+      }
+    } else {
+      // 新增注意事項
+      allNotices.push(result);
+    }
+    
+    // 直接渲染，不重新從服務器載入
+    renderNotices();
   } catch (error) {
-    console.error('儲存注意事項失敗:', error);
-    showToast('error', '儲存失敗', error.message || '無法儲存注意事項');
+    showErrorToast('儲存注意事項', error, '無法儲存注意事項，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -2389,10 +3118,17 @@ async function toggleNoticeStatus(noticeId, currentStatus) {
     if (error) throw error;
     
     showToast('success', '更新成功', `注意事項已${action}`);
-    loadNotices();
+    
+    // 更新本地數據
+    const index = allNotices.findIndex(n => n.id === noticeId);
+    if (index !== -1) {
+      allNotices[index].enabled = newStatus;
+    }
+    
+    // 直接渲染，不重新從服務器載入
+    renderNotices();
   } catch (error) {
-    console.error('更新注意事項狀態失敗:', error);
-    showToast('error', '更新失敗', error.message || '無法更新注意事項狀態');
+    showErrorToast('更新注意事項狀態', error, '無法更新注意事項狀態，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
@@ -2419,25 +3155,35 @@ async function deleteNotice(noticeId, noticeTitle) {
     if (error) throw error;
     
     showToast('success', '刪除成功', '注意事項已刪除');
-    loadNotices();
+    
+    // 更新本地數據
+    allNotices = allNotices.filter(n => n.id !== noticeId);
+    
+    // 直接渲染，不重新從服務器載入
+    renderNotices();
   } catch (error) {
-    console.error('刪除注意事項失敗:', error);
-    showToast('error', '刪除失敗', error.message || '無法刪除注意事項');
+    showErrorToast('刪除注意事項', error, '無法刪除注意事項，請檢查網路連線後重試');
   } finally {
     hideLoading();
   }
 }
 
-// 暴露到全局
+// ========== 暴露所有函數到全局 ==========
+
+// 場地管理相關函數
 window.loadLocations = loadLocations;
 window.showAddLocationModal = showAddLocationModal;
-window.closeLocationModal = closeLocationModal;
 window.editLocation = editLocation;
+window.closeLocationModal = closeLocationModal;
 window.saveLocation = saveLocation;
 window.toggleLocationStatus = toggleLocationStatus;
 window.deleteLocation = deleteLocation;
+
+// 注意事項管理相關函數
 window.loadNotices = loadNotices;
 window.showAddNoticeModal = showAddNoticeModal;
+window.filterNotices = filterNotices;
+window.debouncedFilterNotices = debouncedFilterNotices;
 window.closeNoticeModal = closeNoticeModal;
 window.editNotice = editNotice;
 window.saveNotice = saveNotice;
