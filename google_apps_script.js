@@ -1331,6 +1331,13 @@ function takeoverBooking(takeoverData) {
     
     console.log(`準備更新第${rowNumber}行: 新餐車=${takeoverData.vendor}, 原餐車=${takeoverData.originalVendor}`);
     
+    // 先讀取原有的付款狀態，保持已付款的狀態
+    const currentPaymentStatus = sheet.getRange(rowNumber, 8).getValue(); // H欄：款項結清
+    const isPaid = currentPaymentStatus === '己繳款' || currentPaymentStatus === '已付款';
+    const preservedPaymentStatus = isPaid ? currentPaymentStatus : '尚未付款';
+    
+    console.log(`原有付款狀態: ${currentPaymentStatus}, 是否已付款: ${isPaid}, 保持狀態: ${preservedPaymentStatus}`);
+    
     // 更新行數據
     const timestampCell = sheet.getRange(rowNumber, 1);
     timestampCell.setValue(new Date()); // A: 時間戳記（Date物件）
@@ -1347,7 +1354,7 @@ function takeoverBooking(takeoverData) {
     console.log(`F${rowNumber} 欄位已設定公式: ${statusFormula}`);
     
     sheet.getRange(rowNumber, 7).setValue(takeoverData.fee); // G: 場地費
-    sheet.getRange(rowNumber, 8).setValue('尚未付款'); // H: 款項結清
+    sheet.getRange(rowNumber, 8).setValue(preservedPaymentStatus); // H: 款項結清（保持原有付款狀態）
     sheet.getRange(rowNumber, 9).setValue(`接手自: ${takeoverData.originalVendor}`); // I: 備註
     
     console.log(`✅ 成功接手預約 - 行號: ${rowNumber}, 新餐車: ${takeoverData.vendor}, 時間戳記: ${newTimestamp}`);

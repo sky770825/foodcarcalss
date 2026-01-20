@@ -25,14 +25,103 @@ if (typeof window.supabase !== 'undefined') {
 // 管理密碼（請修改為您的實際密碼）
 const ADMIN_PASSWORD = 'sky36990'; // ⚠️ 請妥善保管此密碼！
 
-// 場地列表（統一管理，避免重複）
-const LOCATIONS = [
-  { key: '四維路59號', name: '四維路59號' },
-  { key: '漢堡大亨', name: '漢堡大亨 - 四維路70號' },
-  { key: '自由風', name: '自由風 - 四維路190號' },
-  { key: '蔬蒔', name: '蔬蒔 - 四維路216號' },
-  { key: '金正好吃', name: '金正好吃 - 四維路218號' }
-];
+// 場地列表（從資料庫動態載入，統一管理）
+let allLocations = []; // 場地列表將從 location_settings 表載入
+
+// 場地名稱映射表（用於匹配不同格式的場地名稱）
+// 這個映射表用於將 location_key 映射到所有可能的場地名稱格式
+// 因為歷史資料可能使用不同的場地名稱格式
+const locationNameMap = {
+  '四維路59號': ['四維路59號', '四維路59號'],
+  '漢堡大亨': ['漢堡大亨', '四維路70號', '漢堡大亨 - 四維路70號'],
+  '自由風': ['自由風', '四維路190號', '自由風 - 四維路190號'],
+  '蔬蒔': ['蔬蒔', '四維路216號', '蔬蒔 - 四維路216號'],
+  '金正好吃': ['金正好吃', '四維路218號', '金正好吃 - 四維路218號']
+};
+
+// 獲取場地的所有可能名稱（用於匹配）
+function getLocationVariants(locationKey) {
+  if (!locationKey) return [];
+  
+  const variants = new Set([locationKey]); // 使用 Set 避免重複
+  
+  // 先從映射表查找（歷史資料的兼容性）
+  if (locationNameMap[locationKey]) {
+    locationNameMap[locationKey].forEach(v => variants.add(v));
+  }
+  
+  // 從資料庫中的場地資料查找
+  const location = allLocations.find(loc => loc.location_key === locationKey);
+  if (location) {
+    // 添加 location_key
+    variants.add(location.location_key);
+    
+    // 添加 location_name
+    if (location.location_name) {
+      variants.add(location.location_name);
+    }
+    
+    // 從地址中提取路名和號碼（如「四維路70號」）
+    if (location.address) {
+      const addressMatch = location.address.match(/(四維路\d+號)/);
+      if (addressMatch) {
+        variants.add(addressMatch[1]);
+      }
+    }
+  }
+  
+  return Array.from(variants);
+}
+
+// 檢查場地名稱是否匹配（支援多種格式）
+function matchesLocation(bookingLocation, filterLocationKey) {
+  if (!filterLocationKey) return true; // 如果沒有篩選條件，返回 true
+  if (!bookingLocation) return false;
+  
+  // 標準化場地名稱（去除空格和特殊字符）
+  const normalize = (str) => {
+    if (!str) return '';
+    return String(str).trim().replace(/\s+/g, '').replace(/[-－]/g, '');
+  };
+  
+  const normalizedBookingLocation = normalize(bookingLocation);
+  
+  // 獲取篩選場地的所有可能名稱
+  const variants = getLocationVariants(filterLocationKey);
+  
+  // 檢查預約的場地名稱是否匹配任何一個變體
+  return variants.some(variant => {
+    const normalizedVariant = normalize(variant);
+    
+    // 精確匹配（標準化後）
+    if (normalizedBookingLocation === normalizedVariant) return true;
+    
+    // 包含匹配（處理可能的額外文字，如「漢堡大亨 - 四維路70號」）
+    if (normalizedBookingLocation.includes(normalizedVariant) || 
+        normalizedVariant.includes(normalizedBookingLocation)) {
+      return true;
+    }
+    
+    // 特殊處理：提取地址中的路名和號碼進行匹配
+    // 如果預約的場地名稱是地址格式（如「四維路70號」），
+    // 而篩選的是 location_key（如「漢堡大亨」），需要從地址中提取路名和號碼來匹配
+    const bookingAddressMatch = normalizedBookingLocation.match(/(四維路\d+號)/);
+    const variantAddressMatch = normalizedVariant.match(/(四維路\d+號)/);
+    
+    if (bookingAddressMatch && variantAddressMatch) {
+      // 兩者都是地址格式，直接比較地址
+      if (bookingAddressMatch[1] === variantAddressMatch[1]) return true;
+    } else if (bookingAddressMatch) {
+      // 預約的是地址格式，檢查變體中是否包含這個地址
+      if (normalizedVariant.includes(bookingAddressMatch[1])) return true;
+    } else if (variantAddressMatch) {
+      // 變體是地址格式，檢查預約中是否包含這個地址
+      if (normalizedBookingLocation.includes(variantAddressMatch[1])) return true;
+    }
+    
+    return false;
+  });
+}
 
 // 調試模式（生產環境應設為 false）
 const DEBUG_MODE = false;
@@ -313,7 +402,7 @@ function debounce(func, wait) {
   };
 }
 
-// 生成場地選項 HTML
+// 生成場地選項 HTML（從資料庫動態載入）
 function generateLocationOptions(includeAll = true, includeGeneric = false) {
   let options = '';
   if (includeAll) {
@@ -322,10 +411,67 @@ function generateLocationOptions(includeAll = true, includeGeneric = false) {
   if (includeGeneric) {
     options += '<option value="通用">通用（所有場地）</option>';
   }
-  LOCATIONS.forEach(location => {
-    options += `<option value="${escapeHtml(location.key)}">${escapeHtml(location.name)}</option>`;
+  // 使用資料庫中的場地列表，只顯示啟用的場地
+  const enabledLocations = (allLocations || []).filter(loc => loc.enabled !== false);
+  enabledLocations.forEach(location => {
+    const locationKey = location.location_key || '';
+    // 優先顯示地址中的路名和號碼（如「四維路70號」），如果沒有則使用 location_name
+    let displayName = location.location_name || location.location_key || '';
+    
+    // 從地址中提取路名和號碼（如「桃園市楊梅區四維路70號」→「四維路70號」）
+    if (location.address) {
+      const addressMatch = location.address.match(/(四維路\d+號)/);
+      if (addressMatch) {
+        displayName = addressMatch[1]; // 使用「四維路70號」格式
+      }
+    }
+    
+    options += `<option value="${escapeHtml(locationKey)}">${escapeHtml(displayName)}</option>`;
   });
   return options;
+}
+
+// 更新所有場地下拉選單
+function updateLocationSelects() {
+  // 更新預約管理的場地篩選下拉選單
+  const locationFilter = document.getElementById('locationFilter');
+  if (locationFilter) {
+    const currentValue = locationFilter.value;
+    locationFilter.innerHTML = generateLocationOptions(true, false);
+    if (currentValue) {
+      locationFilter.value = currentValue;
+    }
+  }
+  
+  // 更新編輯預約彈窗中的場地下拉選單
+  const editLocation = document.getElementById('editLocation');
+  if (editLocation) {
+    const currentValue = editLocation.value;
+    editLocation.innerHTML = '<option value="">請選擇場地</option>' + generateLocationOptions(false, false);
+    if (currentValue) {
+      editLocation.value = currentValue;
+    }
+  }
+  
+  // 更新注意事項管理的場地篩選下拉選單
+  const noticeLocationFilter = document.getElementById('noticeLocationFilter');
+  if (noticeLocationFilter) {
+    const currentValue = noticeLocationFilter.value;
+    noticeLocationFilter.innerHTML = generateLocationOptions(true, true);
+    if (currentValue) {
+      noticeLocationFilter.value = currentValue;
+    }
+  }
+  
+  // 更新新增/編輯注意事項彈窗中的場地下拉選單
+  const noticeTargetLocation = document.getElementById('noticeTargetLocation');
+  if (noticeTargetLocation) {
+    const currentValue = noticeTargetLocation.value;
+    noticeTargetLocation.innerHTML = '<option value="">通用（所有場地）</option>' + generateLocationOptions(false, false);
+    if (currentValue) {
+      noticeTargetLocation.value = currentValue;
+    }
+  }
 }
 let newBookings = []; // 新預約列表
 let processedBookingIds = new Set(); // 已處理的預約 ID（儲存在 localStorage）
@@ -447,6 +593,9 @@ function showMainContent() {
       btn.classList.remove('active');
     }
   });
+  
+  // 載入場地資料供下拉選單使用
+  loadLocationsForSelects();
   
   // 啟動背景自動刷新
   startAutoRefresh();
@@ -857,8 +1006,8 @@ function filterBookings() {
       if (!searchText.includes(searchTerm)) return false;
     }
     
-    // 場地篩選
-    if (locationFilter && booking.location !== locationFilter) return false;
+    // 場地篩選（支援多種場地名稱格式的匹配）
+    if (locationFilter && !matchesLocation(booking.location, locationFilter)) return false;
     
     // 付款狀態篩選
     if (paymentFilter) {
@@ -912,16 +1061,36 @@ function parseDate(dateStr) {
   if (dateStr.includes('月') && dateStr.includes('日')) {
     const match = dateStr.match(/(\d+)月(\d+)日/);
     if (match) {
-      const year = new Date().getFullYear();
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
       const month = parseInt(match[1]) - 1;
       const day = parseInt(match[2]);
-      return new Date(year, month, day);
+      
+      // 嘗試使用當前年份
+      let date = new Date(currentYear, month, day);
+      
+      // 如果日期在未來超過6個月，可能是去年的日期
+      const sixMonthsLater = new Date(currentYear, currentDate.getMonth() + 6, 1);
+      if (date > sixMonthsLater) {
+        date = new Date(currentYear - 1, month, day);
+      }
+      // 如果日期在過去超過6個月，可能是明年的日期
+      const sixMonthsAgo = new Date(currentYear, currentDate.getMonth() - 6, 1);
+      if (date < sixMonthsAgo) {
+        date = new Date(currentYear + 1, month, day);
+      }
+      
+      return date;
     }
   }
   
-  // 處理 ISO 格式 "2025-10-13"
+  // 處理 ISO 格式 "2025-10-13" 或 "2025-10-13T00:00:00.000Z"
   if (dateStr.includes('-')) {
-    return new Date(dateStr);
+    const date = new Date(dateStr);
+    // 檢查日期是否有效
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
   }
   
   return null;
@@ -2234,8 +2403,6 @@ window.closeDayBookingsModal = closeDayBookingsModal;
 
 // ========== 場地管理功能 ==========
 
-let allLocations = [];
-
 // 獲取 Supabase 客戶端（確保可用）
 function getSupabaseClient() {
   if (supabaseClientInstance) {
@@ -2252,6 +2419,51 @@ function getSupabaseClient() {
 
 // 載入場地列表
 let isLoadingLocations = false; // 防止重複載入的標記
+
+// 載入場地資料供下拉選單使用（不依賴 locationsList 容器）
+async function loadLocationsForSelects() {
+  // 如果已經有資料且正在載入中，則跳過
+  if (isLoadingLocations) {
+    console.log('⚠️ 場地資料正在載入中，跳過重複請求');
+    return;
+  }
+  
+  // 如果已經有資料，直接更新下拉選單
+  if (allLocations && allLocations.length > 0) {
+    updateLocationSelects();
+    return;
+  }
+  
+  // 設置載入標記
+  isLoadingLocations = true;
+  
+  try {
+    const supabase = getSupabaseClient();
+    
+    console.log('🔄 開始載入場地資料（供下拉選單使用）...');
+    const { data, error } = await supabase
+      .from('location_settings')
+      .select('*')
+      .order('location_key', { ascending: true });
+    
+    if (error) {
+      console.error('❌ Supabase 查詢錯誤:', error);
+      throw error;
+    }
+    
+    allLocations = data || [];
+    console.log('✅ 載入場地數據成功，共', allLocations.length, '個場地');
+    
+    // 更新所有場地下拉選單
+    updateLocationSelects();
+  } catch (error) {
+    console.error('❌ 載入場地資料失敗:', error);
+    // 不顯示錯誤提示，因為這是在背景載入
+  } finally {
+    // 清除載入標記
+    isLoadingLocations = false;
+  }
+}
 
 async function loadLocations() {
   // 防止重複載入
@@ -2289,8 +2501,13 @@ async function loadLocations() {
     allLocations = data || [];
     console.log('✅ 載入場地數據成功，共', allLocations.length, '個場地');
     
-    // 立即渲染
-    renderLocations();
+    // 更新所有場地下拉選單
+    updateLocationSelects();
+    
+    // 立即渲染（如果容器存在）
+    if (container) {
+      renderLocations();
+    }
     
     if (allLocations.length > 0) {
       showToast('success', '載入成功', `已載入 ${allLocations.length} 個場地`);
@@ -2663,6 +2880,9 @@ async function saveLocation(event) {
     
     // 直接渲染，不重新從服務器載入
     renderLocations();
+    
+    // 更新所有場地下拉選單
+    updateLocationSelects();
   } catch (error) {
     showErrorToast('儲存場地', error, '無法儲存場地資料，請檢查網路連線後重試');
   } finally {
@@ -2704,6 +2924,9 @@ async function toggleLocationStatus(locationId, currentStatus) {
     
     // 直接渲染，不重新從服務器載入
     renderLocations();
+    
+    // 更新所有場地下拉選單
+    updateLocationSelects();
   } catch (error) {
     showErrorToast('更新場地狀態', error, '無法更新場地狀態，請檢查網路連線後重試');
   } finally {
@@ -2738,6 +2961,9 @@ async function deleteLocation(locationId, locationName) {
     
     // 直接渲染，不重新從服務器載入
     renderLocations();
+    
+    // 更新所有場地下拉選單
+    updateLocationSelects();
   } catch (error) {
     showErrorToast('刪除場地', error, '無法刪除場地，請檢查網路連線後重試');
   } finally {

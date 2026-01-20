@@ -180,12 +180,28 @@ async function deleteBooking(bookingId) {
 // 接手預約（更新為新的餐車資訊）
 async function takeoverBooking(bookingId, newVendorData) {
   try {
+    // 先讀取原有的付款狀態，保持已付款的狀態
+    const { data: existingBooking, error: fetchError } = await supabase
+      .from('foodcarcalss')
+      .select('payment')
+      .eq('id', bookingId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // 如果原本是已付款，保持已付款狀態；否則設為未繳款
+    const currentPayment = existingBooking.payment || '';
+    const isPaid = currentPayment === '己繳款' || currentPayment === '已付款';
+    const preservedPayment = isPaid ? currentPayment : '未繳款';
+    
+    console.log(`接手預約 - 原有付款狀態: ${currentPayment}, 保持狀態: ${preservedPayment}`);
+    
     const { data, error } = await supabase
       .from('foodcarcalss')
       .update({
         vendor: newVendorData.vendor,
         food_type: newVendorData.foodType,
-        payment: '未繳款' // 接手後需要重新付款
+        payment: preservedPayment // 保持原有付款狀態（已付款保持，未付款設為未繳款）
       })
       .eq('id', bookingId)
       .select()

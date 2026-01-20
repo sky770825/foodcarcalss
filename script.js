@@ -949,12 +949,17 @@ async function submitTakeover() {
       );
       
       if (eventIndex >= 0) {
+        // 保持原有的付款狀態（如果原本是已付款，保持已付款）
+        const originalPayment = allEvents[eventIndex].payment || '';
+        const isPaid = originalPayment === '已付款' || originalPayment === '己繳款';
+        const preservedPayment = isPaid ? originalPayment : '尚未付款';
+        
         allEvents[eventIndex] = {
           ...allEvents[eventIndex],
           title: newVendor,
           foodType: newFoodType,
           timestamp: formatTimestamp(),
-          payment: '尚未付款',
+          payment: preservedPayment, // 保持原有付款狀態
           source: 'takeover' // 標記為接手的預約
         };
       }
@@ -1859,12 +1864,28 @@ async function submitToGoogleSheets(formData) {
     // 處理不同的操作類型
     if (formData.action === 'takeover') {
       // 接手預約：更新現有預約的餐車資訊
+      // 先讀取原有的付款狀態，保持已付款的狀態
+      const { data: existingBooking, error: fetchError } = await supabaseClient
+        .from('foodcarcalss')
+        .select('payment')
+        .eq('id', formData.rowNumber)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // 如果原本是已付款，保持已付款狀態；否則設為未繳款
+      const currentPayment = existingBooking.payment || '';
+      const isPaid = currentPayment === '己繳款' || currentPayment === '已付款';
+      const preservedPayment = isPaid ? currentPayment : '未繳款';
+      
+      console.log(`接手預約 - 原有付款狀態: ${currentPayment}, 保持狀態: ${preservedPayment}`);
+      
       const { data, error } = await supabaseClient
         .from('foodcarcalss')
         .update({
           vendor: formData.vendor,
           food_type: formData.foodType,
-          payment: '未繳款' // 接手後需要重新付款
+          payment: preservedPayment // 保持原有付款狀態（已付款保持，未付款設為未繳款）
         })
         .eq('id', formData.rowNumber)
         .select()
