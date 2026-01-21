@@ -83,7 +83,7 @@ const locationConfigs = {
     name: "自由風",
     address: "楊梅區四維路190號",
     type: "合作店面",
-    days: [0, 1, 2, 4, 5], // 週三、週六不排，其它都可排
+    days: [0, 1, 2, 3, 4, 5], // 週六不排，其它都可排（日、一、二、三、四、五）
     slots: ["14:00-20:00"],
     price: {
       "14:00-20:00": "600元"
@@ -93,14 +93,14 @@ const locationConfigs = {
       fee: "600元/天",
       limit: "僅限1車，需配合店面營業",
       ban: "煙霧太大、飲料車",
-      special: "週三週六不排"
+      special: "週六不開放排班"
     },
     notices: [
       "不供水、不供電，需自行清潔環境及垃圾處理",
       "僅限1車，需配合店面營業",
       "禁止煙霧太大的餐車",
       "禁止飲料車",
-      "週三、週六不開放排班"
+      "週六不開放排班"
     ]
   },
   "蔬蒔": {
@@ -4084,8 +4084,8 @@ function renderCalendar() {
           }
           break;
         case '自由風':
-          // 週三、週六不排，其它都可排
-          if (dayOfWeek === 3 || dayOfWeek === 6) {
+          // 週六不排，其它都可排（日、一、二、三、四、五）
+          if (dayOfWeek === 6) {
             isNonOperating = true;
           }
           break;
