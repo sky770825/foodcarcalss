@@ -643,20 +643,90 @@ body {
 }
 
 /* 新預約操作按鈕樣式覆蓋（使用更具體的選擇器） */
+.new-booking-actions .btn {
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.new-booking-actions .btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.new-booking-actions .btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
 .new-booking-actions .btn-success {
   background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+.new-booking-actions .btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-2px);
+}
+
+.new-booking-actions .btn-success:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.new-booking-actions .btn-success i {
+  margin-right: 6px;
+  font-size: 0.9rem;
 }
 
 .new-booking-actions .btn-warning {
   background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+.new-booking-actions .btn-warning:hover {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4) !important;
+  transform: translateY(-2px);
 }
 
 .new-booking-actions .btn-danger {
   background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.new-booking-actions .btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+  transform: translateY(-2px);
 }
 
 .new-booking-actions .btn-secondary {
   background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3) !important;
+}
+
+.new-booking-actions .btn-secondary:hover {
+  background: linear-gradient(135deg, #4b5563, #374151) !important;
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.4) !important;
+  transform: translateY(-2px);
 }
 
 /* 新預約快速操作區域 */
@@ -1532,10 +1602,16 @@ body {
 /* 確認彈窗專用樣式 */
 .modal-confirm-info {
   background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 28px;
   margin-bottom: 24px;
   border: 2px solid #bae6fd;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
+}
+
+.modal-confirm-info:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
 }
 
 .modal-confirm-info h4 {
@@ -1586,10 +1662,39 @@ body {
 .modal-confirm-warning {
   background: linear-gradient(135deg, #fffbeb, #fef3c7);
   border-left: 5px solid #f59e0b;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-confirm-warning::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.modal-confirm-warning:hover {
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.2);
+  transform: translateY(-2px);
 }
 
 .modal-confirm-warning-content {
@@ -1625,10 +1730,12 @@ body {
 .modal-confirm-status-change {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 10px;
+  gap: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .modal-confirm-status-item {
@@ -1638,9 +1745,68 @@ body {
 
 .modal-confirm-arrow {
   color: #f59e0b;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
-  animation: pulse 2s ease-in-out infinite;
+  animation: slideArrow 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.3));
+}
+
+@keyframes slideArrow {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(8px);
+    opacity: 0.7;
+  }
+}
+
+/* 付款確認彈窗特殊樣式 */
+#paymentConfirmModal .modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  border-radius: 12px 12px 0 0;
+}
+
+#paymentConfirmModal .modal-header h3 {
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#paymentConfirmModal .modal-header h3 i {
+  color: #dbeafe;
+}
+
+#paymentConfirmModal .modal-close {
+  color: white;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+#paymentConfirmModal .modal-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+#paymentConfirmModal .btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+#paymentConfirmModal .btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+#paymentConfirmModal .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 /* 刪除確認彈窗特殊樣式 */

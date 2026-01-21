@@ -1802,10 +1802,47 @@ function createNewBookingCard(booking) {
 
 // 快速標記為已付款
 async function quickMarkAsPaid(bookingId) {
-  if (!confirm('確定要將此預約標記為已付款嗎？')) {
+  const booking = allBookings.find(b => (b.id || b.rowNumber) === bookingId);
+  if (!booking) {
+    showToast('error', '錯誤', '找不到該預約記錄');
     return;
   }
   
+  // 使用美觀的確認彈窗
+  showQuickPaymentConfirmModal({
+    bookingId: bookingId,
+    vendor: booking.vendor || '',
+    location: booking.location || '',
+    date: booking.date || '',
+    currentPayment: booking.payment || '未繳款',
+    newPayment: '己繳款',
+    paymentText: '己繳款'
+  });
+}
+
+// 顯示快速付款確認彈窗
+function showQuickPaymentConfirmModal(data) {
+  const modal = document.getElementById('paymentConfirmModal');
+  const currentText = data.currentPayment === '己繳款' || data.currentPayment === '已付款' ? '己繳款' : 
+                     data.currentPayment === '逾繳可排' ? '逾繳可排' : '未繳款';
+  
+  document.getElementById('confirmVendor').textContent = data.vendor;
+  document.getElementById('confirmLocation').textContent = data.location;
+  document.getElementById('confirmDate').textContent = data.date;
+  document.getElementById('confirmCurrentPayment').textContent = currentText;
+  document.getElementById('confirmNewPayment').textContent = data.paymentText;
+  
+  // 儲存數據到按鈕
+  document.getElementById('confirmPaymentBtn').onclick = () => {
+    closePaymentConfirmModal();
+    executeQuickPaymentStatusChange(data);
+  };
+  
+  modal.classList.add('active');
+}
+
+// 執行快速付款狀態變更
+async function executeQuickPaymentStatusChange(data) {
   showLoading('處理中...');
   
   try {
@@ -1813,10 +1850,10 @@ async function quickMarkAsPaid(bookingId) {
       throw new Error('Supabase 客戶端未初始化');
     }
     
-    const { data, error } = await supabaseClientInstance
+    const { data: updatedData, error } = await supabaseClientInstance
       .from('foodcarcalss')
-      .update({ payment: '己繳款' })
-      .eq('id', bookingId)
+      .update({ payment: data.newPayment })
+      .eq('id', data.bookingId)
       .select()
       .single();
     
@@ -1825,9 +1862,9 @@ async function quickMarkAsPaid(bookingId) {
     showToast('success', '更新成功', '付款狀態已更新為「己繳款」');
     
     // 立即更新本地數據和UI（不需要重新載入）
-    const booking = allBookings.find(b => (b.id || b.rowNumber) === bookingId);
+    const booking = allBookings.find(b => (b.id || b.rowNumber) === data.bookingId);
     if (booking) {
-      booking.payment = '己繳款';
+      booking.payment = data.newPayment;
     }
     
     // 重新渲染（不重新載入）
@@ -2769,6 +2806,7 @@ async function saveLocation(event) {
   // 輸入驗證
   if (!locationKey || !validateInputLength(locationKey, 1, 50)) {
     showToast('error', '驗證失敗', '場地識別碼長度必須在 1-50 字元之間');
+    isSavingLocation = false; // 清除保存標記
     return;
   }
   const locationName = sanitizeInput(document.getElementById('locationName').value.trim(), 'text');
@@ -2776,11 +2814,13 @@ async function saveLocation(event) {
   // 額外驗證
   if (!locationName || !validateInputLength(locationName, 1, 200)) {
     showToast('error', '驗證失敗', '顯示名稱長度必須在 1-200 字元之間');
+    isSavingLocation = false; // 清除保存標記
     return;
   }
   const locationAddress = sanitizeInput(document.getElementById('locationAddress').value.trim(), 'text');
   if (!locationAddress || !validateInputLength(locationAddress, 1, 300)) {
     showToast('error', '驗證失敗', '完整地址長度必須在 1-300 字元之間');
+    isSavingLocation = false; // 清除保存標記
     return;
   }
   const locationType = document.getElementById('locationType').value;
