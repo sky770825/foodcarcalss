@@ -674,13 +674,14 @@ function showTransferModal(event, dateStr) {
   
   document.getElementById('transferDate').textContent = formattedDate;
   
-  // 儲存釋出資訊供後續使用
+  // 儲存釋出資訊供後續使用（rowNumber 與 id 皆為 Supabase 主鍵，用於 .eq('id', ...)）
   window.currentTransferEvent = {
     originalEvent: event,
     dateStr: dateStr,
     formattedDate: formattedDate,
     location: event.location,
-    rowNumber: event.rowNumber
+    rowNumber: event.rowNumber ?? event.id,
+    id: event.id ?? event.rowNumber
   };
   
   console.log('保存的釋出資訊:', window.currentTransferEvent);
@@ -734,14 +735,19 @@ async function submitTransfer() {
   
   const transferData = window.currentTransferEvent;
   
+  // 確保使用正確的預約 ID（Supabase 主鍵，用於 .eq('id', ...)）
+  const targetRowNumber = transferData.originalEvent?.rowNumber ?? transferData.originalEvent?.id ?? transferData.rowNumber ?? transferData.id;
+  
+  if (targetRowNumber == null || targetRowNumber === '') {
+    console.error('❌ 釋出失敗：找不到預約 ID', { transferData, originalEvent: transferData.originalEvent });
+    showToast('error', '釋出失敗', '無法取得預約 ID，請重新整理頁面後再試');
+    return;
+  }
+  
   console.log('========== 釋出操作詳細資訊 ==========');
   console.log('原事件資訊:', transferData.originalEvent);
-  console.log('原事件 rowNumber:', transferData.originalEvent.rowNumber);
-  console.log('transferData rowNumber:', transferData.rowNumber);
+  console.log('targetRowNumber (Supabase id):', targetRowNumber, typeof targetRowNumber);
   console.log('===================================');
-  
-  // 確保使用正確的行號
-  const targetRowNumber = transferData.originalEvent.rowNumber || transferData.rowNumber;
   
   // 準備釋出數據
   const formData = {
@@ -824,13 +830,17 @@ async function submitTransfer() {
       }, 4000);
       
     } else {
-      throw new Error('Google Sheets提交失敗');
+      throw new Error(result?.message || '提交失敗');
     }
     
   } catch (error) {
     console.error('釋出失敗:', error);
     hideLoading();
-    showToast('error', '釋出失敗', '無法完成釋出操作，請稍後再試');
+    const errMsg = error?.message || String(error);
+    const userMsg = errMsg.includes('Supabase') || errMsg.includes('權限') || errMsg.includes('401') || errMsg.includes('403')
+      ? errMsg
+      : `無法完成釋出操作：${errMsg}`;
+    showToast('error', '釋出失敗', userMsg);
   }
 }
 
@@ -1897,6 +1907,10 @@ async function submitToGoogleSheets(formData) {
     
     if (formData.action === 'transfer') {
       // 排班釋出：更新為新的餐車資訊
+      const recordId = formData.rowNumber;
+      if (recordId == null || recordId === '') {
+        throw new Error('缺少預約 ID，無法執行釋出');
+      }
       const { data, error } = await supabaseClient
         .from('foodcarcalss')
         .update({
@@ -1904,11 +1918,17 @@ async function submitToGoogleSheets(formData) {
           food_type: formData.foodType,
           payment: '未繳款' // 釋出後需要重新付款
         })
-        .eq('id', formData.rowNumber)
+        .eq('id', recordId)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase 釋出更新失敗:', error);
+        throw error;
+      }
+      if (!data) {
+        throw new Error('更新成功但未回傳資料，請重新整理頁面確認');
+      }
       return { success: true, message: '排班已成功釋出', booking: data };
     }
     
@@ -4197,14 +4217,18 @@ function quickBooking(dateStr, location) {
 
 // 設定行事曆事件
 function setupCalendarEvents() {
-  // 月份導航
+  // 月份導航（使用新 Date 避免 setMonth 溢位：例如 1/31 點下一月會變成 3 月）
   document.getElementById('prevMonth').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth();
+    currentDate = new Date(y, m - 1, 1);
     renderCalendar();
   });
   
   document.getElementById('nextMonth').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth();
+    currentDate = new Date(y, m + 1, 1);
     renderCalendar();
   });
   

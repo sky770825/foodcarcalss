@@ -74,6 +74,31 @@ function getLocationVariants(locationKey) {
   return Array.from(variants);
 }
 
+// 從顯示名稱（如「四維路70號」）反查 location_key（如「漢堡大亨」）供編輯表單使用
+function getLocationKeyForDisplayName(displayName) {
+  if (!displayName || !displayName.trim()) return '';
+  const normalized = String(displayName).trim();
+  
+  // 先查 locationNameMap
+  for (const [key, variants] of Object.entries(locationNameMap)) {
+    if (variants.some(v => String(v).trim() === normalized)) return key;
+    if (key === normalized) return key;
+  }
+  
+  // 再查 allLocations
+  for (const loc of (allLocations || [])) {
+    const key = loc.location_key || '';
+    if (key && key === normalized) return key;
+    if (loc.location_name && String(loc.location_name).trim() === normalized) return key;
+    if (loc.address) {
+      const m = loc.address.match(/(四維路\d+號)/);
+      if (m && m[1] === normalized) return key;
+    }
+  }
+  
+  return normalized; // 找不到時回傳原值，讓表單嘗試匹配
+}
+
 // 檢查場地名稱是否匹配（支援多種格式）
 function matchesLocation(bookingLocation, filterLocationKey) {
   if (!filterLocationKey) return true; // 如果沒有篩選條件，返回 true
@@ -317,8 +342,10 @@ const ERROR_MESSAGES = {
   'not null': '必填欄位未填寫',
   
   // 權限錯誤
-  'permission denied': '權限不足，無法執行此操作',
-  'unauthorized': '未授權，請重新登入',
+  'permission denied': '權限不足，請檢查 Supabase 專案是否已恢復、API 金鑰是否正確，及 RLS 政策是否允許此操作',
+  'unauthorized': '未授權，請檢查 Supabase 專案是否已暫停或 API 金鑰已變更',
+  '401': '未授權，請檢查 Supabase 專案是否已恢復、API 金鑰是否正確',
+  '403': '權限不足，請檢查 Supabase RLS 政策與 Storage 設定',
   
   // 通用錯誤
   '找不到': '找不到相關資料',
@@ -362,7 +389,7 @@ function handleError(error, context = '操作', defaultMessage = '發生錯誤�
         userMessage = '資料關聯錯誤';
         break;
       case '42501':
-        userMessage = '權限不足，無法執行此操作';
+        userMessage = '資料庫權限不足，請至 Supabase Dashboard 檢查 Table RLS 政策與 Storage 權限';
         break;
       default:
         if (!userMessage.includes('請')) {
@@ -755,6 +782,52 @@ function logout() {
   filteredBookings = [];
 }
 
+// 判斷是否為未繳款狀態
+function isUnpaidPayment(payment) {
+  const p = (payment || '').trim();
+  return !p || p === '未繳款' || p === '尚未付款' || p === '未付款';
+}
+
+// 自動將超過 24 小時未繳款的預約更新為「逾繳可排」（更新資料庫 + 本地）
+async function autoUpdateOverduePayments(bookings) {
+  if (!supabaseClientInstance || !bookings || bookings.length === 0) return 0;
+  
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const toUpdate = [];
+  
+  for (const b of bookings) {
+    if (!isUnpaidPayment(b.payment)) continue; // 已付款或逾繳可排不處理
+    
+    const timeSource = b.timestamp || b.created_at;
+    if (!timeSource) continue;
+    
+    const created = new Date(timeSource);
+    if (isNaN(created.getTime())) continue;
+    
+    if (created < twentyFourHoursAgo) {
+      toUpdate.push(b);
+    }
+  }
+  
+  if (toUpdate.length === 0) return 0;
+  
+  const ids = toUpdate.map(b => b.id || b.rowNumber).filter(Boolean);
+  const { error } = await supabaseClientInstance
+    .from('foodcarcalss')
+    .update({ payment: '逾繳可排' })
+    .in('id', ids);
+  
+  if (error) {
+    console.warn('⚠️ 自動更新逾期付款狀態失敗:', error.message);
+    return 0;
+  }
+  
+  // 更新本地資料
+  toUpdate.forEach(b => { b.payment = '逾繳可排'; });
+  return toUpdate.length;
+}
+
 // 載入預約數據
 async function loadBookings() {
   showLoading('載入預約數據...');
@@ -817,6 +890,13 @@ async function loadBookings() {
         
         return booking;
       });
+      
+      // 自動將超過 24 小時未繳款的預約更新為「逾繳可排」（讓其他餐車可接手排班）
+      const updatedCount = await autoUpdateOverduePayments(allBookings);
+      if (updatedCount > 0) {
+        console.log(`🔄 已自動更新 ${updatedCount} 筆逾期未繳款預約為「逾繳可排」`);
+        showToast('info', '已更新逾期狀態', `${updatedCount} 筆預約已超過 24 小時未繳款，已自動改為「逾繳可排」`);
+      }
       
       // 調試：顯示付款狀態統計
       const unpaidCount = allBookings.filter(b => {
@@ -1097,9 +1177,9 @@ function parseDate(dateStr) {
   return null;
 }
 
-// 編輯預約
-function editBooking(rowNumber) {
-  const booking = allBookings.find(b => b.rowNumber === rowNumber);
+// 編輯預約（dateHint 可選，從日曆點擊時傳入正確的 YYYY-MM-DD 以避免日期跑掉）
+function editBooking(rowNumber, dateHint) {
+  const booking = allBookings.find(b => (b.id === rowNumber || b.rowNumber === rowNumber));
   if (!booking) {
     showToast('error', '錯誤', '找不到該預約記錄');
     return;
@@ -1108,19 +1188,26 @@ function editBooking(rowNumber) {
   currentEditingBooking = booking;
   
   // 填充表單
-  document.getElementById('editRowNumber').value = booking.rowNumber;
+  document.getElementById('editRowNumber').value = booking.rowNumber || booking.id;
   document.getElementById('editVendor').value = booking.vendor || '';
   document.getElementById('editFoodType').value = booking.foodType || '';
-  document.getElementById('editLocation').value = booking.location || '';
   
-  // 處理日期格式
+  // 場地：將顯示名稱（如「四維路70號」）轉為 location_key（如「漢堡大亨」）以正確選中下拉選項
+  const locationKey = getLocationKeyForDisplayName(booking.location || '');
+  document.getElementById('editLocation').value = locationKey || booking.location || '';
+  
+  // 處理日期：優先使用 dateHint（從日曆點擊時傳入），避免 parseDate 推斷錯誤
   let dateValue = '';
-  if (booking.date) {
-    const parsedDate = parseDate(booking.date);
-    if (parsedDate) {
-      dateValue = parsedDate.toISOString().split('T')[0];
-    } else if (booking.date.includes('-')) {
+  if (dateHint && /^\d{4}-\d{2}-\d{2}/.test(dateHint)) {
+    dateValue = dateHint.split('T')[0];
+  } else if (booking.date) {
+    if (booking.date.includes('-')) {
       dateValue = booking.date.split('T')[0];
+    } else {
+      const parsedDate = parseDate(booking.date);
+      if (parsedDate) {
+        dateValue = parsedDate.toISOString().split('T')[0];
+      }
     }
   }
   document.getElementById('editDate').value = dateValue;
@@ -2205,7 +2292,7 @@ function createCalendarDay(year, month, day, isOtherMonth) {
   const moreCount = dayBookings.length - maxDisplay;
   
   displayBookings.forEach(booking => {
-    const event = createCalendarEvent(booking);
+    const event = createCalendarEvent(booking, dateStr);
     eventsContainer.appendChild(event);
   });
   
@@ -2231,8 +2318,8 @@ function createCalendarDay(year, month, day, isOtherMonth) {
   return dayElement;
 }
 
-// 創建月曆事件元素
-function createCalendarEvent(booking) {
+// 創建月曆事件元素（dateStr 為該格子的正確日期 YYYY-MM-DD，用於編輯時避免日期跑掉）
+function createCalendarEvent(booking, dateStr) {
   const event = document.createElement('div');
   event.className = 'admin-calendar-event';
   
@@ -2258,10 +2345,10 @@ function createCalendarEvent(booking) {
   event.appendChild(vendor);
   event.appendChild(location);
   
-  // 點擊事件可快速編輯
+  // 點擊事件可快速編輯（傳入 dateStr 確保表單顯示正確日期與場地）
   event.addEventListener('click', (e) => {
     e.stopPropagation();
-    editBooking(booking.id || booking.rowNumber);
+    editBooking(booking.id || booking.rowNumber, dateStr);
   });
   
   return event;
@@ -2294,10 +2381,15 @@ function showDayBookingsModal(dateStr, bookings) {
   document.getElementById('dayBookingsDate').textContent = dateText;
   
   const list = document.getElementById('dayBookingsList');
+  const safe = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   list.innerHTML = bookings.map(booking => {
     const payment = booking.payment || '未繳款';
     const paymentClass = payment === '己繳款' || payment === '已付款' ? 'payment-paid' : 
                          payment === '逾繳可排' ? 'payment-overdue' : 'payment-unpaid';
+    const safeVendor = safe(booking.vendor);
+    const safeLocation = safe(booking.location);
+    const safeDate = safe(booking.date);
+    const bid = booking.id || booking.rowNumber;
     
     return `
       <div class="day-booking-item" style="padding: 16px; margin-bottom: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -2311,11 +2403,14 @@ function showDayBookingsModal(dateStr, bookings) {
           </div>
           <span class="status-badge ${paymentClass}">${payment}</span>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button onclick="editBooking(${booking.id || booking.rowNumber})" class="btn btn-primary btn-sm">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button onclick="closeDayBookingsModal(); editBooking(${bid}, '${dateStr}')" class="btn btn-primary btn-sm">
             <i class="fas fa-edit"></i> 編輯
           </button>
-          <button onclick="deleteBooking(${booking.id || booking.rowNumber}, '${escapeHtml(booking.vendor || '')}', '${escapeHtml(booking.location || '')}', '${escapeHtml(booking.date || '')}')" class="btn btn-danger btn-sm">
+          <button onclick="closeDayBookingsModal(); editBooking(${bid}, '${dateStr}')" class="btn btn-secondary btn-sm" title="變更日期或場地進行換班">
+            <i class="fas fa-exchange-alt"></i> 更換班表
+          </button>
+          <button onclick="closeDayBookingsModal(); deleteBooking(${bid}, '${safeVendor}', '${safeLocation}', '${safeDate}')" class="btn btn-danger btn-sm">
             <i class="fas fa-trash"></i> 刪除
           </button>
         </div>
@@ -2648,6 +2743,8 @@ function renderLocations() {
     
     const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
     const daysStr = availableDays.map(d => dayNames[d]).join('、') || '無';
+    const imageUrl = info.image_url || info.imageUrl || '';
+    const safeImageUrl = imageUrl ? escapeHtml(imageUrl) : '';
     
     return `
       <div class="location-card ${!location.enabled ? 'disabled' : ''}">
@@ -2659,10 +2756,18 @@ function renderLocations() {
             </h3>
             <p class="location-key">識別碼：${escapeHtml(location.location_key)}</p>
           </div>
-          <div class="location-status">
-            <span class="status-badge ${location.enabled ? 'enabled' : 'disabled'}">
-              ${location.enabled ? '啟用中' : '已停用'}
-            </span>
+          <div class="location-header-right">
+            <div class="location-photo-thumb ${imageUrl ? 'has-image' : ''}" 
+                 ${imageUrl ? `onclick="showLocationImageModal('${safeImageUrl.replace(/'/g, "\\'")}')" title="點擊放大"` : ''}>
+              ${imageUrl 
+                ? `<img src="${safeImageUrl}" alt="場地照片" loading="lazy">` 
+                : '<i class="fas fa-camera"></i>'}
+            </div>
+            <div class="location-status">
+              <span class="status-badge ${location.enabled ? 'enabled' : 'disabled'}">
+                ${location.enabled ? '啟用中' : '已停用'}
+              </span>
+            </div>
           </div>
         </div>
         
@@ -2748,6 +2853,12 @@ function showAddLocationModal() {
   document.getElementById('locationForm').reset();
   document.getElementById('locationId').value = '';
   document.getElementById('locationEnabled').checked = true;
+  document.getElementById('locationImageUrl').value = '';
+  document.getElementById('locationImagePreview').style.display = 'none';
+  document.getElementById('locationImagePreview').src = '';
+  document.getElementById('locationImagePlaceholder').style.display = 'flex';
+  const removeBtn = document.getElementById('locationImageRemoveBtn');
+  if (removeBtn) removeBtn.style.display = 'none';
   
   // 重置星期選擇（預設週一到週六）
   document.querySelectorAll('.weekday-checkbox').forEach((cb, i) => {
@@ -2760,6 +2871,75 @@ function showAddLocationModal() {
 // 關閉場地彈窗
 function closeLocationModal() {
   document.getElementById('locationModal').classList.remove('active');
+}
+
+// 上傳場地圖片至 Supabase Storage
+async function uploadLocationImageToSupabase(file, locationKey) {
+  if (!supabaseClientInstance) throw new Error('Supabase 未初始化');
+  const sanitize = (s) => String(s || '').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_').slice(0, 50);
+  const key = sanitize(locationKey) || 'location';
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const fileName = `location_images/${key}_${Date.now()}.${ext}`;
+  
+  const { data, error } = await supabaseClientInstance.storage
+    .from('foodcarcalss')
+    .upload(fileName, file, { contentType: file.type || 'image/jpeg', cacheControl: '3600', upsert: true });
+  
+  if (error) throw error;
+  const { data: urlData } = supabaseClientInstance.storage.from('foodcarcalss').getPublicUrl(fileName);
+  return urlData?.publicUrl || null;
+}
+
+// 處理場地圖片選擇
+async function handleLocationImageSelect(event) {
+  const file = event.target?.files?.[0];
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('error', '格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
+    return;
+  }
+  const locationKey = document.getElementById('locationKey').value.trim() || 'new';
+  showLoading('上傳中...');
+  try {
+    const url = await uploadLocationImageToSupabase(file, locationKey);
+    document.getElementById('locationImageUrl').value = url;
+    document.getElementById('locationImagePreview').src = url;
+    document.getElementById('locationImagePreview').style.display = 'block';
+    document.getElementById('locationImagePlaceholder').style.display = 'none';
+    const removeBtn = document.getElementById('locationImageRemoveBtn');
+    if (removeBtn) removeBtn.style.display = 'inline-block';
+    showToast('success', '已上傳', '場地照片已上傳，請點擊儲存以保存變更');
+  } catch (err) {
+    showErrorToast('上傳場地照片', err, '無法上傳圖片，請檢查網路與 Storage 設定');
+  } finally {
+    hideLoading();
+    event.target.value = '';
+  }
+}
+
+// 移除場地圖片
+function removeLocationImage() {
+  document.getElementById('locationImageUrl').value = '';
+  document.getElementById('locationImagePreview').src = '';
+  document.getElementById('locationImagePreview').style.display = 'none';
+  document.getElementById('locationImagePlaceholder').style.display = 'flex';
+  const removeBtn = document.getElementById('locationImageRemoveBtn');
+  if (removeBtn) removeBtn.style.display = 'none';
+}
+
+// 顯示場地照片放大（完整比例）
+function showLocationImageModal(imageUrl) {
+  const modal = document.getElementById('locationImageModal');
+  const img = document.getElementById('locationImageModalImg');
+  if (modal && img && imageUrl) {
+    img.src = imageUrl;
+    modal.classList.add('active');
+  }
+}
+
+// 關閉場地照片放大
+function closeLocationImageModal() {
+  const modal = document.getElementById('locationImageModal');
+  if (modal) modal.classList.remove('active');
 }
 
 // 編輯場地
@@ -2783,6 +2963,24 @@ function editLocation(locationId) {
   document.getElementById('locationBan').value = (location.info || {}).ban || '';
   document.getElementById('locationSpecial').value = (location.info || {}).special || '';
   document.getElementById('locationNotices').value = (location.notices || []).join('\n');
+  
+  // 場地照片
+  const imgUrl = (location.info || {}).image_url || (location.info || {}).imageUrl || '';
+  document.getElementById('locationImageUrl').value = imgUrl;
+  const preview = document.getElementById('locationImagePreview');
+  const placeholder = document.getElementById('locationImagePlaceholder');
+  const removeBtn = document.getElementById('locationImageRemoveBtn');
+  if (imgUrl) {
+    preview.src = imgUrl;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'inline-block';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'flex';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
   
   // 設定可預約星期
   const availableDays = location.available_days || [];
@@ -2851,13 +3049,15 @@ async function saveLocation(event) {
   // 解析注意事項
   const notices = noticesStr ? noticesStr.split('\n').map(s => s.trim()).filter(s => s) : [];
   
-  // 構建 info JSON
+  // 構建 info JSON（含場地照片）
+  const imageUrl = document.getElementById('locationImageUrl').value.trim();
   const info = {
     hours: timeSlots[0] || '14:00-20:00',
     fee: fee || '600元/天',
     limit: limit || '',
     ban: ban || '',
-    special: special || ''
+    special: special || '',
+    image_url: imageUrl || null
   };
   
   // 構建 price_per_slot JSON
@@ -3449,6 +3649,10 @@ window.loadLocations = loadLocations;
 window.showAddLocationModal = showAddLocationModal;
 window.editLocation = editLocation;
 window.closeLocationModal = closeLocationModal;
+window.showLocationImageModal = showLocationImageModal;
+window.closeLocationImageModal = closeLocationImageModal;
+window.removeLocationImage = removeLocationImage;
+window.handleLocationImageSelect = handleLocationImageSelect;
 window.saveLocation = saveLocation;
 window.toggleLocationStatus = toggleLocationStatus;
 window.deleteLocation = deleteLocation;

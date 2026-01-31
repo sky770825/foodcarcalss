@@ -576,7 +576,7 @@
   </div>
 </div>
 
-<!-- 編輯預約彈窗 -->
+<!-- 編輯預約彈窗（含更換班表：可變更日期或場地） -->
 <div id="editModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -584,6 +584,7 @@
       <span class="modal-close" onclick="closeEditModal()">&times;</span>
     </div>
     <div class="modal-body">
+      <p class="form-hint" style="margin: -8px 0 12px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更日期或場地進行換班作業</p>
       <form id="editForm" onsubmit="saveBooking(event)">
         <input type="hidden" id="editRowNumber">
         
@@ -745,6 +746,30 @@
         </div>
         
         <div class="form-group">
+          <label><i class="fas fa-image"></i> 場地照片</label>
+          <input type="hidden" id="locationImageUrl" value="">
+          <div class="location-image-upload-row">
+            <div class="location-image-preview-wrap" id="locationImagePreviewWrap">
+              <div class="location-image-placeholder" id="locationImagePlaceholder" onclick="document.getElementById('locationImageInput').click()" title="點擊上傳">
+                <i class="fas fa-camera"></i>
+                <span>點擊上傳</span>
+              </div>
+              <img id="locationImagePreview" src="" alt="場地預覽" class="location-image-preview" style="display:none;">
+            </div>
+            <div class="location-image-actions">
+              <input type="file" id="locationImageInput" accept="image/*" style="display:none;" onchange="handleLocationImageSelect(event)">
+              <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('locationImageInput').click()">
+                <i class="fas fa-upload"></i> 選擇圖片
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="locationImageRemoveBtn" style="display:none;" onclick="removeLocationImage()">
+                <i class="fas fa-trash"></i> 移除
+              </button>
+            </div>
+          </div>
+          <small class="form-hint">支援 JPG、PNG，建議尺寸 800×600 以上</small>
+        </div>
+        
+        <div class="form-group">
           <label><i class="fas fa-exclamation-triangle"></i> 注意事項（每行一條）</label>
           <textarea id="locationNotices" rows="4" placeholder="例如：&#10;不供水、不供電，需自行清潔環境及垃圾處理&#10;僅限1車，請勿與店面商品強碰"></textarea>
         </div>
@@ -838,6 +863,14 @@
 <div id="paymentImageModal" class="payment-image-modal">
   <span class="modal-close" onclick="closePaymentImageModal()">&times;</span>
   <img class="payment-image-modal-content" id="paymentImageModalImg" src="" alt="匯款證明">
+</div>
+
+<!-- 場地照片放大模態框 -->
+<div id="locationImageModal" class="location-image-modal">
+  <span class="modal-close" onclick="closeLocationImageModal()">&times;</span>
+  <div class="location-image-modal-inner">
+    <img class="location-image-modal-content" id="locationImageModalImg" src="" alt="場地照片">
+  </div>
 </div>
 
 <!-- 已處理預約查看模態框 -->

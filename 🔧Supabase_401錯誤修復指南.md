@@ -41,41 +41,38 @@ Failed to load resource: the server responded with a status of 401 ()
 
 ---
 
-### 3️⃣ RLS 政策阻擋匿名讀取
+### 3️⃣ 權限不足（permission denied for table foodcarcalss）
 
-Row Level Security（RLS）若設定不當，可能導致匿名（anon）無法讀取 `foodcarcalss` 表。
+若錯誤訊息為 **「permission denied for table foodcarcalss」**，表示 `anon` 角色尚未取得資料表操作權限。
 
-**修復步驟：** 在 Supabase Dashboard 開啟 **SQL Editor**，執行以下 SQL：
+**修復步驟：** 在 Supabase Dashboard 開啟 **SQL Editor**，執行專案中的 `fix_foodcarcalss_rls.sql`，或執行以下 SQL：
 
 ```sql
--- 檢查現有政策
-SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
-FROM pg_policies
-WHERE tablename = 'foodcarcalss';
+-- 授權 anon 與 authenticated 角色（關鍵步驟）
+GRANT ALL ON foodcarcalss TO anon;
+GRANT ALL ON foodcarcalss TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE foodcarcalss_id_seq TO anon;
+GRANT USAGE, SELECT ON SEQUENCE foodcarcalss_id_seq TO authenticated;
 
--- 若政策異常，先刪除再重建
+-- 刪除舊政策後重建
 DROP POLICY IF EXISTS "Allow public read access" ON foodcarcalss;
 DROP POLICY IF EXISTS "Allow public insert" ON foodcarcalss;
 DROP POLICY IF EXISTS "Allow public update" ON foodcarcalss;
 DROP POLICY IF EXISTS "Allow public delete" ON foodcarcalss;
 
--- 重新建立允許公開存取的政策
-CREATE POLICY "Allow public read access" ON foodcarcalss
-  FOR SELECT USING (true);
-
-CREATE POLICY "Allow public insert" ON foodcarcalss
-  FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Allow public update" ON foodcarcalss
-  FOR UPDATE USING (true);
-
-CREATE POLICY "Allow public delete" ON foodcarcalss
-  FOR DELETE USING (true);
+CREATE POLICY "Allow public read access" ON foodcarcalss FOR SELECT USING (true);
+CREATE POLICY "Allow public insert" ON foodcarcalss FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update" ON foodcarcalss FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete" ON foodcarcalss FOR DELETE USING (true);
 ```
+
+### 4️⃣ RLS 政策阻擋（若上述仍無法解決）
+
+Row Level Security（RLS）若設定不當，也可能導致 401。請執行完整的 `fix_foodcarcalss_rls.sql` 腳本。
 
 ---
 
-### 4️⃣ 專案 URL 或金鑰輸入錯誤
+### 5️⃣ 專案 URL 或金鑰輸入錯誤
 
 確認專案使用正確的 URL 和金鑰：
 

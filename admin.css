@@ -2127,9 +2127,147 @@ body {
   margin: 0;
 }
 
+.location-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* 場地照片小方塊（不影響文字比例） */
+.location-photo-thumb {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.location-photo-thumb i {
+  color: #9ca3af;
+  font-size: 1.1rem;
+}
+
+.location-photo-thumb.has-image {
+  cursor: pointer;
+  border-color: #667eea;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.location-photo-thumb.has-image:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: scale(1.05);
+}
+
+.location-photo-thumb.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .location-status {
   display: flex;
   gap: 6px;
+}
+
+/* 場地表單圖片上傳 */
+.location-image-upload-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.location-image-preview-wrap {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.location-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.location-image-placeholder i {
+  font-size: 1.5rem;
+}
+
+.location-image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.location-image-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 場地照片放大模態框（完整比例顯示） */
+.location-image-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.location-image-modal.active {
+  display: flex;
+}
+
+.location-image-modal-inner {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-image-modal-content {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.location-image-modal .modal-close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: white;
+  font-size: 36px;
+  cursor: pointer;
+  z-index: 10001;
 }
 
 /* 場地/注意事項的啟用狀態標籤 */
