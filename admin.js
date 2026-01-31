@@ -32,11 +32,12 @@ let allLocations = []; // 場地列表將從 location_settings 表載入
 // 這個映射表用於將 location_key 映射到所有可能的場地名稱格式
 // 因為歷史資料可能使用不同的場地名稱格式
 const locationNameMap = {
-  '四維路59號': ['四維路59號', '四維路59號'],
-  '漢堡大亨': ['漢堡大亨', '四維路70號', '漢堡大亨 - 四維路70號'],
-  '自由風': ['自由風', '四維路190號', '自由風 - 四維路190號'],
-  '蔬蒔': ['蔬蒔', '四維路216號', '蔬蒔 - 四維路216號'],
-  '金正好吃': ['金正好吃', '四維路218號', '金正好吃 - 四維路218號']
+  '四維路59號': ['四維路59號', '楊梅區四維路59號'],
+  '四維路60號': ['四維路60號', '楊梅區四維路60號'],
+  '漢堡大亨': ['漢堡大亨', '四維路70號', '漢堡大亨 - 四維路70號', '楊梅區四維路70號'],
+  '自由風': ['自由風', '四維路190號', '自由風 - 四維路190號', '楊梅區四維路190號'],
+  '蔬蒔': ['蔬蒔', '四維路216號', '蔬蒔 - 四維路216號', '楊梅區四維路216號'],
+  '金正好吃': ['金正好吃', '四維路218號', '金正好吃 - 四維路218號', '楊梅區四維路218號']
 };
 
 // 獲取場地的所有可能名稱（用於匹配）
@@ -2049,6 +2050,13 @@ function switchTab(tabName) {
         }
       }
     }, 100);
+  } else if (tabName === 'statistics') {
+    // 統計表：初始化月份選擇器並渲染
+    setTimeout(() => {
+      initStatsMonthSelector();
+      loadStatisticsSettings();
+      renderStatistics();
+    }, 100);
   }
 }
 
@@ -3659,6 +3667,264 @@ window.showProcessedBookingsModal = showProcessedBookingsModal;
 window.closeProcessedBookingsModal = closeProcessedBookingsModal;
 window.restoreProcessedBooking = restoreProcessedBooking;
 window.clearAllProcessedBookings = clearAllProcessedBookings;
+
+// ========== 統計表功能 ==========
+const STATS_STORAGE_KEY = 'admin_statistics_settings';
+
+// 統計參數（可編輯）
+let statsSettings = {
+  unitFee: 600,
+  venueFee: 300,
+  manualAdjust: 0
+};
+
+// 將場地名稱標準化為 location_key（用於分組）
+function getNormalizedLocationKey(locationStr) {
+  if (!locationStr) return '其他';
+  const s = String(locationStr).trim();
+  for (const [key, variants] of Object.entries(locationNameMap)) {
+    if (variants.some(v => s.includes(v) || v.includes(s))) return key;
+  }
+  // 從地址提取（如「四維路70號」）
+  const m = s.match(/(四維路\d+號)/);
+  if (m) return m[1];
+  return s || '其他';
+}
+
+// 從 fee 字串解析金額（如 "600元/天" -> 600）
+function parseFeeAmount(feeStr) {
+  if (!feeStr) return statsSettings.unitFee;
+  const m = String(feeStr).match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : statsSettings.unitFee;
+}
+
+// 判斷是否為已付款（僅己繳款/已付款可計入分潤）
+function isPaidBooking(booking) {
+  const payment = String(booking.payment || '').trim();
+  return payment === '己繳款' || payment === '已付款';
+}
+
+// 解析日期並判斷是否屬於指定年月（用於統計，避免 parseDate 的推斷造成跨年錯誤）
+function isDateInYearMonth(dateStr, year, month) {
+  if (!dateStr) return false;
+  const s = String(dateStr).trim();
+
+  // ISO 格式 "2025-10-13" 或 "2025-10-13T00:00:00.000Z"
+  if (s.includes('-')) {
+    const parts = s.split('T')[0].split('-');
+    if (parts.length >= 2) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      return y === year && m === month;
+    }
+  }
+
+  // "10月13日" 或 "10月13日(星期一)" 格式：用選定的年來解析
+  const match = s.match(/(\d+)月(\d+)日/);
+  if (match) {
+    const m = parseInt(match[1], 10);
+    const d = parseInt(match[2], 10);
+    if (m === month && d >= 1 && d <= 31) {
+      const testDate = new Date(year, m - 1, d);
+      return testDate.getFullYear() === year && (testDate.getMonth() + 1) === month;
+    }
+  }
+  return false;
+}
+
+// 取得該月份內且「僅已付款」的預約（未付款、逾繳可排等一律不計入）
+function getPaidBookingsForMonth(yearMonth) {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return allBookings.filter(b => {
+    if (!isPaidBooking(b)) return false;
+    return isDateInYearMonth(b.date, year, month);
+  });
+}
+
+// 初始化統計表月份選擇器
+function initStatsMonthSelector() {
+  const sel = document.getElementById('statsMonthSelect');
+  if (!sel) return;
+  const now = new Date();
+  let html = '';
+  for (let i = -3; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
+    const isCurrent = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    html += `<option value="${key}" ${isCurrent ? 'selected' : ''}>${label}</option>`;
+  }
+  sel.innerHTML = html;
+}
+
+// 載入統計參數（localStorage 優先，之後可接 Supabase）
+async function loadStatisticsSettings() {
+  try {
+    const stored = localStorage.getItem(STATS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      statsSettings = { ...statsSettings, ...parsed };
+    }
+    if (supabaseClientInstance) {
+      const { data } = await supabaseClientInstance
+        .from('statistics_settings')
+        .select('setting_value')
+        .eq('setting_key', 'default_params')
+        .maybeSingle();
+      if (data?.setting_value) {
+        const v = data.setting_value;
+        statsSettings.unitFee = v.unitFee ?? statsSettings.unitFee;
+        statsSettings.venueFee = v.venueFee ?? statsSettings.venueFee;
+        statsSettings.manualAdjust = v.manualAdjust ?? statsSettings.manualAdjust;
+      }
+    }
+  } catch (e) {
+    console.warn('載入統計參數失敗:', e);
+  }
+  document.getElementById('statsUnitFee').value = statsSettings.unitFee;
+  document.getElementById('statsVenueFee').value = statsSettings.venueFee;
+  document.getElementById('statsManualAdjust').value = statsSettings.manualAdjust;
+}
+
+// 儲存統計參數
+async function saveStatisticsSettingsToStorage() {
+  localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(statsSettings));
+  try {
+    if (supabaseClientInstance) {
+      await supabaseClientInstance
+        .from('statistics_settings')
+        .upsert({
+          setting_key: 'default_params',
+          setting_value: statsSettings,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'setting_key' });
+    }
+  } catch (e) {
+    console.warn('同步統計參數至資料庫失敗:', e);
+  }
+}
+
+// 渲染統計表
+function renderStatistics() {
+  const monthSelect = document.getElementById('statsMonthSelect');
+  const yearMonth = monthSelect ? monthSelect.value : null;
+  if (!yearMonth) return;
+
+  const paid = getPaidBookingsForMonth(yearMonth);
+  const venueFee = statsSettings.venueFee;
+  const manualAdjust = statsSettings.manualAdjust;
+
+  // 1. 廠商統計
+  const vendorMap = {};
+  const details = [];
+  paid.forEach(b => {
+    const v = (b.vendor || '').trim() || '(無名)';
+    const amt = parseFeeAmount(b.fee);
+    if (!vendorMap[v]) vendorMap[v] = { count: 0, total: 0 };
+    vendorMap[v].count += 1;
+    vendorMap[v].total += amt;
+    details.push({
+      vendor: v,
+      location: b.location || '-',
+      date: b.date || '-',
+      amount: amt
+    });
+  });
+
+  const vendors = Object.entries(vendorMap).sort((a, b) => b[1].total - a[1].total);
+  const totalStalls = paid.length;
+  const totalBrands = vendors.length;
+
+  // 廠商金額表
+  const vendorTbody = document.querySelector('#vendorAmountTable tbody');
+  if (vendorTbody) {
+    vendorTbody.innerHTML = vendors.map(([name, o]) =>
+      `<tr><td>${escapeHtml(name)}</td><td>${o.count}</td><td>${o.total} 元</td></tr>`
+    ).join('') || '<tr><td colspan="3">無數據</td></tr>';
+  }
+
+  document.getElementById('statsTotalStalls').textContent = totalStalls;
+  document.getElementById('statsTotalBrands').textContent = totalBrands;
+
+  // 擺攤明細
+  const detailsTbody = document.querySelector('#vendorDetailsTable tbody');
+  if (detailsTbody) {
+    details.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    detailsTbody.innerHTML = details.map(d =>
+      `<tr><td>${escapeHtml(d.vendor)}</td><td>${escapeHtml(d.location)}</td><td>${escapeHtml(d.date)}</td><td>${d.amount} 元</td></tr>`
+    ).join('') || '<tr><td colspan="4">無數據</td></tr>';
+  }
+
+  // 2. 場地與分潤（每筆使用實際收費金額）
+  const locationMap = {};
+  paid.forEach(b => {
+    const loc = getNormalizedLocationKey(b.location);
+    const amt = parseFeeAmount(b.fee);
+    if (!locationMap[loc]) locationMap[loc] = { count: 0, revenue: 0 };
+    locationMap[loc].count += 1;
+    locationMap[loc].revenue += amt;
+  });
+
+  const venueRows = Object.entries(locationMap).sort((a, b) => b[1].revenue - a[1].revenue);
+  let venueTotalPay = 0;
+  venueRows.forEach(([, o]) => {
+    o.venueFee = o.count * venueFee;
+    venueTotalPay += o.venueFee;
+  });
+
+  const venueTbody = document.querySelector('#venueRevenueTable tbody');
+  if (venueTbody) {
+    venueTbody.innerHTML = venueRows.map(([loc, o]) =>
+      `<tr><td>${escapeHtml(loc)}</td><td>${o.count}</td><td>${o.revenue} 元</td><td>${o.venueFee} 元</td></tr>`
+    ).join('') || '<tr><td colspan="4">無數據</td></tr>';
+  }
+
+  document.getElementById('statsVenueTotal').textContent = `${venueTotalPay} 元`;
+
+  // 3. 總額彙整（總收 = 各筆實際收費加總，僅已付款）
+  const totalRevenue = paid.reduce((sum, b) => sum + parseFeeAmount(b.fee), 0);
+  const totalExpense = venueTotalPay;
+  const balance = totalRevenue - totalExpense + manualAdjust;
+  const profitShare = Math.floor(balance / 3);
+
+  document.getElementById('statsTotalRevenue').textContent = `${totalRevenue} 元`;
+  document.getElementById('statsTotalExpense').textContent = `${totalExpense} 元`;
+  document.getElementById('statsBalance').textContent = `${balance} 元`;
+  document.getElementById('statsProfitShare').textContent = `${profitShare} 元`;
+}
+
+// 顯示統計編輯彈窗
+function showStatisticsEditModal() {
+  document.getElementById('statsUnitFee').value = statsSettings.unitFee;
+  document.getElementById('statsVenueFee').value = statsSettings.venueFee;
+  document.getElementById('statsManualAdjust').value = statsSettings.manualAdjust;
+  document.getElementById('statisticsEditModal').classList.add('active');
+}
+
+// 關閉統計編輯彈窗
+function closeStatisticsEditModal() {
+  document.getElementById('statisticsEditModal').classList.remove('active');
+}
+
+// 儲存統計設定
+async function saveStatisticsSettings(event) {
+  if (event) event.preventDefault();
+  const unitFee = parseInt(document.getElementById('statsUnitFee').value, 10) || 600;
+  const venueFee = parseInt(document.getElementById('statsVenueFee').value, 10) || 300;
+  const manualAdjust = parseInt(document.getElementById('statsManualAdjust').value, 10) || 0;
+
+  statsSettings = { unitFee, venueFee, manualAdjust };
+  await saveStatisticsSettingsToStorage();
+  closeStatisticsEditModal();
+  renderStatistics();
+  showToast('success', '已儲存', '統計參數已更新');
+}
+
+// 暴露統計表函數
+window.renderStatistics = renderStatistics;
+window.showStatisticsEditModal = showStatisticsEditModal;
+window.closeStatisticsEditModal = closeStatisticsEditModal;
+window.saveStatisticsSettings = saveStatisticsSettings;
 
 
 
