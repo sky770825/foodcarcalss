@@ -285,12 +285,12 @@ function generateAvailableDates(location) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // 條件1：生成未來3個月的所有日期（當前月份 + 未來2個月）
+  // 條件1：生成可預約的 4 個月（當前月份～當前+3個月）
   const currentMonth = today.getMonth() + 1; // 1-12
   const currentYear = today.getFullYear();
   
-  // 生成當前月份和未來2個月的所有日期
-  for (let i = 0; i < 3; i++) {
+  // 生成當前月份和未來 3 個月的所有日期（共 4 個月，四月應可預約）
+  for (let i = 0; i < 4; i++) {
     const targetMonth = currentMonth + i;
     const targetYear = currentYear;
     
@@ -337,10 +337,9 @@ function generateAvailableDates(location) {
       const hasSheetBooking = sheetsBookedDates[location] && 
         sheetsBookedDates[location].some(booking => booking.standardDate === dateStr);
       
-      // 條件6：時間控制檢查（獨立條件）- 顯示3個月
+      // 條件6：時間控制檢查 - 開放當前～當前+3個月
       const currentDay = today.getDate();
-      const isTimeControlled = true; // 顯示3個月的排班日期
-      // const isTimeControlled = checkTimeControl(year, month, currentYear, currentMonth, currentDay);
+      const isTimeControlled = checkTimeControl(year, month, currentYear, currentMonth, currentDay);
       
       // 只有通過所有條件的日期才加入選項（排除本地預約和Sheets預約）
       if (!hasEvent && !hasSheetBooking && isTimeControlled) {
@@ -2614,61 +2613,25 @@ function getHolidayName(dateStr) {
 }
 
 // 時間控制檢查函數（獨立條件）
+// 開放範圍：當前月份～當前+3個月（共 4 個月可預約）
+// 例如：3月 → 開放 3、4、5、6 月；4月 → 開放 4、5、6、7 月
 function checkTimeControl(targetYear, targetMonth, currentYear, currentMonth, currentDay) {
-  console.log(`檢查時間控制: 目標${targetYear}-${targetMonth}, 當前${currentYear}-${currentMonth}-${currentDay}`);
-  
   // 總是允許當前月份
   if (targetYear === currentYear && targetMonth === currentMonth) {
-    console.log(`允許當前月份: ${targetYear}-${targetMonth}`);
     return true;
   }
   
-  // 根據時間控制規則檢查其他月份
-  if (currentDay >= 1) { // 每月1日開始
-    // 開放當前月份 + 3個月後的月份
-    // 例如：9月 → 開放12月，10月 → 開放隔年1月，11月 → 開放隔年2月
-    const allowedMonth = currentMonth + 3;
-    const allowedYear = currentYear;
-    
-    let finalAllowedMonth, finalAllowedYear;
-    if (allowedMonth > 12) {
-      finalAllowedYear = allowedYear + Math.floor((allowedMonth - 1) / 12);
-      finalAllowedMonth = ((allowedMonth - 1) % 12) + 1;
-    } else {
-      finalAllowedYear = allowedYear;
-      finalAllowedMonth = allowedMonth;
-    }
-    
-    console.log(`計算允許月份: ${finalAllowedYear}-${finalAllowedMonth}`);
-    
-    // 檢查是否為允許的月份
-    if (targetYear === finalAllowedYear && targetMonth === finalAllowedMonth) {
-      console.log(`允許月份: ${targetYear}-${targetMonth}`);
-      return true;
-    }
-    
-    // 如果已經過了月中，也開放下一個月
-    if (currentDay >= 15) {
-      const nextAllowedMonth = allowedMonth + 1;
-      let finalNextAllowedMonth, finalNextAllowedYear;
-      if (nextAllowedMonth > 12) {
-        finalNextAllowedYear = allowedYear + Math.floor((nextAllowedMonth - 1) / 12);
-        finalNextAllowedMonth = ((nextAllowedMonth - 1) % 12) + 1;
-      } else {
-        finalNextAllowedYear = allowedYear;
-        finalNextAllowedMonth = nextAllowedMonth;
-      }
-      
-      console.log(`計算月中允許月份: ${finalNextAllowedYear}-${finalNextAllowedMonth}`);
-      
-      if (targetYear === finalNextAllowedYear && targetMonth === finalNextAllowedMonth) {
-        console.log(`允許月中月份: ${targetYear}-${targetMonth}`);
-        return true;
-      }
-    }
+  // 將目標與當前轉為可比較的數值（年*12+月）
+  const targetVal = targetYear * 12 + targetMonth;
+  const currentVal = currentYear * 12 + currentMonth;
+  
+  // 允許：當前月份 ～ 當前+3個月（含）
+  const maxAllowedVal = currentVal + 3;
+  
+  if (targetVal >= currentVal && targetVal <= maxAllowedVal) {
+    return true;
   }
   
-  console.log(`拒絕月份: ${targetYear}-${targetMonth}`);
   return false;
 }
 
