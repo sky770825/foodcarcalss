@@ -285,12 +285,13 @@ function generateAvailableDates(location) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // 條件1：生成可預約的 4 個月（當前月份～當前+3個月）
+  // 條件1：生成可預約的 3 個月（當月 + 2 個月）
+  // 例如：2月1日 → 只可排 2月、3月、4月；5月選單鎖住
   const currentMonth = today.getMonth() + 1; // 1-12
   const currentYear = today.getFullYear();
   
-  // 生成當前月份和未來 3 個月的所有日期（共 4 個月，四月應可預約）
-  for (let i = 0; i < 4; i++) {
+  // 生成當月和未來 2 個月的所有日期（共 3 個月）
+  for (let i = 0; i < 3; i++) {
     const targetMonth = currentMonth + i;
     const targetYear = currentYear;
     
@@ -337,7 +338,7 @@ function generateAvailableDates(location) {
       const hasSheetBooking = sheetsBookedDates[location] && 
         sheetsBookedDates[location].some(booking => booking.standardDate === dateStr);
       
-      // 條件6：時間控制檢查 - 開放當前～當前+3個月
+      // 條件6：時間控制檢查 - 當月+2個月（共3個月）
       const currentDay = today.getDate();
       const isTimeControlled = checkTimeControl(year, month, currentYear, currentMonth, currentDay);
       
@@ -2613,20 +2614,15 @@ function getHolidayName(dateStr) {
 }
 
 // 時間控制檢查函數（獨立條件）
-// 開放範圍：當前月份～當前+3個月（共 4 個月可預約）
-// 例如：3月 → 開放 3、4、5、6 月；4月 → 開放 4、5、6、7 月
+// 開放範圍：當月 + 2 個月（共 3 個月可預約）
+// 例如：2月1日 → 只開放 2、3、4 月；5月鎖住
 function checkTimeControl(targetYear, targetMonth, currentYear, currentMonth, currentDay) {
-  // 總是允許當前月份
-  if (targetYear === currentYear && targetMonth === currentMonth) {
-    return true;
-  }
-  
   // 將目標與當前轉為可比較的數值（年*12+月）
   const targetVal = targetYear * 12 + targetMonth;
   const currentVal = currentYear * 12 + currentMonth;
   
-  // 允許：當前月份 ～ 當前+3個月（含）
-  const maxAllowedVal = currentVal + 3;
+  // 允許：當月 ～ 當月+2個月（含），共 3 個月
+  const maxAllowedVal = currentVal + 2;
   
   if (targetVal >= currentVal && targetVal <= maxAllowedVal) {
     return true;
@@ -4575,8 +4571,14 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 
 // 上傳匯款圖片到 Supabase Storage
 async function uploadPaymentImage(file, vendor, location, date) {
-  if (!SUPABASE_CONFIG.enabled || !supabaseClient) {
-    throw new Error('Supabase 未啟用');
+  if (!SUPABASE_CONFIG?.enabled || !supabaseClient) {
+    throw new Error('系統未連線，請檢查網路後重試');
+  }
+  if (!file || !(file instanceof File)) {
+    throw new Error('請選擇有效的圖片檔案');
+  }
+  if (!file.type.startsWith('image/')) {
+    throw new Error('請選擇圖片檔案（JPG、PNG）');
   }
   
   // 生成文件名：payment_images/場地/日期_餐車名稱_時間戳.擴展名
@@ -4589,12 +4591,12 @@ async function uploadPaymentImage(file, vendor, location, date) {
     if (!str) return 'unknown';
     // 簡單的場地名稱映射（將中文場地名稱轉為英文/拼音，避免路徑問題）
     const locationMap = {
-      '四維路59號': 'siwei_59',
-      '四維路60號': 'siwei_60',
-      '漢堡大亨': 'hamburger',
-      '自由風': 'ziyoufeng',
-      '蔬蒔': 'shushi',
-      '金正好吃': 'jinzhenghaochi'
+      '四維路59號': 'siwei_59', '楊梅區四維路59號': 'siwei_59',
+      '四維路60號': 'siwei_60', '楊梅區四維路60號': 'siwei_60',
+      '漢堡大亨': 'hamburger', '四維路70號': 'hamburger', '楊梅區四維路70號': 'hamburger',
+      '自由風': 'ziyoufeng', '四維路190號': 'ziyoufeng', '楊梅區四維路190號': 'ziyoufeng',
+      '蔬蒔': 'shushi', '四維路216號': 'shushi', '楊梅區四維路216號': 'shushi',
+      '金正好吃': 'jinzhenghaochi', '四維路218號': 'jinzhenghaochi', '楊梅區四維路218號': 'jinzhenghaochi'
     };
     
     // 餐車名稱也需要處理（移除特殊字符）
@@ -4631,59 +4633,43 @@ async function uploadPaymentImage(file, vendor, location, date) {
   
   const sanitizedVendor = sanitizeVendor(vendor);
   const sanitizedLocation = sanitizeForPath(location);
-  const sanitizedDate = date.replace(/-/g, '');
-  const fileExt = file.name.split('.').pop().toLowerCase();
+  // 支援 ISO (2025-03-17) 與中文 (3月17日) 日期格式
+  const sanitizedDate = (function(d) {
+    if (!d || typeof d !== 'string') return String(Date.now());
+    const m1 = d.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m1) return m1[1] + m1[2] + m1[3];
+    const m2 = d.match(/(\d+)月(\d+)日/);
+    if (m2) {
+      const y = new Date().getFullYear();
+      return y + String(parseInt(m2[1])).padStart(2, '0') + String(parseInt(m2[2])).padStart(2, '0');
+    }
+    return String(Date.now());
+  })(date);
+  let fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) fileExt = 'jpg';
   const fileName = `payment_images/${sanitizedLocation}/${sanitizedDate}_${sanitizedVendor}_${timestamp}.${fileExt}`;
   
   console.log('📤 上傳圖片到:', fileName);
   
-  // 上傳文件
+  // 使用 upsert: true 可覆蓋已存在檔案，避免重複上傳失敗
   const { data, error } = await supabaseClient.storage
     .from('foodcarcalss')
     .upload(fileName, file, {
       contentType: file.type || 'image/jpeg',
       cacheControl: '3600',
-      upsert: false
+      upsert: true
     });
   
   if (error) {
     console.error('圖片上傳錯誤:', error);
-    console.error('錯誤詳情:', JSON.stringify(error, null, 2));
-    
-    // 提供更友好的錯誤訊息
-    if (error.message && error.message.includes('Bucket not found')) {
-      throw new Error('Storage bucket 不存在，請聯繫管理員設置');
-    } else if (error.message && error.message.includes('row-level security')) {
-      throw new Error('權限不足，請聯繫管理員設置 Storage 權限');
-    } else if (error.message && error.message.includes('already exists')) {
-      // 如果文件已存在，使用 upsert 重新上傳
-      console.log('文件已存在，嘗試覆蓋...');
-      const { data: upsertData, error: upsertError } = await supabaseClient.storage
-        .from('foodcarcalss')
-        .update(fileName, file, {
-          contentType: file.type || 'image/jpeg',
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (upsertError) {
-        throw new Error('圖片上傳失敗: ' + upsertError.message);
-      }
-      
-      // 使用更新後的數據
-      const { data: urlData } = supabaseClient.storage
-        .from('foodcarcalss')
-        .getPublicUrl(fileName);
-      
-      if (!urlData || !urlData.publicUrl) {
-        throw new Error('無法獲取圖片公開 URL');
-      }
-      
-      console.log('✅ 圖片上傳成功（覆蓋）:', urlData.publicUrl);
-      return urlData.publicUrl;
+    const msg = (error.message || String(error)).toLowerCase();
+    if (msg.includes('bucket not found')) {
+      throw new Error('儲存空間未設定，請聯繫管理員');
     }
-    
-    throw error;
+    if (msg.includes('row-level security') || msg.includes('rls') || msg.includes('permission') || msg.includes('401') || msg.includes('403')) {
+      throw new Error('上傳權限不足，請聯繫管理員確認 Storage 設定（執行 fix_storage_rls.sql）');
+    }
+    throw new Error('上傳失敗：' + (error.message || '請稍後再試'));
   }
   
   // 獲取公開 URL

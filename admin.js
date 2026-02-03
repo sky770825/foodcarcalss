@@ -174,6 +174,14 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+// 狀態顯示用（己排 -> 已排班）
+function formatStatusDisplay(status) {
+  if (!status || !String(status).trim()) return '-';
+  const s = String(status).trim();
+  if (s === '己排') return '已排班';
+  return s;
+}
+
 // 屬性值轉義（用於 HTML 屬性，如 onclick）
 function escapeHtmlAttribute(text) {
   if (!text) return '';
@@ -994,7 +1002,7 @@ function renderBookings() {
         <td>${escapeHtml(booking.foodType || '-')}</td>
         <td>${safeLocation}</td>
         <td>${safeDate}</td>
-        <td><span class="status-badge">${escapeHtml(booking.status || booking.bookedStatus || '-')}</span></td>
+        <td><span class="status-badge">${escapeHtml(formatStatusDisplay(booking.status || booking.bookedStatus))}</span></td>
         <td>${escapeHtml(booking.fee || '600元/天')}</td>
         <td>
           <span class="status-badge ${statusClass} payment-status-clickable" 
@@ -1018,6 +1026,19 @@ function renderBookings() {
       </tr>
     `;
   }).join('');
+}
+
+// 點擊統計卡片快速篩選（逾期可排、未付款等）
+function filterByPaymentStatus(paymentValue) {
+  const sel = document.getElementById('paymentFilter');
+  if (sel) {
+    sel.value = paymentValue || '';
+  }
+  // 切換到列表模式以顯示篩選結果
+  if (document.getElementById('listView') && !document.getElementById('listView').classList.contains('active')) {
+    switchView('list');
+  }
+  filterBookings();
 }
 
 // 更新統計資訊（基於篩選後的數據）
@@ -2515,6 +2536,7 @@ window.selectMonth = selectMonth;
 // 暴露預約管理功能
 window.debouncedFilterBookings = debouncedFilterBookings;
 window.filterBookings = filterBookings;
+window.filterByPaymentStatus = filterByPaymentStatus;
 window.editBooking = editBooking;
 window.closeEditModal = closeEditModal;
 window.saveBooking = saveBooking;

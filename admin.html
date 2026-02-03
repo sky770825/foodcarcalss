@@ -119,9 +119,9 @@
     </div>
   </div>
 
-  <!-- 統計資訊 -->
+  <!-- 統計資訊（點擊可篩選列表） -->
   <div class="stats-section">
-    <div class="stat-card">
+    <div class="stat-card stat-card-clickable" onclick="filterByPaymentStatus('')" title="點擊顯示全部預約">
       <div class="stat-icon stat-primary">
         <i class="fas fa-calendar-check"></i>
       </div>
@@ -130,7 +130,7 @@
         <div class="stat-label">總預約數</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card stat-card-clickable" onclick="filterByPaymentStatus('己繳款')" title="點擊查詢已付款的餐車">
       <div class="stat-icon stat-success">
         <i class="fas fa-check-circle"></i>
       </div>
@@ -139,7 +139,7 @@
         <div class="stat-label">已付款</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card stat-card-clickable" onclick="filterByPaymentStatus('未繳款')" title="點擊查詢未付款的餐車">
       <div class="stat-icon stat-warning">
         <i class="fas fa-clock"></i>
       </div>
@@ -148,7 +148,7 @@
         <div class="stat-label">未付款</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card stat-card-clickable" onclick="filterByPaymentStatus('逾繳可排')" title="點擊查詢逾期可排的餐車">
       <div class="stat-icon stat-danger">
         <i class="fas fa-exclamation-triangle"></i>
       </div>

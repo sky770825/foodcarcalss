@@ -438,6 +438,14 @@ body {
   border-color: #e5e7eb;
 }
 
+.stat-card-clickable {
+  cursor: pointer;
+}
+
+.stat-card-clickable:hover {
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
+}
+
 .stat-icon {
   width: 56px;
   height: 56px;
