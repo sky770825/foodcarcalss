@@ -106,6 +106,26 @@
   <div class="container">
     <h1>🔍 Supabase 重複數據檢查工具</h1>
     
+    <div style="margin-bottom: 20px;">
+      <label for="monthFilter"><strong>篩選月份：</strong></label>
+      <select id="monthFilter" onchange="checkDuplicates()" style="padding: 8px 12px; border-radius: 8px; margin-left: 8px;">
+        <option value="">全部</option>
+        <option value="1">1月</option>
+        <option value="2" selected>2月</option>
+        <option value="3">3月</option>
+        <option value="4">4月</option>
+        <option value="5">5月</option>
+        <option value="6">6月</option>
+        <option value="7">7月</option>
+        <option value="8">8月</option>
+        <option value="9">9月</option>
+        <option value="10">10月</option>
+        <option value="11">11月</option>
+        <option value="12">12月</option>
+      </select>
+      <span id="monthHint" style="margin-left: 10px; color: #6b7280; font-size: 14px;"></span>
+    </div>
+    
     <div id="errorContainer"></div>
     
     <div id="loading" class="loading">
@@ -133,6 +153,9 @@
       <button id="deleteDuplicatesBtn" onclick="deleteDuplicates()" disabled>
         刪除重複記錄（保留最新的）
       </button>
+      <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">
+        <strong>防止再次重複：</strong>刪除重複後，請至 Supabase → SQL Editor 執行專案中的 <code>add_unique_booking_constraint.sql</code>，可讓之後同場地+同日期+同餐車的報班自動更新而非新增重複。
+      </p>
     </div>
   </div>
 
@@ -151,16 +174,42 @@
       showError('Supabase 庫未載入');
     }
     
+    // 判斷一筆預約是否屬於指定月份（1-12）
+    function isBookingInMonth(booking, monthNum) {
+      const d = booking.booking_date || '';
+      if (!d) return false;
+      // 中文格式：2月5日(星期三)
+      const cn = d.match(/(\d+)月/);
+      if (cn) return parseInt(cn[1]) === monthNum;
+      // ISO 格式：2025-02-05
+      const iso = d.match(/^(\d{4})-(\d{2})/);
+      if (iso) return parseInt(iso[2]) === monthNum;
+      return false;
+    }
+    
     async function checkDuplicates() {
       try {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        
+        const monthVal = document.getElementById('monthFilter').value;
+        const monthNum = monthVal ? parseInt(monthVal) : 0;
+        
         // 獲取所有記錄
-        const { data: allBookings, error } = await supabaseClient
+        const { data: rawBookings, error } = await supabaseClient
           .from('foodcarcalss')
           .select('*')
           .order('created_at', { ascending: false });
         
         if (error) throw error;
         
+        // 依選擇的月份篩選
+        const allBookings = monthNum
+          ? rawBookings.filter(b => isBookingInMonth(b, monthNum))
+          : rawBookings;
+        
+        const monthNames = ['', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        document.getElementById('monthHint').textContent = monthNum ? `目前篩選：${monthNames[monthNum]}（共 ${allBookings.length} 筆）` : '目前：全部月份';
         document.getElementById('totalCount').textContent = allBookings.length;
         
         // 找出重複記錄（基於 location + booking_date + vendor）

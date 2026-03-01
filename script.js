@@ -536,6 +536,13 @@ async function verifyAuditPassword() {
     return;
   }
 
+  const recordId = event?.id ?? event?.rowNumber;
+  if (recordId == null || recordId === '') {
+    closeAuditPasswordModal();
+    showToast('error', '無法審核', '找不到預約編號，請重新整理頁面後再試');
+    return;
+  }
+
   // 密碼正確，關閉密碼彈窗並顯示載入狀態
   closeAuditPasswordModal();
   showLoading('正在更新付款狀態...', '請稍候，系統正在處理中');
@@ -547,7 +554,7 @@ async function verifyAuditPassword() {
       vendor: event.title,
       location: event.location,
       date: dateStr,
-      rowNumber: event.rowNumber,
+      rowNumber: recordId,
       payment: '己繳款'
     };
     
@@ -595,7 +602,8 @@ async function verifyAuditPassword() {
   } catch (error) {
     console.error('更新付款狀態失敗:', error);
     hideLoading();
-    showToast('error', '更新失敗', '無法更新付款狀態，請稍後再試');
+    const msg = error?.message || '';
+    showToast('error', '審核更新失敗', msg || '無法更新付款狀態，請稍後再試');
   }
 }
 
@@ -1944,11 +1952,15 @@ async function submitToGoogleSheets(formData) {
     }
     
     if (formData.action === 'updatePayment') {
-      // 更新付款狀態
+      // 更新付款狀態（審核按鈕：己繳場租審計）
+      const recordId = formData.rowNumber;
+      if (recordId == null || recordId === '') {
+        throw new Error('缺少預約編號，無法更新付款狀態');
+      }
       const { data, error } = await supabaseClient
         .from('foodcarcalss')
         .update({ payment: formData.payment })
-        .eq('id', formData.rowNumber)
+        .eq('id', recordId)
         .select()
         .single();
       
@@ -1977,28 +1989,33 @@ async function submitToGoogleSheets(formData) {
       }
     }
     
+    const bookingDateFormatted = formatDateForDisplay(formData.date) || formData.date;
     const bookingData = {
       timestamp: formData.timestamp || new Date().toISOString(),
       vendor: formData.vendor,
       food_type: formData.foodType || '',
       location: formData.location,
-      booking_date: formatDateForDisplay(formData.date) || formData.date,
+      booking_date: bookingDateFormatted,
       status: '己排',
       fee: formData.fee || '600元/天',
       payment: '尚未付款',
       note: '',
-      payment_image_url: formData.paymentImageUrl || null // 添加匯款圖片 URL
+      payment_image_url: formData.paymentImageUrl || null
     };
     
+    // 使用 upsert：若同一「場地+日期+餐車」已存在則更新，避免重複報班
     const { data, error } = await supabaseClient
       .from('foodcarcalss')
-      .insert(bookingData)
+      .upsert(bookingData, {
+        onConflict: 'location,booking_date,vendor',
+        ignoreDuplicates: false
+      })
       .select()
       .single();
     
     if (error) throw error;
     
-    console.log('✅ Supabase 新增預約成功:', data);
+    console.log('✅ Supabase 預約成功（新增或更新）:', data);
     
     // 保存當前預約 ID 和完整資訊，供繳費彈窗使用
     currentBookingId = data.id;
@@ -2012,7 +2029,11 @@ async function submitToGoogleSheets(formData) {
     
   } catch (error) {
     console.error('Supabase 提交失敗:', error);
-    throw new Error('無法連接到 Supabase: ' + error.message);
+    const msg = error?.message || '';
+    if (msg.includes('unique') || msg.includes('ON CONFLICT') || msg.includes('conflict')) {
+      throw new Error('提交失敗：請確認管理員已在 Supabase 執行 add_unique_booking_constraint.sql 以啟用防重複報班。');
+    }
+    throw new Error('無法連接到 Supabase: ' + msg);
   }
 }
 
