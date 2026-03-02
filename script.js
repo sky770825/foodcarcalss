@@ -2003,8 +2003,8 @@ async function submitToGoogleSheets(formData) {
       payment_image_url: formData.paymentImageUrl || null
     };
     
-    // 使用 upsert：若同一「場地+日期+餐車」已存在則更新，避免重複報班
-    const { data, error } = await supabaseClient
+    // 先嘗試 upsert（需資料庫已加唯一約束）；若無約束則改為 insert 讓報班可先送出
+    let result = await supabaseClient
       .from('foodcarcalss')
       .upsert(bookingData, {
         onConflict: 'location,booking_date,vendor',
@@ -2013,7 +2013,18 @@ async function submitToGoogleSheets(formData) {
       .select()
       .single();
     
-    if (error) throw error;
+    if (result.error && result.error.code === '42P10') {
+      // 資料庫尚未加唯一約束，改為一般新增
+      console.warn('未偵測到防重複約束，改為 insert 新增');
+      result = await supabaseClient
+        .from('foodcarcalss')
+        .insert(bookingData)
+        .select()
+        .single();
+    }
+    
+    if (result.error) throw result.error;
+    const data = result.data;
     
     console.log('✅ Supabase 預約成功（新增或更新）:', data);
     
@@ -4473,9 +4484,10 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
           }
         }, 5000);
       } else {
-        // Google Sheets提交失敗
+        // 提交失敗（回傳 success: false）
         hideLoading();
-        showToast('error', '報名失敗', '網路連線異常，請稍後再試');
+        const failMsg = (result && result.message) ? result.message : '提交失敗，請稍後再試';
+        showToast('error', '報名失敗', failMsg);
         
         // 恢復按鈕狀態
         submitBtn.innerHTML = originalText;
@@ -4576,10 +4588,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
       }
     })
     .catch((error) => {
-      // Google Sheets提交失敗
       console.error('提交失敗:', error);
       hideLoading();
-      showToast('error', '報名失敗', '❌ 網路連線異常，請檢查網路後再試');
+      // 顯示實際錯誤原因，方便排查（權限、唯一約束、網路等）
+      let userMsg = (error && error.message) ? String(error.message).trim() : '';
+      if (!userMsg) userMsg = '網路連線異常，請檢查網路後再試';
+      else if (userMsg.length > 120) userMsg = userMsg.slice(0, 120) + '…';
+      showToast('error', '報名失敗', userMsg);
       
       // 恢復按鈕狀態
       submitBtn.innerHTML = originalText;
