@@ -1881,8 +1881,7 @@ async function submitToGoogleSheets(formData) {
     
     // 處理不同的操作類型
     if (formData.action === 'takeover') {
-      // 接手預約：更新現有預約的餐車資訊
-      // 先讀取原有的付款狀態，保持已付款的狀態
+      // 接手預約：先讀取資料庫最新狀態，若已付款則不允許接手（避免舊頁面誤換班）
       const { data: existingBooking, error: fetchError } = await supabaseClient
         .from('foodcarcalss')
         .select('payment')
@@ -1891,11 +1890,14 @@ async function submitToGoogleSheets(formData) {
       
       if (fetchError) throw fetchError;
       
-      // 如果原本是已付款，保持已付款狀態；否則設為未繳款
-      const currentPayment = existingBooking.payment || '';
+      const currentPayment = (existingBooking && existingBooking.payment) ? String(existingBooking.payment).trim() : '';
       const isPaid = currentPayment === '己繳款' || currentPayment === '已付款';
-      const preservedPayment = isPaid ? currentPayment : '未繳款';
       
+      if (isPaid) {
+        throw new Error('該時段已有人付款，無法接手。請重新整理頁面取得最新狀態。');
+      }
+      
+      const preservedPayment = currentPayment === '逾繳可排' ? '逾繳可排' : '未繳款';
       console.log(`接手預約 - 原有付款狀態: ${currentPayment}, 保持狀態: ${preservedPayment}`);
       
       const { data, error } = await supabaseClient
@@ -1903,7 +1905,7 @@ async function submitToGoogleSheets(formData) {
         .update({
           vendor: formData.vendor,
           food_type: formData.foodType,
-          payment: preservedPayment // 保持原有付款狀態（已付款保持，未付款設為未繳款）
+          payment: preservedPayment
         })
         .eq('id', formData.rowNumber)
         .select()
@@ -1914,17 +1916,27 @@ async function submitToGoogleSheets(formData) {
     }
     
     if (formData.action === 'transfer') {
-      // 排班釋出：更新為新的餐車資訊
+      // 排班釋出：先確認該筆尚未付款，避免舊頁面誤覆蓋已付款資料
       const recordId = formData.rowNumber;
       if (recordId == null || recordId === '') {
         throw new Error('缺少預約 ID，無法執行釋出');
+      }
+      const { data: existingRow, error: fetchErr } = await supabaseClient
+        .from('foodcarcalss')
+        .select('payment')
+        .eq('id', recordId)
+        .single();
+      if (fetchErr) throw fetchErr;
+      const currentPayment = (existingRow && existingRow.payment) ? String(existingRow.payment).trim() : '';
+      if (currentPayment === '己繳款' || currentPayment === '已付款') {
+        throw new Error('該筆已付款，無法釋出換班。請重新整理頁面取得最新狀態。');
       }
       const { data, error } = await supabaseClient
         .from('foodcarcalss')
         .update({
           vendor: formData.vendor,
           food_type: formData.foodType,
-          payment: '未繳款' // 釋出後需要重新付款
+          payment: '未繳款'
         })
         .eq('id', recordId)
         .select()
