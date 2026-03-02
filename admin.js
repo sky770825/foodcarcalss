@@ -2485,17 +2485,14 @@ function startAutoRefresh() {
     clearInterval(autoRefreshInterval);
   }
   
-  // 設置為 30 分鐘刷新一次（1800000 毫秒）
-  const refreshInterval = 30 * 60 * 1000; // 30分鐘
+  // 每 2 分鐘刷新一次，讓前端報班能盡快在後台出現
+  const refreshInterval = 2 * 60 * 1000; // 2 分鐘
   
   autoRefreshInterval = setInterval(() => {
-    // 只在預約管理標籤頁時才自動刷新
     const currentTab = document.querySelector('.tab-btn.active');
     if (currentTab && currentTab.dataset.tab === 'bookings') {
       console.log('🔄 背景自動刷新預約數據...');
       loadBookings();
-    } else {
-      console.log('⏸️ 當前不在預約管理標籤，跳過自動刷新');
     }
   }, refreshInterval);
   
