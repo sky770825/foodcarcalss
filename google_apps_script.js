@@ -24,9 +24,9 @@ function formatDateForSheet(isoDate) {
       return dateStr;
     }
     
-    // 解析 ISO 格式日期（例如：2025-10-13）
-    const date = new Date(dateStr);
-    
+    // 解析 ISO 格式日期（例如：2025-10-13），加上 T00:00:00 避免 UTC 偏移
+    const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
+
     // 檢查日期是否有效
     if (isNaN(date.getTime())) {
       console.log('無效的日期格式:', dateStr);
@@ -67,16 +67,7 @@ function doGet(e) {
     
     const result = cancelBookingFromSheet(cancelData);
     
-    // 檢查是否為 JSONP 請求
-    if (e.parameter.callback) {
-      const callback = e.parameter.callback;
-      const jsonpResponse = `${callback}(${result.getContent()})`;
-      return ContentService
-        .createTextOutput(jsonpResponse)
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
-    } else {
-      return result;
-    }
+    return wrapJsonpIfNeeded(e, result);
   }
   // 檢查是否有報名數據參數
   else if (e.parameter.vendor) {
@@ -90,39 +81,41 @@ function doGet(e) {
       fee: e.parameter.fee || '600',
       timestamp: e.parameter.timestamp || formatTimestamp()
     };
-    
+
     const result = addBookingToSheet(bookingData);
-    
-    // 檢查是否為 JSONP 請求
-    if (e.parameter.callback) {
-      const callback = e.parameter.callback;
-      const jsonpResponse = `${callback}(${result.getContent()})`;
-      return ContentService
-        .createTextOutput(jsonpResponse)
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
-    } else {
-      return result;
-    }
+    return wrapJsonpIfNeeded(e, result);
   } else {
     // 沒有報名數據，返回狀態信息
-    const response = { 
-      status: 'success', 
+    const response = {
+      status: 'success',
       message: '餐車排班報名系統運行正常',
       timestamp: formatTimestamp()
     };
-    
-    // 檢查是否為 JSONP 請求
-    if (e.parameter.callback) {
-      const callback = e.parameter.callback;
-      const jsonpResponse = `${callback}(${JSON.stringify(response)})`;
+
+    const result = ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+    return wrapJsonpIfNeeded(e, result);
+  }
+}
+
+// 安全的 JSONP 包裝函數（防止 callback 注入）
+function wrapJsonpIfNeeded(e, result) {
+  if (e.parameter.callback) {
+    const callback = e.parameter.callback;
+    // 驗證 callback 名稱只包含安全字元（字母、數字、底線、點）
+    if (!/^[a-zA-Z_$][a-zA-Z0-9_$.]*$/.test(callback)) {
       return ContentService
-        .createTextOutput(jsonpResponse)
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
-    } else {
-      return ContentService
-        .createTextOutput(JSON.stringify(response))
+        .createTextOutput(JSON.stringify({ success: false, message: 'Invalid callback name' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+    const content = typeof result.getContent === 'function' ? result.getContent() : JSON.stringify(result);
+    const jsonpResponse = `${callback}(${content})`;
+    return ContentService
+      .createTextOutput(jsonpResponse)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else {
+    return result;
   }
 }
 
@@ -235,8 +228,9 @@ function addBookingToSheet(bookingData) {
     // 格式化日期為「10月16日(星期一)」格式
     function formatDate(dateStr) {
       if (!dateStr || dateStr === '未提供') return '未提供';
-      
-      const date = new Date(dateStr);
+
+      // 加上 T00:00:00 避免 UTC 偏移導致日期差一天
+      const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
       const month = date.getMonth() + 1;
       const day = date.getDate();
       const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
@@ -383,8 +377,8 @@ function cancelBookingFromSheet(cancelData) {
       
       // 處理不同的日期格式
       if (dateStr.includes('-')) {
-        // 處理 "2024-10-01" 格式
-        date = new Date(dateStr);
+        // 處理 "2024-10-01" 格式，加上 T00:00:00 避免 UTC 偏移
+        date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
       } else if (dateStr.includes('月') && dateStr.includes('日')) {
         // 已經是 "10月1日(星期二)" 格式，直接返回
         console.log('日期已經是正確格式:', dateStr);
@@ -501,13 +495,14 @@ function cancelBookingFromSheet(cancelData) {
 }
 
 function getOrCreateSheet(sheetName) {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const SPREADSHEET_ID = '1oS9zTU6DL_cCRnOI6A4ffAeXXn7fXkr6URxxMVprlG4';
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = spreadsheet.getSheetByName(sheetName);
-  
+
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
   }
-  
+
   return sheet;
 }
 
@@ -878,9 +873,16 @@ function quickSortSheet(sheet) {
     // 提取排序後的資料並寫回工作表（寫回第10行開始）
     const sortedData = dataWithIndex.map(item => item.row);
     sheet.getRange(10, 1, sortedData.length, 9).setValues(sortedData);
-    
-    console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行）`);
-    
+
+    // 重新設定 F 欄公式（排序後 getValues 會把公式變成純值）
+    for (let i = 0; i < sortedData.length; i++) {
+      const row = i + 10;
+      const statusFormula = `=IF(OR(H${row}="己繳款", H${row}="已付款"), "己排班", IF(AND(H${row}="尚未付款", (NOW()-A${row})*24>24), "逾繳可排", "己排班"))`;
+      sheet.getRange(row, 6).setFormula(statusFormula);
+    }
+
+    console.log(`✅ 已按照預約日期遞增排序（${sortedData.length} 行），F欄公式已重建`);
+
   } catch (error) {
     console.error('快速排序失敗:', error);
   }
@@ -949,7 +951,14 @@ function sortSheetByDate() {
     
     // 寫回工作表（寫回第10行開始）
     sheet.getRange(10, 1, sortedData.length, 9).setValues(sortedData);
-    
+
+    // 重新設定 F 欄公式（排序後 getValues 會把公式變成純值）
+    for (let i = 0; i < sortedData.length; i++) {
+      const row = i + 10;
+      const statusFormula = `=IF(OR(H${row}="己繳款", H${row}="已付款"), "己排班", IF(AND(H${row}="尚未付款", (NOW()-A${row})*24>24), "逾繳可排", "己排班"))`;
+      sheet.getRange(row, 6).setFormula(statusFormula);
+    }
+
     const sortedCount = sortedData.length;
     console.log(`✅ 已排序 ${sortedCount} 行資料（按照預約日期遞增）`);
     

@@ -785,7 +785,6 @@ function logout() {
   
   // 顯示登入畫面
   showLoginModal();
-  showLoginModal();
   allBookings = [];
   filteredBookings = [];
 }
@@ -1582,8 +1581,8 @@ function showToast(type, title, message) {
   toast.innerHTML = `
     <i class="fas ${icon}"></i>
     <div>
-      <strong>${title}</strong>
-      <div style="font-size: 0.85rem; margin-top: 4px;">${message}</div>
+      <strong>${escapeHtml(title)}</strong>
+      <div style="font-size: 0.85rem; margin-top: 4px;">${escapeHtml(message)}</div>
     </div>
   `;
   
@@ -1868,8 +1867,8 @@ function createNewBookingCard(booking) {
         </div>
       </div>
       ${paymentImageUrl ? `
-        <div class="new-booking-image-preview" onclick="showPaymentImageModal('${paymentImageUrl}')">
-          <img src="${paymentImageUrl}" alt="匯款證明" loading="lazy">
+        <div class="new-booking-image-preview" onclick="showPaymentImageModal('${escapeHtmlAttribute(paymentImageUrl)}')">
+          <img src="${escapeHtmlAttribute(paymentImageUrl)}" alt="匯款證明" loading="lazy">
           <div class="image-overlay">
             <i class="fas fa-search-plus"></i>
             <span>點擊放大</span>
@@ -3025,7 +3024,8 @@ async function saveLocation(event) {
   
   isSavingLocation = true;
   
-  const locationId = document.getElementById('locationId').value;
+  const locationIdRaw = document.getElementById('locationId').value;
+  const locationId = locationIdRaw ? parseInt(locationIdRaw, 10) || null : null;
   const locationKey = sanitizeInput(document.getElementById('locationKey').value.trim(), 'key');
   
   // 輸入驗證
@@ -3351,8 +3351,8 @@ function renderNotices() {
     return;
   }
   
-  // 如果沒有篩選，使用全部數據
-  if (!filteredNotices || filteredNotices.length === 0) {
+  // 如果尚未進行篩選（filteredNotices 為 null/undefined），使用全部數據
+  if (filteredNotices === null || filteredNotices === undefined) {
     filteredNotices = [...allNotices];
   }
   
@@ -3485,7 +3485,8 @@ function editNotice(noticeId) {
 async function saveNotice(event) {
   event.preventDefault();
   
-  const noticeId = document.getElementById('noticeId').value;
+  const noticeIdRaw = document.getElementById('noticeId').value;
+  const noticeId = noticeIdRaw ? parseInt(noticeIdRaw, 10) || null : null;
   const noticeKey = sanitizeInput(document.getElementById('noticeKey').value.trim(), 'key');
   
   // 輸入驗證
@@ -3805,8 +3806,8 @@ function showProcessedBookingsModal() {
           </div>
           ${paymentImageUrl ? `
             <div style="margin-bottom: 12px;">
-              <div class="new-booking-image-preview" onclick="showPaymentImageModal('${paymentImageUrl}')" style="cursor: pointer;">
-                <img src="${paymentImageUrl}" alt="匯款證明" loading="lazy" style="max-width: 200px; border-radius: 4px;">
+              <div class="new-booking-image-preview" onclick="showPaymentImageModal('${escapeHtmlAttribute(paymentImageUrl)}')" style="cursor: pointer;">
+                <img src="${escapeHtmlAttribute(paymentImageUrl)}" alt="匯款證明" loading="lazy" style="max-width: 200px; border-radius: 4px;">
                 <div class="image-overlay">
                   <i class="fas fa-search-plus"></i>
                   <span>點擊放大</span>

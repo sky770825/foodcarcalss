@@ -10,9 +10,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 let supabase;
 
-if (typeof supabaseClient !== 'undefined') {
-  // 如果已經全局引入 Supabase
-  supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (typeof window !== 'undefined' && typeof window.supabase !== 'undefined') {
+  // CDN 引入的 Supabase 會掛在 window.supabase
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } else {
   // 需要先引入 Supabase JS 庫
   console.warn('請先引入 Supabase JS 庫: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');

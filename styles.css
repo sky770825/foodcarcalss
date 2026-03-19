@@ -339,27 +339,7 @@ button.submit:hover{
 .month-navigation{
   display:flex;align-items:center;gap:10px;
 }
-.nav-btn{
-  padding:8px 12px;border:2px solid #e9ecef;background:white;
-  border-radius:6px;cursor:pointer;transition:all .3s;
-  display:flex;align-items:center;justify-content:center;
-  min-width:40px;height:40px;
-}
-.nav-btn:hover{
-  border-color:#FF8A00;background:#fff5f0;
-}
-.today-btn{
-  padding:8px 15px;min-width:auto;
-  background:#FF8A00;color:white;border-color:#FF8A00;
-}
-.today-btn:hover{
-  background:#FF4B2B;border-color:#FF4B2B;
-}
-.month-display{
-  padding:8px 15px;background:white;border:2px solid #e9ecef;
-  border-radius:6px;font-weight:bold;color:#555;
-  min-width:120px;text-align:center;
-}
+/* .nav-btn, .today-btn, .month-display 樣式已統一到下方 calendar-nav 區塊 */
 .filter-section{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
 }
@@ -606,55 +586,7 @@ button.submit:hover{
   gap: 2px;
 }
 
-.event-item {
-  background: #FF8A00;
-  color: white;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-size: clamp(0.6rem, 1vw, 0.75rem);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.event-item:hover {
-  background: #e67e00;
-  transform: scale(1.05);
-}
-
-/* 事件容器和取消按鈕 */
-.event-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  margin-bottom: 2px;
-  position: relative;
-}
-
-.cancel-btn {
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  font-size: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  transition: all 0.3s;
-  flex-shrink: 0;
-  z-index: 10;
-}
-
-.cancel-btn:hover {
-  background: #c82333;
-  transform: scale(1.1);
-}
+/* .event-item, .event-container, .cancel-btn 樣式已統一到下方行事曆優化區塊 */
 
 /* 場地縮圖 */
 .location-thumbnail{
@@ -1051,19 +983,7 @@ button.submit:hover{
   color:#dc3545;margin:0 0 15px 0;font-size:1.1rem;
   display:flex;align-items:center;gap:8px;
 }
-.detail-item{
-  display:flex;align-items:center;margin-bottom:10px;
-  padding:8px 0;border-bottom:1px solid #e9ecef;
-}
-.detail-item:last-child{
-  border-bottom:none;margin-bottom:0;
-}
-.detail-item label{
-  font-weight:bold;color:#555;min-width:80px;margin:0;
-}
-.detail-item span{
-  color:#333;font-size:1rem;flex:1;
-}
+/* .detail-item 樣式已統一到下方彈窗優化區塊 */
 .cancel-options{
   text-align:center;
 }

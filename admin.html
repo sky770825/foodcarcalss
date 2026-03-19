@@ -31,7 +31,7 @@
     </div>
     <div class="login-body">
       <div class="login-form">
-        <label>
+        <label for="adminPassword">
           <i class="fas fa-key"></i> 管理密碼
         </label>
         <input type="password" id="adminPassword" placeholder="請輸入管理密碼" autocomplete="off">
@@ -98,17 +98,17 @@
   <div class="filter-section">
     <div class="filter-grid">
       <div class="filter-item filter-item-full">
-        <label><i class="fas fa-search"></i> 搜尋</label>
+        <label for="searchInput"><i class="fas fa-search"></i> 搜尋</label>
         <input type="text" id="searchInput" placeholder="搜尋餐車名稱、場地、日期..." oninput="debouncedFilterBookings()">
       </div>
       <div class="filter-item">
-        <label><i class="fas fa-map-marker-alt"></i> 場地</label>
+        <label for="locationFilter"><i class="fas fa-map-marker-alt"></i> 場地</label>
         <select id="locationFilter" onchange="filterBookings()">
           <option value="">載入中...</option>
         </select>
       </div>
       <div class="filter-item">
-        <label><i class="fas fa-dollar-sign"></i> 付款狀態</label>
+        <label for="paymentFilter"><i class="fas fa-dollar-sign"></i> 付款狀態</label>
         <select id="paymentFilter" onchange="filterBookings()">
           <option value="">全部</option>
           <option value="己繳款">已付款</option>
@@ -467,7 +467,7 @@
   <div class="modal-content modal-sm">
     <div class="modal-header">
       <h3><i class="fas fa-exclamation-triangle"></i> 確認刪除預約</h3>
-      <span class="modal-close" onclick="closeDeleteConfirmModal()">&times;</span>
+      <span class="modal-close" onclick="closeDeleteConfirmModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <div class="modal-confirm-warning danger">
@@ -520,7 +520,7 @@
       <h3 style="color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">
         <i class="fas fa-credit-card" style="color: #dbeafe;"></i> 確認變更付款狀態
       </h3>
-      <span class="modal-close" onclick="closePaymentConfirmModal()" style="color: white;">&times;</span>
+      <span class="modal-close" onclick="closePaymentConfirmModal()" style="color: white;" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <div class="modal-confirm-info">
@@ -581,7 +581,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3><i class="fas fa-edit"></i> 編輯預約</h3>
-      <span class="modal-close" onclick="closeEditModal()">&times;</span>
+      <span class="modal-close" onclick="closeEditModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <p class="form-hint" style="margin: -8px 0 12px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更日期或場地進行換班作業</p>
@@ -665,7 +665,7 @@
   <div class="modal-content modal-md">
     <div class="modal-header">
       <h3><i class="fas fa-map-marker-alt"></i> <span id="locationModalTitle">新增場地</span></h3>
-      <span class="modal-close" onclick="closeLocationModal()">&times;</span>
+      <span class="modal-close" onclick="closeLocationModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <form id="locationForm" onsubmit="saveLocation(event)">
@@ -792,7 +792,7 @@
   <div class="modal-content modal-md">
     <div class="modal-header">
       <h3><i class="fas fa-exclamation-triangle"></i> <span id="noticeModalTitle">新增注意事項</span></h3>
-      <span class="modal-close" onclick="closeNoticeModal()">&times;</span>
+      <span class="modal-close" onclick="closeNoticeModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <form id="noticeForm" onsubmit="saveNotice(event)">
@@ -861,13 +861,13 @@
 
 <!-- 匯款圖片放大模態框 -->
 <div id="paymentImageModal" class="payment-image-modal">
-  <span class="modal-close" onclick="closePaymentImageModal()">&times;</span>
+  <span class="modal-close" onclick="closePaymentImageModal()" aria-label="關閉" role="button">&times;</span>
   <img class="payment-image-modal-content" id="paymentImageModalImg" src="" alt="匯款證明">
 </div>
 
 <!-- 場地照片放大模態框 -->
 <div id="locationImageModal" class="location-image-modal">
-  <span class="modal-close" onclick="closeLocationImageModal()">&times;</span>
+  <span class="modal-close" onclick="closeLocationImageModal()" aria-label="關閉" role="button">&times;</span>
   <div class="location-image-modal-inner">
     <img class="location-image-modal-content" id="locationImageModalImg" src="" alt="場地照片">
   </div>
@@ -878,7 +878,7 @@
   <div class="modal-content modal-lg">
     <div class="modal-header">
       <h3><i class="fas fa-eye"></i> 已處理的預約</h3>
-      <span class="modal-close" onclick="closeProcessedBookingsModal()">&times;</span>
+      <span class="modal-close" onclick="closeProcessedBookingsModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <div id="processedBookingsList">
@@ -903,7 +903,7 @@
   <div class="modal-content modal-md">
     <div class="modal-header" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
       <h3><i class="fas fa-edit"></i> 統計參數編輯</h3>
-      <span class="modal-close" onclick="closeStatisticsEditModal()">&times;</span>
+      <span class="modal-close" onclick="closeStatisticsEditModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
       <form id="statisticsEditForm" onsubmit="saveStatisticsSettings(event)">

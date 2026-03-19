@@ -3,6 +3,17 @@ function formatTimestamp(date = new Date()) {
   return date.toISOString().split('.')[0] + 'Z'; // 移除毫秒，保留Z
 }
 
+// HTML 轉義函數（防止 XSS）
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // 多場地規則配置
 const locationConfigs = {
   "四維路59號": {
@@ -261,16 +272,28 @@ function updateLocationInfo(location) {
   }
 }
 
-// 2025年主要國定假日列表
+// 國定假日列表（含 2025 及 2026 年）
 const nationalHolidays2025 = [
+  // 2025 年
   '2025-01-01', // 元旦
   '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31', '2025-02-01', '2025-02-02', '2025-02-03', // 春節連假
-  '2025-04-04', '2025-04-05', '2025-04-06', '2025-04-07', // 清明節連假
+  '2025-02-28', // 和平紀念日
+  '2025-04-04', '2025-04-05', '2025-04-06', '2025-04-07', // 兒童節/清明節連假
   '2025-05-01', // 勞動節
-  '2025-05-31', // 端午節
-  '2025-10-06', '2025-10-07', '2025-10-08', // 中秋節連假
+  '2025-05-31', '2025-06-01', '2025-06-02', // 端午節連假
+  '2025-09-27', '2025-09-28', '2025-09-29', // 中秋節連假
   '2025-10-10', '2025-10-11', '2025-10-12', '2025-10-13', // 國慶日連假
-  '2025-12-25'  // 聖誕節
+  '2025-12-25', // 聖誕節
+  // 2026 年
+  '2026-01-01', // 元旦
+  '2026-02-14', '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', // 春節連假
+  '2026-02-28', // 和平紀念日
+  '2026-04-04', '2026-04-05', '2026-04-06', // 兒童節/清明節連假
+  '2026-05-01', // 勞動節
+  '2026-06-19', '2026-06-20', '2026-06-21', // 端午節連假
+  '2026-10-05', '2026-10-06', '2026-10-07', // 中秋節連假
+  '2026-10-10', '2026-10-11', '2026-10-12', // 國慶日連假
+  '2026-12-25'  // 聖誕節
 ];
 
 // 生成可用日期選項 - 完全分離條件版本
@@ -577,7 +600,7 @@ async function verifyAuditPassword() {
           await fetchBookingsFromGoogleSheets();
           await fetchBookedDatesFromSheets();
           mergeSheetsDataToCalendar();
-          saveToLocalStorage();
+    
           console.log('審計後第1次同步完成');
         } catch (error) {
           console.error('審計後同步失敗:', error);
@@ -589,7 +612,7 @@ async function verifyAuditPassword() {
           console.log('審計後第2次同步（4秒後）...');
           await fetchBookingsFromGoogleSheets();
           mergeSheetsDataToCalendar();
-          saveToLocalStorage();
+    
           console.log('審計後第2次同步完成');
         } catch (error) {
           console.error('審計後同步失敗:', error);
@@ -806,7 +829,7 @@ async function submitTransfer() {
       
       // 重新渲染日曆
       renderCalendar();
-      saveToLocalStorage();
+
       
       // 關閉彈窗
       closeTransferModal();
@@ -984,7 +1007,7 @@ async function submitTakeover() {
       
       // 重新渲染日曆
       renderCalendar();
-      saveToLocalStorage();
+
       
       // 關閉彈窗
       closeTakeoverModal();
@@ -1043,14 +1066,17 @@ async function submitTakeover() {
         }
       }, 7000);
       
+      // 恢復按鈕狀態
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     } else {
       throw new Error('Google Sheets提交失敗');
     }
-    
+
   } catch (error) {
     console.error('接手失敗:', error);
     showToast('error', '接手失敗', '無法完成接手操作，請稍後再試');
-    
+
     // 恢復按鈕狀態
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
@@ -1167,7 +1193,7 @@ async function verifyPassword() {
   closePasswordModal();
   
   // 直接執行取消（密碼驗證已經是確認步驟）
-  if (true) {
+  {
     // 顯示載入提示
     showToast('info', '處理中', '🗑️ 正在為您取消排班...');
     
@@ -1220,9 +1246,6 @@ async function verifyPassword() {
     
     // 不再手動更新 bookedSlots，等待 Google Sheets 同步後自動重建
     // bookedSlots 會在 mergeSheetsDataToCalendar 中清空並重建
-    
-    // 保存到本地存儲（只保存 allEvents）
-    saveToLocalStorage();
     
     // 重新渲染行事曆
     renderCalendar();
@@ -1354,9 +1377,9 @@ async function verifyPassword() {
   }
 }
 
-// GitHub配置
+// GitHub配置（Token 已移除，請透過環境變數或後端設定）
 const GITHUB_CONFIG = {
-  token: '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',
+  token: '', // ⚠️ 請勿在前端硬編碼 Token
   owner: 'sky770825',
   repo: 'foodcarcalss',
   branch: 'main'
@@ -2453,7 +2476,7 @@ function startSheetsSyncInterval() {
       ]);
       mergeSheetsDataToCalendar();
       // 保存到快取
-      saveToLocalStorage();
+
       console.log('✅ 定期同步完成，已更新快取');
     } catch (error) {
       console.error('定期同步失敗:', error);
@@ -2487,9 +2510,6 @@ async function syncGoogleSheets() {
       fetchBookedDatesFromSheets()
     ]);
     mergeSheetsDataToCalendar();
-    
-    // 保存到快取
-    saveToLocalStorage();
     
     // 計算已預約總數
     let totalBooked = 0;
@@ -2641,18 +2661,30 @@ window.sheetsBookedDates = () => sheetsBookedDates;
 // 獲取國定假日名稱
 function getHolidayName(dateStr) {
   const holidayMap = {
+    // 2025 年
     '2025-01-01': '元旦',
-    '2025-01-28': '春節',
-    '2025-01-29': '春節',
-    '2025-01-30': '春節',
+    '2025-01-28': '春節', '2025-01-29': '春節', '2025-01-30': '春節',
+    '2025-01-31': '春節', '2025-02-01': '春節', '2025-02-02': '春節', '2025-02-03': '春節',
     '2025-02-28': '和平紀念日',
-    '2025-04-04': '兒童節',
-    '2025-04-05': '清明節',
+    '2025-04-04': '兒童節', '2025-04-05': '清明節',
+    '2025-04-06': '清明節連假', '2025-04-07': '清明節連假',
     '2025-05-01': '勞動節',
-    '2025-06-14': '端午節',
-    '2025-09-27': '中秋節',
-    '2025-10-10': '國慶日',
-    '2025-12-25': '聖誕節'
+    '2025-05-31': '端午節', '2025-06-01': '端午節連假', '2025-06-02': '端午節連假',
+    '2025-09-27': '中秋節', '2025-09-28': '中秋節連假', '2025-09-29': '中秋節連假',
+    '2025-10-10': '國慶日', '2025-10-11': '國慶日連假',
+    '2025-10-12': '國慶日連假', '2025-10-13': '國慶日連假',
+    '2025-12-25': '聖誕節',
+    // 2026 年
+    '2026-01-01': '元旦',
+    '2026-02-14': '春節', '2026-02-15': '春節', '2026-02-16': '春節',
+    '2026-02-17': '春節', '2026-02-18': '春節', '2026-02-19': '春節', '2026-02-20': '春節',
+    '2026-02-28': '和平紀念日',
+    '2026-04-04': '兒童節', '2026-04-05': '清明節', '2026-04-06': '清明節連假',
+    '2026-05-01': '勞動節',
+    '2026-06-19': '端午節', '2026-06-20': '端午節連假', '2026-06-21': '端午節連假',
+    '2026-10-05': '中秋節', '2026-10-06': '中秋節連假', '2026-10-07': '中秋節連假',
+    '2026-10-10': '國慶日', '2026-10-11': '國慶日連假', '2026-10-12': '國慶日連假',
+    '2026-12-25': '聖誕節'
   };
   return holidayMap[dateStr] || '國定假日';
 }
@@ -3245,7 +3277,7 @@ async function syncWithGitHub() {
       Object.assign(bookedSlots, mergedBookedSlots);
       
       // 保存到本地存儲
-      saveToLocalStorage();
+
       
       // 重新渲染行事曆（顯示從JSON同步的數據）
       renderCalendar();
@@ -3418,7 +3450,16 @@ function startPeriodicSync() {
   // 添加手動同步功能
   window.manualSync = async function() {
     showSyncStatus('手動同步中...', 'default');
-    await smartSync(true);
+    try {
+      await fetchBookingsFromGoogleSheets();
+      await fetchBookedDatesFromSheets();
+      mergeSheetsDataToCalendar();
+      renderCalendar();
+      showSyncStatus('手動同步完成', 'success');
+    } catch (error) {
+      console.error('手動同步失敗:', error);
+      showSyncStatus('手動同步失敗', 'error');
+    }
   };
   
   // 添加測試同步功能
@@ -3766,8 +3807,14 @@ function startPeriodicSync() {
   window.addEventListener('storage', (e) => {
     if (e.key === 'foodtruck_bookings' || e.key === 'foodtruck_bookedSlots') {
       // 其他頁籤更新了數據，立即同步
-      setTimeout(() => {
-        smartSync(true, true);
+      setTimeout(async () => {
+        try {
+          await fetchBookingsFromGoogleSheets();
+          mergeSheetsDataToCalendar();
+          renderCalendar();
+        } catch (error) {
+          console.error('跨頁籤同步失敗:', error);
+        }
       }, 100);
     }
   });
@@ -4279,10 +4326,10 @@ function showToast(type, title, message) {
   
   toast.innerHTML = `
     <div class="toast-header">
-      <i class="toast-icon ${icons[type]}"></i>
-      <span class="toast-title">${title}</span>
+      <i class="toast-icon ${icons[type] || 'fas fa-info-circle'}"></i>
+      <span class="toast-title">${escapeHtml(title)}</span>
     </div>
-    <div class="toast-message">${message}</div>
+    <div class="toast-message">${escapeHtml(message)}</div>
   `;
   
   container.appendChild(toast);
@@ -4301,16 +4348,12 @@ function showToast(type, title, message) {
 function showLoading(message = '處理中...') {
   const overlay = document.getElementById('loadingOverlay');
   const messageEl = document.getElementById('loadingMessage');
-  
-  // 檢查是否包含HTML標籤
-  if (message.includes('<div') || message.includes('<span')) {
-    messageEl.innerHTML = message;
-  } else {
+
+  if (overlay && messageEl) {
     messageEl.textContent = message;
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
-  
-  overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
 }
 
 function hideLoading() {
@@ -4381,7 +4424,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   try {
     // 檢查預約衝突
     const hasConflict = await checkBookingConflict(loc, date, '14:00-20:00');
-    
+
     if (hasConflict) {
       hideLoading();
       showToast('error', '預約衝突', '該時段已被預約，請選擇其他日期或重新整理頁面查看最新狀態');
@@ -4392,6 +4435,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     }
   } catch (error) {
     console.error('檢查預約衝突失敗:', error);
+    hideLoading();
+    showToast('error', '檢查失敗', '無法確認是否有衝突，請稍後再試或重新整理頁面');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    isSubmitting = false;
+    sessionStorage.removeItem(lockKey);
+    return;
   } finally {
     // 清除處理鎖定
     sessionStorage.removeItem(lockKey);
@@ -4533,7 +4583,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         // bookedSlots 會在 mergeSheetsDataToCalendar 中從 Sheets 重建
         
         // 保存到本地存儲（只保存 allEvents）
-        saveToLocalStorage();
+  
         
         // 保存當前預約 ID 和資訊（在重置表單之前）
         let savedBookingInfo = null;
@@ -5308,7 +5358,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           ]);
           
           // 保存到快取
-          saveToLocalStorage();
+    
           
           // 更新日曆
           mergeSheetsDataToCalendar();
@@ -5390,7 +5440,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             await fetchBookedDatesFromSheets();
             
             // 保存完整數據到快取
-            saveToLocalStorage();
+      
             
             // 重新生成當前場地的可用日期
             const currentLoc = document.getElementById('location').value;

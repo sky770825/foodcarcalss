@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -145,31 +145,31 @@
         <i class="fas fa-map-marker-alt"></i>
         <span>四維路59號</span>
         <small>楊梅區四維路59號</small>
-        <img src="https://i.postimg.cc/wTB3mKM7/59.jpg" alt="四維路59號" class="location-thumbnail" data-full-image="https://i.postimg.cc/wTB3mKM7/59.jpg" loading="lazy">
+        <img src="https://i.postimg.cc/wTB3mKM7/59.jpg" alt="四維路59號" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="https://i.postimg.cc/wTB3mKM7/59.jpg" loading="lazy">
       </button>
       <button class="location-tab" data-location="漢堡大亨">
         <i class="fas fa-store"></i>
         <span>漢堡大亨</span>
         <small>楊梅區四維路70號</small>
-        <img src="https://i.postimg.cc/zD7VvDzH/70.jpg" alt="漢堡大亨" class="location-thumbnail" data-full-image="https://i.postimg.cc/zD7VvDzH/70.jpg" loading="lazy">
+        <img src="https://i.postimg.cc/zD7VvDzH/70.jpg" alt="漢堡大亨" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="https://i.postimg.cc/zD7VvDzH/70.jpg" loading="lazy">
       </button>
       <button class="location-tab" data-location="自由風">
         <i class="fas fa-store"></i>
         <span>自由風</span>
         <small>楊梅區四維路190號</small>
-        <img src="https://i.postimg.cc/nV2CrVFX/190.jpg" alt="自由風" class="location-thumbnail" data-full-image="https://i.postimg.cc/nV2CrVFX/190.jpg" loading="lazy">
+        <img src="https://i.postimg.cc/nV2CrVFX/190.jpg" alt="自由風" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="https://i.postimg.cc/nV2CrVFX/190.jpg" loading="lazy">
       </button>
       <button class="location-tab" data-location="蔬蒔">
         <i class="fas fa-leaf"></i>
         <span>蔬蒔</span>
         <small>楊梅區四維路216號</small>
-        <img src="https://i.postimg.cc/MZ5vHZ6j/216.jpg" alt="蔬蒔" class="location-thumbnail" data-full-image="https://i.postimg.cc/MZ5vHZ6j/216.jpg" loading="lazy">
+        <img src="https://i.postimg.cc/MZ5vHZ6j/216.jpg" alt="蔬蒔" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="https://i.postimg.cc/MZ5vHZ6j/216.jpg" loading="lazy">
       </button>
       <button class="location-tab" data-location="金正好吃">
         <i class="fas fa-utensils"></i>
         <span>金正好吃</span>
         <small>楊梅區四維路218號</small>
-        <img src="https://i.postimg.cc/bYgsrYyd/218.jpg" alt="金正好吃" class="location-thumbnail" data-full-image="https://i.postimg.cc/bYgsrYyd/218.jpg" loading="lazy">
+        <img src="https://i.postimg.cc/bYgsrYyd/218.jpg" alt="金正好吃" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="https://i.postimg.cc/bYgsrYyd/218.jpg" loading="lazy">
       </button>
     </div>
     
@@ -206,11 +206,11 @@
     <h2 class="section-title">📝 線上報名表</h2>
     <div class="form-grid">
       <div>
-        <label><i class="fas fa-store"></i> 餐車名稱</label>
+        <label for="vendorName"><i class="fas fa-store"></i> 餐車名稱</label>
         <input type="text" id="vendorName" placeholder="例如：向陽坡刈包">
       </div>
       <div>
-        <label><i class="fas fa-map-marker-alt"></i> 選擇場地</label>
+        <label for="location"><i class="fas fa-map-marker-alt"></i> 選擇場地</label>
       <select id="location">
           <option value="">請選擇場地</option>
           <option value="四維路59號">四維路59號</option>
@@ -221,7 +221,7 @@
       </select>
       </div>
       <div>
-        <label><i class="fas fa-calendar"></i> 選擇日期</label>
+        <label for="availableDates"><i class="fas fa-calendar"></i> 選擇日期</label>
         <div class="date-selection">
           <input type="date" id="date" style="display:none;">
           <select id="availableDates">
@@ -233,7 +233,7 @@
         </div>
       </div>
       <div>
-        <label><i class="fas fa-utensils"></i> 餐車類型</label>
+        <label for="foodType"><i class="fas fa-utensils"></i> 餐車類型</label>
         <select id="foodType">
           <option value="">請選擇</option>
           <option value="主食類">主食類</option>
@@ -303,7 +303,7 @@
   <div class="payment-modal-content">
     <div class="payment-header">
       <h3><i class="fas fa-credit-card"></i> 繳交場地費</h3>
-      <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+      <span class="modal-close" onclick="closePaymentModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="payment-body">
       <div class="payment-info">
@@ -366,7 +366,7 @@
   <div class="bank-modal-content">
     <div class="bank-header">
       <h3><i class="fas fa-university"></i> 銀行轉帳資訊</h3>
-      <span class="modal-close" onclick="closeBankModal()">&times;</span>
+      <span class="modal-close" onclick="closeBankModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="bank-body">
       <div class="bank-info">
@@ -407,7 +407,7 @@
   <div class="cancel-modal-content" style="max-width: 420px;">
     <div class="cancel-header" style="background: linear-gradient(135deg, #667eea, #764ba2);">
       <h3><i class="fas fa-cog"></i> 系統管理選項</h3>
-      <span class="modal-close" onclick="closeAdminOptionsModal()">&times;</span>
+      <span class="modal-close" onclick="closeAdminOptionsModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="cancel-body">
       <div class="cancel-info">
@@ -457,7 +457,7 @@
   <div class="cancel-modal-content">
     <div class="cancel-header">
       <h3><i class="fas fa-calendar-times"></i> 取消預約</h3>
-      <span class="modal-close" onclick="closeCancelModal()">&times;</span>
+      <span class="modal-close" onclick="closeCancelModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="cancel-body">
       <div class="cancel-info">
@@ -505,7 +505,7 @@
   <div class="password-modal-content" style="max-width: 420px;">
     <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-shield-alt"></i> 密碼驗證</h3>
-      <span class="modal-close" onclick="closePasswordModal()">&times;</span>
+      <span class="modal-close" onclick="closePasswordModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 25px;">
       <div class="password-info">
@@ -542,7 +542,7 @@
   <div class="cancel-modal-content">
     <div class="cancel-header" style="background: linear-gradient(135deg, #28a745, #20c997);">
       <h3><i class="fas fa-check-circle"></i> 己繳場租審計</h3>
-      <span class="modal-close" onclick="closeAuditModal()">&times;</span>
+      <span class="modal-close" onclick="closeAuditModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="cancel-body">
       <div class="cancel-info">
@@ -590,7 +590,7 @@
   <div class="password-modal-content" style="max-width: 420px;">
     <div class="password-header" style="background: linear-gradient(135deg, #28a745, #20c997); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-shield-alt"></i> 審計密碼驗證</h3>
-      <span class="modal-close" onclick="closeAuditPasswordModal()">&times;</span>
+      <span class="modal-close" onclick="closeAuditPasswordModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 25px;">
       <div class="password-info">
@@ -627,7 +627,7 @@
   <div class="password-modal-content" style="max-width: 450px;">
     <div class="password-header" style="background: linear-gradient(135deg, #FF8A00, #FF4B2B);">
       <h3><i class="fas fa-exchange-alt"></i> 排班釋出</h3>
-      <span class="modal-close" onclick="closeTransferModal()">&times;</span>
+      <span class="modal-close" onclick="closeTransferModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 18px;">
       <div class="transfer-info">
@@ -697,7 +697,7 @@
   <div class="password-modal-content" style="max-width: 550px;">
     <div class="password-header" style="background: linear-gradient(135deg, #17a2b8, #138496); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-graduation-cap"></i> 使用教學</h3>
-      <span class="modal-close" onclick="closeHelpModal()">&times;</span>
+      <span class="modal-close" onclick="closeHelpModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 25px; max-height: 70vh; overflow-y: auto;">
       <div class="help-content">
@@ -778,7 +778,7 @@
   <div class="payment-modal-content">
     <div class="payment-header">
       <h3><i class="fas fa-hand-holding-usd"></i> 接手預約</h3>
-      <span class="modal-close" onclick="closeTakeoverModal()">&times;</span>
+      <span class="modal-close" onclick="closeTakeoverModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="payment-body" style="padding: 18px;">
       <div class="takeover-info">
@@ -873,7 +873,7 @@
   <div class="password-modal-content" style="max-width: 750px; max-height: 90vh; overflow-y: auto;">
     <div class="password-header" style="background: linear-gradient(135deg, #ffc107, #ff9800); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-book"></i> 四維商圈美食餐車群組版規</h3>
-      <span class="modal-close" onclick="closeRulesModal()">&times;</span>
+      <span class="modal-close" onclick="closeRulesModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 25px;">
       
@@ -1047,7 +1047,7 @@
   <div class="password-modal-content" style="max-width: 600px;">
     <div class="password-header" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-download"></i> 下載素材</h3>
-      <span class="modal-close" onclick="closeDownloadModal()">&times;</span>
+      <span class="modal-close" onclick="closeDownloadModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 20px;">
       <div style="text-align: center;">
@@ -1086,7 +1086,7 @@
   <div class="password-modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
     <div class="password-header" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53); padding: 20px;">
       <h3 style="font-size: 1.3rem;"><i class="fas fa-star"></i> 四維商圈美食餐車合作公告</h3>
-      <span class="modal-close" onclick="closeActivityModal()">&times;</span>
+      <span class="modal-close" onclick="closeActivityModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="password-body" style="padding: 25px;">
       
