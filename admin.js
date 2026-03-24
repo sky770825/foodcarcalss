@@ -2490,6 +2490,11 @@ function startAutoRefresh() {
   autoRefreshInterval = setInterval(() => {
     const currentTab = document.querySelector('.tab-btn.active');
     if (currentTab && currentTab.dataset.tab === 'bookings') {
+      const hasActiveModal = document.querySelector('.modal.active, .payment-confirm-modal.active, .location-image-modal.active');
+      if (hasActiveModal) {
+        console.log('⏸️ 偵測到彈窗開啟中，暫停本次自動刷新');
+        return;
+      }
       console.log('🔄 背景自動刷新預約數據...');
       loadBookings();
     }

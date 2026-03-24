@@ -2236,11 +2236,35 @@ function normalizeLocationName(locationName) {
   return locationName.trim();
 }
 
+// 同步簽章：資料未變更時不重繪，避免刷新時畫面跳動
+let lastSheetsMergeSignature = '';
+
+function buildSheetsMergeSignature(bookings) {
+  if (!Array.isArray(bookings) || bookings.length === 0) return 'EMPTY';
+  return bookings
+    .map((b) => [
+      b.id ?? b.rowNumber ?? '',
+      b.vendor ?? '',
+      b.location ?? '',
+      b.date ?? '',
+      b.payment ?? '',
+      b.bookedStatus ?? ''
+    ].join('|'))
+    .sort()
+    .join('||');
+}
+
 // 將 Supabase 數據合併到日曆（v2.7：完全替換模式 + 場地名稱標準化 + 去重）
 function mergeSheetsDataToCalendar() {
   console.log('========================================');
   console.log('📥 從 Supabase 同步數據（v2.7 - 場地名稱標準化 + 去重）');
   console.log('========================================');
+
+  const currentSignature = buildSheetsMergeSignature(sheetsBookings);
+  if (currentSignature === lastSheetsMergeSignature) {
+    console.log('⏭️ Supabase 數據未變更，跳過重繪');
+    return;
+  }
   
   // v2.3.0：完全清空所有數據，只保留 Google Sheets 的數據
   console.log('🧹 清空所有本地數據...');
@@ -2252,6 +2276,7 @@ function mergeSheetsDataToCalendar() {
   if (!sheetsBookings || sheetsBookings.length === 0) {
     console.log('⚠️ 沒有 Supabase 數據');
     console.log('✅ 日曆將顯示為空');
+    lastSheetsMergeSignature = currentSignature;
     renderCalendar();
     return;
   }
@@ -2441,10 +2466,12 @@ function mergeSheetsDataToCalendar() {
     
     console.log('========================================');
     
+    lastSheetsMergeSignature = currentSignature;
     renderCalendar(); // 重新渲染日曆
     // v2.3.0：不再保存到localStorage，避免舊數據污染
   } else {
     console.log('⚠️ 沒有載入任何預約數據');
+    lastSheetsMergeSignature = currentSignature;
     renderCalendar(); // 顯示空日曆
   }
 }
@@ -5271,8 +5298,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   console.log('✅ 完全從 Google Sheets 同步數據');
   console.log('✅ 每次刷新都顯示 Google Sheets 最新資料');
   
-  // 顯示載入畫面（吉利語）
-  showLoading(`<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: #FF4B2B; letter-spacing: 2px;">🎊 好運降臨</div><div style="font-size: 0.85rem; color: #999; font-weight: 500;">系統啟動中...</div>`);
+  // 不再顯示全螢幕載入訊息窗，改為直接顯示主內容並背景載入資料
   
   // 強制清空所有本地數據
   allEvents.length = 0;
@@ -5305,6 +5331,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   // GitHub同步已禁用，系統完全依賴 Supabase
   console.log('系統完全依賴 Supabase，GitHub同步已禁用');
   
+  function revealMainContent() {
+    hideLoading();
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) {
+      mainContent.style.opacity = '1';
+    }
+  }
+  
   // if (!hasLocalData) {
   //   await syncWithGitHub();
   // } else {
@@ -5324,7 +5358,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (hasCachedData) {
       // 有快取：立即顯示快取數據
       console.log('🚀 使用快取數據快速啟動');
-      showLoading('📦 載入快取...');
       
       // 合併快取數據到日曆
       mergeSheetsDataToCalendar();
@@ -5335,16 +5368,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('location').dispatchEvent(new Event('change'));
       }
       
-      // 300ms後顯示頁面
-      setTimeout(() => {
-        hideLoading();
-        const mainContent = document.getElementById('mainContent');
-        if (mainContent) {
-          mainContent.style.opacity = '1';
-        }
-        showSyncStatus('使用快取資料', 'success');
-        console.log(`✅ 快取啟動完成，耗時: ${((Date.now() - startTime) / 1000).toFixed(1)}秒`);
-      }, 300);
+      revealMainContent();
+      showSyncStatus('使用快取資料', 'success');
+      console.log(`✅ 快取啟動完成，耗時: ${((Date.now() - startTime) / 1000).toFixed(1)}秒`);
       
       // 背景同步最新數據
       setTimeout(async () => {
@@ -5380,16 +5406,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       return; // 使用快取流程結束
     }
     
-    // 無快取：完整載入後才顯示
-    console.log('📡 首次載入，正在同步 Google Sheets...');
-    showLoading('🎊 好運降臨...');
-    
-    // 添加秒數計時器
-    let loadingSeconds = 0;
-    const loadingTimer = setInterval(() => {
-      loadingSeconds++;
-      showLoading(`<div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: #FF4B2B; letter-spacing: 2px;">🎊 好運降臨</div><div style="font-size: 0.85rem; color: #999; font-weight: 500;">載入中 · ${loadingSeconds} 秒</div>`);
-    }, 1000);
+    // 無快取：先顯示頁面，背景載入 Supabase（不跳出全螢幕訊息窗）
+    console.log('📡 首次載入，正在同步 Supabase...');
+    revealMainContent();
     
     // 立即開始同步（班表載入完就顯示，其他背景處理）
     (async () => {
@@ -5403,6 +5422,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 合併數據到日曆
         mergeSheetsDataToCalendar();
         
+        const currentLocAfterMerge = document.getElementById('location').value;
+        if (currentLocAfterMerge) {
+          document.getElementById('location').dispatchEvent(new Event('change'));
+        }
+        
         // 計算載入時間
         const syncDuration = ((Date.now() - syncStartTime) / 1000).toFixed(1);
         const totalDuration = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -5413,25 +5437,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log(`📊 載入預約數: ${allEvents.length}`);
         console.log('========================================');
         
-        // 停止計時器
-        clearInterval(loadingTimer);
-        
-        // 顯示成功訊息並立即顯示頁面
-        const totalBookings = allEvents.length;
-        const successMessage = totalBookings > 0 
-          ? `<div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #28a745; letter-spacing: 2px;">🎉 萬事如意</div><div style="font-size: 0.9rem; color: #666; font-weight: 500;">已載入 ${totalBookings} 個排班 · 準備就緒</div>`
-          : `<div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #28a745; letter-spacing: 2px;">🎊 一切順利</div><div style="font-size: 0.9rem; color: #666; font-weight: 500;">目前無排班資料 · 準備就緒</div>`;
-        
-        showLoading(successMessage);
-        setTimeout(() => {
-          hideLoading();
-          const mainContent = document.getElementById('mainContent');
-          if (mainContent) {
-            mainContent.style.opacity = '1';
-          }
-          showSyncStatus('班表已載入', 'success');
-          console.log(`✅ 頁面已顯示，總耗時: ${totalDuration} 秒`);
-        }, 300);
+        revealMainContent();
+        showSyncStatus('班表已載入', 'success');
+        console.log(`✅ 頁面已顯示，總耗時: ${totalDuration} 秒`);
         
         // 背景載入已預約日期（不阻塞頁面顯示）
         setTimeout(async () => {
@@ -5457,32 +5465,16 @@ document.addEventListener('DOMContentLoaded', async function() {
       } catch (error) {
         console.error('初次同步Google Sheets失敗:', error);
         
-        // 停止計時器
-        clearInterval(loadingTimer);
-        
-        // 顯示錯誤訊息
-        showLoading(`<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: #dc3545; letter-spacing: 2px;">❌ 連線失敗</div><div style="font-size: 0.85rem; color: #999; font-weight: 500;">無法連接 Google Sheets</div>`);
-        
-        setTimeout(() => {
-          hideLoading();
-          const mainContent = document.getElementById('mainContent');
-          if (mainContent) {
-            mainContent.style.opacity = '1';
-          }
-          showSyncStatus('連線失敗', 'error');
-          showToast('error', '載入失敗', '❌ 無法載入排班資料，請檢查網路連線後重新整理');
-        }, 1500);
+        revealMainContent();
+        showSyncStatus('連線失敗', 'error');
+        showToast('error', '載入失敗', '❌ 無法載入排班資料，請檢查網路連線後重新整理');
         
         console.log('⚠️ 首次載入失敗，建議使用者重新整理頁面');
       }
     })(); // 立即執行同步
   } else {
-    // 如果未啟用Google Sheets，直接隱藏載入畫面並顯示內容
-    hideLoading();
-    const mainContent = document.getElementById('mainContent');
-    if (mainContent) {
-      mainContent.style.opacity = '1';
-    }
+    // 如果未啟用 Supabase，直接顯示內容
+    revealMainContent();
   }
   
   // 圖片點擊放大功能
