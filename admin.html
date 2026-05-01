@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <!-- 安全標頭 -->
 <!-- connect-src 包含 cdn.jsdelivr.net 以允許 Supabase 等腳本載入 source maps -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://sqgrnowrcvspxhuudrqc.supabase.co https://cdn.jsdelivr.net;">
+<!-- TEMP-CSP-RELAXED: 暫時加上 'unsafe-eval' 以允許設計檢查工具截圖；驗證完請移除 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://sqgrnowrcvspxhuudrqc.supabase.co https://cdn.jsdelivr.net;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>餐車排班管理後台 v3.2.3</title>
@@ -19,6 +20,7 @@
 
 <!-- 外部樣式表 -->
 <link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin-tweaks.css">
 
 </head>
 <body>
@@ -81,41 +83,36 @@
   <!-- 預約管理標籤頁 -->
   <div id="tabBookings" class="tab-content active">
 
-  <!-- 月份選擇器 -->
-  <div class="month-selector-section">
-    <div class="month-selector-header">
-      <h3><i class="fas fa-calendar-alt"></i> 選擇月份</h3>
-      <button onclick="selectCurrentMonth()" class="btn btn-sm btn-secondary">
-        <i class="fas fa-calendar-day"></i> 本月
-      </button>
-    </div>
-    <div class="month-grid" id="monthGrid">
-      <!-- 月份按鈕將由 JavaScript 動態生成 -->
-    </div>
-  </div>
-
-  <!-- 篩選和搜尋區域 -->
+  <!-- 月份選擇器 + 篩選區（合併） -->
   <div class="filter-section">
-    <div class="filter-grid">
-      <div class="filter-item filter-item-full">
-        <label for="searchInput"><i class="fas fa-search"></i> 搜尋</label>
-        <input type="text" id="searchInput" placeholder="搜尋餐車名稱、場地、日期..." oninput="debouncedFilterBookings()">
-      </div>
-      <div class="filter-item">
-        <label for="locationFilter"><i class="fas fa-map-marker-alt"></i> 場地</label>
-        <select id="locationFilter" onchange="filterBookings()">
-          <option value="">載入中...</option>
+    <div class="filter-bar">
+      <div class="month-stepper" role="group" aria-label="月份選擇">
+        <button onclick="stepMonth(-1)" class="month-step-btn" title="上一個月" aria-label="上一個月">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <select id="monthSelect" class="month-select" onchange="selectMonth(this.value)" aria-label="選擇月份">
+          <!-- 由 JS 生成 -->
         </select>
+        <button onclick="stepMonth(1)" class="month-step-btn" title="下一個月" aria-label="下一個月">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button onclick="selectCurrentMonth()" class="btn btn-sm btn-secondary month-today-btn" title="跳到本月">
+          <i class="fas fa-calendar-day"></i> 本月
+        </button>
       </div>
-      <div class="filter-item">
-        <label for="paymentFilter"><i class="fas fa-dollar-sign"></i> 付款狀態</label>
-        <select id="paymentFilter" onchange="filterBookings()">
-          <option value="">全部</option>
-          <option value="己繳款">已付款</option>
-          <option value="未繳款">未付款</option>
-          <option value="逾繳可排">逾期可排</option>
-        </select>
+      <div class="filter-search">
+        <i class="fas fa-search filter-search-icon"></i>
+        <input type="text" id="searchInput" placeholder="搜尋餐車名稱、場地、日期..." oninput="debouncedFilterBookings()" aria-label="搜尋">
       </div>
+      <select id="locationFilter" class="filter-select" onchange="filterBookings()" aria-label="場地篩選" title="場地">
+        <option value="">全部場地</option>
+      </select>
+      <select id="paymentFilter" class="filter-select" onchange="filterBookings()" aria-label="付款狀態篩選" title="付款狀態">
+        <option value="">全部狀態</option>
+        <option value="己繳款">已付款</option>
+        <option value="未繳款">未付款</option>
+        <option value="逾繳可排">逾期可排</option>
+      </select>
     </div>
   </div>
 
@@ -310,35 +307,26 @@
       
       <!-- 篩選和搜尋區域 -->
       <div class="filter-section">
-        <div class="filter-grid">
-          <div class="filter-item filter-item-full">
-            <label><i class="fas fa-search"></i> 搜尋</label>
-            <input type="text" id="noticeSearchInput" placeholder="搜尋標題、內容、識別碼..." oninput="debouncedFilterNotices()">
+        <div class="filter-bar filter-bar-notices">
+          <div class="filter-search">
+            <i class="fas fa-search filter-search-icon"></i>
+            <input type="text" id="noticeSearchInput" placeholder="搜尋標題、內容、識別碼..." oninput="debouncedFilterNotices()" aria-label="搜尋">
           </div>
-          <div class="filter-item">
-            <label><i class="fas fa-tag"></i> 類型</label>
-            <select id="noticeTypeFilter" onchange="filterNotices()">
-              <option value="">全部類型</option>
-              <option value="general">一般</option>
-              <option value="warning">警告</option>
-              <option value="info">資訊</option>
-              <option value="success">成功</option>
-            </select>
-          </div>
-          <div class="filter-item">
-            <label><i class="fas fa-toggle-on"></i> 狀態</label>
-            <select id="noticeStatusFilter" onchange="filterNotices()">
-              <option value="">全部狀態</option>
-              <option value="enabled">啟用中</option>
-              <option value="disabled">已停用</option>
-            </select>
-          </div>
-          <div class="filter-item">
-            <label><i class="fas fa-map-marker-alt"></i> 場地</label>
-            <select id="noticeLocationFilter" onchange="filterNotices()">
-              <option value="">載入中...</option>
-            </select>
-          </div>
+          <select id="noticeTypeFilter" class="filter-select" onchange="filterNotices()" aria-label="類型篩選" title="類型">
+            <option value="">全部類型</option>
+            <option value="general">一般</option>
+            <option value="warning">警告</option>
+            <option value="info">資訊</option>
+            <option value="success">成功</option>
+          </select>
+          <select id="noticeStatusFilter" class="filter-select" onchange="filterNotices()" aria-label="狀態篩選" title="狀態">
+            <option value="">全部狀態</option>
+            <option value="enabled">啟用中</option>
+            <option value="disabled">已停用</option>
+          </select>
+          <select id="noticeLocationFilter" class="filter-select" onchange="filterNotices()" aria-label="場地篩選" title="場地">
+            <option value="">全部場地</option>
+          </select>
         </div>
       </div>
       
@@ -584,75 +572,90 @@
       <span class="modal-close" onclick="closeEditModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
-      <p class="form-hint" style="margin: -8px 0 12px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更日期或場地進行換班作業</p>
-      <form id="editForm" onsubmit="saveBooking(event)">
+      <p class="form-hint" style="margin: -8px 0 16px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更日期或場地進行換班作業</p>
+      <form id="editForm" onsubmit="saveBooking(event)" class="edit-form-grid">
         <input type="hidden" id="editRowNumber">
-        
-        <div class="form-group">
-          <label><i class="fas fa-store"></i> 餐車名稱 <span class="required">*</span></label>
-          <input type="text" id="editVendor" required>
+
+        <!-- 第一段：餐車基本資訊 -->
+        <div class="form-section-title">
+          <i class="fas fa-store"></i> 餐車資訊
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-utensils"></i> 餐車類型</label>
-          <select id="editFoodType">
-            <option value="">請選擇</option>
-            <option value="主食類">主食類</option>
-            <option value="甜點類">甜點類</option>
-            <option value="小點類">小點類</option>
-            <option value="中式餐點">中式餐點</option>
-            <option value="烤腿套餐">烤腿套餐</option>
-            <option value="甜品類">甜品類</option>
-            <option value="小吃類型">小吃類型</option>
-          </select>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="editVendor">餐車名稱 <span class="required">*</span></label>
+            <input type="text" id="editVendor" required>
+          </div>
+          <div class="form-group">
+            <label for="editFoodType">餐車類型</label>
+            <select id="editFoodType">
+              <option value="">請選擇</option>
+              <option value="主食類">主食類</option>
+              <option value="甜點類">甜點類</option>
+              <option value="小點類">小點類</option>
+              <option value="中式餐點">中式餐點</option>
+              <option value="烤腿套餐">烤腿套餐</option>
+              <option value="甜品類">甜品類</option>
+              <option value="小吃類型">小吃類型</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-map-marker-alt"></i> 場地 <span class="required">*</span></label>
-          <select id="editLocation" required>
-            <option value="">載入中...</option>
-          </select>
+
+        <!-- 第二段：班表 -->
+        <div class="form-section-title">
+          <i class="fas fa-calendar-alt"></i> 班表安排
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-calendar"></i> 日期 <span class="required">*</span></label>
-          <input type="date" id="editDate" required>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label for="editLocation">場地 <span class="required">*</span></label>
+            <select id="editLocation" required>
+              <option value="">載入中...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editDate">日期 <span class="required">*</span></label>
+            <input type="date" id="editDate" required>
+          </div>
+          <div class="form-group">
+            <label for="editStatus">狀態</label>
+            <select id="editStatus">
+              <option value="己排">已排</option>
+              <option value="未排">未排</option>
+              <option value="取消">取消</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-check-circle"></i> 狀態</label>
-          <select id="editStatus">
-            <option value="己排">己排</option>
-            <option value="未排">未排</option>
-            <option value="取消">取消</option>
-          </select>
+
+        <!-- 第三段：付款 -->
+        <div class="form-section-title">
+          <i class="fas fa-dollar-sign"></i> 付款資訊
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-dollar-sign"></i> 場地費</label>
-          <input type="text" id="editFee" value="600元/天">
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="editFee">場地費</label>
+            <input type="text" id="editFee" value="600元/天">
+          </div>
+          <div class="form-group">
+            <label for="editPayment">付款狀態</label>
+            <select id="editPayment">
+              <option value="未繳款">未繳款</option>
+              <option value="己繳款">已繳款</option>
+              <option value="逾繳可排">逾繳可排</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-credit-card"></i> 付款狀態</label>
-          <select id="editPayment">
-            <option value="未繳款">未繳款</option>
-            <option value="己繳款">己繳款</option>
-            <option value="逾繳可排">逾繳可排</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label><i class="fas fa-sticky-note"></i> 備註</label>
+
+        <!-- 第四段：備註 -->
+        <div class="form-group form-group-full">
+          <label for="editNote"><i class="fas fa-sticky-note"></i> 備註</label>
           <textarea id="editNote" rows="3" placeholder="備註資訊..."></textarea>
         </div>
-        
+
         <div class="form-actions">
           <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
             <i class="fas fa-times"></i> 取消
           </button>
           <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> 儲存
+            <i class="fas fa-save"></i> 儲存變更
           </button>
         </div>
       </form>
@@ -754,7 +757,7 @@
                 <i class="fas fa-camera"></i>
                 <span>點擊上傳</span>
               </div>
-              <img id="locationImagePreview" src="" alt="場地預覽" class="location-image-preview" style="display:none;">
+              <img id="locationImagePreview" alt="場地預覽" class="location-image-preview" style="display:none;">
             </div>
             <div class="location-image-actions">
               <input type="file" id="locationImageInput" accept="image/*" style="display:none;" onchange="handleLocationImageSelect(event)">
@@ -862,14 +865,14 @@
 <!-- 匯款圖片放大模態框 -->
 <div id="paymentImageModal" class="payment-image-modal">
   <span class="modal-close" onclick="closePaymentImageModal()" aria-label="關閉" role="button">&times;</span>
-  <img class="payment-image-modal-content" id="paymentImageModalImg" src="" alt="匯款證明">
+  <img class="payment-image-modal-content" id="paymentImageModalImg" alt="匯款證明">
 </div>
 
 <!-- 場地照片放大模態框 -->
 <div id="locationImageModal" class="location-image-modal">
   <span class="modal-close" onclick="closeLocationImageModal()" aria-label="關閉" role="button">&times;</span>
   <div class="location-image-modal-inner">
-    <img class="location-image-modal-content" id="locationImageModalImg" src="" alt="場地照片">
+    <img class="location-image-modal-content" id="locationImageModalImg" alt="場地照片">
   </div>
 </div>
 

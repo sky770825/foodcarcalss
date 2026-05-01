@@ -701,12 +701,13 @@ function handleLogin() {
 
 // 初始化月份選擇器
 function initMonthSelector() {
-  const monthGrid = document.getElementById('monthGrid');
+  const monthSelect = document.getElementById('monthSelect');
+  if (!monthSelect) return;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
   
-  // 只生成前一個月到未來6個月
+  // 生成前一個月到未來6個月
   const months = [];
   for (let i = -1; i <= 6; i++) {
     const date = new Date(currentYear, currentMonth + i, 1);
@@ -717,34 +718,28 @@ function initMonthSelector() {
     months.push({ key: monthKey, name: monthName, year, month });
   }
   
-  monthGrid.innerHTML = months.map(m => {
-    const isCurrent = m.year === currentYear && m.month === currentMonth;
-    return `
-      <button class="month-btn ${isCurrent ? 'active' : ''}" 
-              onclick="selectMonth('${m.key}')"
-              data-month="${m.key}">
-        ${m.name}
-      </button>
-    `;
+  const currentKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+  monthSelect.innerHTML = months.map(m => {
+    const label = m.key === currentKey ? `${m.name}（本月）` : m.name;
+    return `<option value="${m.key}">${label}</option>`;
   }).join('');
   
   // 預設選擇當前月份
   if (!selectedMonth) {
-    selectedMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    selectedMonth = currentKey;
   }
+  monthSelect.value = selectedMonth;
 }
 
 // 選擇月份
 function selectMonth(monthKey) {
   selectedMonth = monthKey;
   
-  // 更新按鈕狀態
-  document.querySelectorAll('.month-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.month === monthKey) {
-      btn.classList.add('active');
-    }
-  });
+  // 更新下拉選單
+  const monthSelect = document.getElementById('monthSelect');
+  if (monthSelect && monthSelect.value !== monthKey) {
+    monthSelect.value = monthKey;
+  }
   
   // 更新顯示
   updateMonthDisplay();
@@ -752,6 +747,18 @@ function selectMonth(monthKey) {
   // 重新篩選
   filterBookings();
 }
+
+// 月份步進（前後切換）
+function stepMonth(delta) {
+  const monthSelect = document.getElementById('monthSelect');
+  if (!monthSelect || !monthSelect.options.length) return;
+  const idx = monthSelect.selectedIndex;
+  const nextIdx = Math.max(0, Math.min(monthSelect.options.length - 1, idx + delta));
+  if (nextIdx === idx) return;
+  monthSelect.selectedIndex = nextIdx;
+  selectMonth(monthSelect.value);
+}
+window.stepMonth = stepMonth;
 
 // 選擇當前月份
 function selectCurrentMonth() {
@@ -921,7 +928,7 @@ async function loadBookings() {
       console.log('  逾繳可排:', allBookings.filter(b => b.payment === '逾繳可排').length);
       
       // 初始化月份選擇器（如果還沒初始化）
-      if (!document.querySelector('.month-btn')) {
+      if (!document.getElementById('monthSelect')?.options?.length) {
         initMonthSelector();
       }
       
@@ -996,14 +1003,14 @@ function renderBookings() {
     
     return `
       <tr>
-        <td>${timestamp}</td>
-        <td><strong>${safeVendor}</strong></td>
-        <td>${escapeHtml(booking.foodType || '-')}</td>
-        <td>${safeLocation}</td>
-        <td>${safeDate}</td>
-        <td><span class="status-badge">${escapeHtml(formatStatusDisplay(booking.status || booking.bookedStatus))}</span></td>
-        <td>${escapeHtml(booking.fee || '600元/天')}</td>
-        <td>
+        <td class="col-timestamp" data-label="時間">${timestamp}</td>
+        <td class="col-vendor" data-label="餐車"><strong>${safeVendor}</strong></td>
+        <td class="col-type" data-label="類型">${escapeHtml(booking.foodType || '-')}</td>
+        <td class="col-location" data-label="場地">${safeLocation}</td>
+        <td class="col-date" data-label="日期">${safeDate}</td>
+        <td class="col-status" data-label="狀態"><span class="status-badge">${escapeHtml(formatStatusDisplay(booking.status || booking.bookedStatus))}</span></td>
+        <td class="col-fee" data-label="費用">${escapeHtml(booking.fee || '600元/天')}</td>
+        <td class="col-payment" data-label="付款">
           <span class="status-badge ${statusClass} payment-status-clickable" 
                 onclick="togglePaymentStatus(${booking.rowNumber}, '${safeVendor}', '${safeLocation}', '${safeDate}')" 
                 title="點擊變更付款狀態"
@@ -1011,8 +1018,8 @@ function renderBookings() {
             ${paymentStatus}
           </span>
         </td>
-        <td title="${escapeHtml(booking.note || '-')}">${escapeHtml(booking.note || '-')}</td>
-        <td>
+        <td class="col-note" data-label="備註" title="${escapeHtml(booking.note || '-')}">${escapeHtml(booking.note || '-')}</td>
+        <td class="col-actions">
           <div class="action-buttons">
             <button onclick="editBooking(${booking.rowNumber})" class="btn btn-primary btn-sm">
               <i class="fas fa-edit"></i> 編輯
@@ -1032,6 +1039,16 @@ function filterByPaymentStatus(paymentValue) {
   const sel = document.getElementById('paymentFilter');
   if (sel) {
     sel.value = paymentValue || '';
+  }
+  // 同步統計卡片 active 視覺
+  document.querySelectorAll('.stat-card-clickable').forEach(card => {
+    card.classList.remove('active');
+  });
+  const map = { '': 'totalBookings', '己繳款': 'paidBookings', '未繳款': 'unpaidBookings', '逾繳可排': 'overdueBookings' };
+  const targetId = map[paymentValue || ''];
+  if (targetId) {
+    const valEl = document.getElementById(targetId);
+    if (valEl) valEl.closest('.stat-card-clickable')?.classList.add('active');
   }
   // 切換到列表模式以顯示篩選結果
   if (document.getElementById('listView') && !document.getElementById('listView').classList.contains('active')) {
@@ -1863,7 +1880,7 @@ function createNewBookingCard(booking) {
         </div>
         <div class="new-booking-info-item">
           <i class="fas fa-dollar-sign"></i>
-          <span class="status-badge ${paymentClass}">${payment}</span>
+          <span class="status-badge ${paymentClass}">${payment === '己繳款' ? '已付款' : payment}</span>
         </div>
       </div>
       ${paymentImageUrl ? `
@@ -1874,33 +1891,34 @@ function createNewBookingCard(booking) {
             <span>點擊放大</span>
           </div>
         </div>
-      ` : `
-        <div class="new-booking-image-placeholder">
-          <i class="fas fa-image"></i>
-          <span>無匯款圖片</span>
-        </div>
-      `}
+      ` : ''}
     </div>
     <div class="new-booking-actions">
-      <button onclick="quickMarkAsPaid(${booking.id || booking.rowNumber})" 
-              class="btn btn-success btn-sm" 
-              title="快速標記為已付款">
-        <i class="fas fa-check"></i> 已付款
-      </button>
+      ${(payment === '己繳款' || payment === '已付款') ? `
+        <span class="action-status-paid" title="已付款">
+          <i class="fas fa-check-circle"></i> 已付款
+        </span>
+      ` : `
+        <button onclick="quickMarkAsPaid(${booking.id || booking.rowNumber})" 
+                class="btn btn-success btn-sm action-primary-btn" 
+                title="標記為已付款">
+          <i class="fas fa-check"></i> 標記已付款
+        </button>
+      `}
       <button onclick="quickEditBooking(${booking.id || booking.rowNumber})" 
-              class="btn btn-primary btn-sm"
-              title="快速編輯">
-        <i class="fas fa-edit"></i> 編輯
+              class="btn btn-ghost btn-sm action-icon-btn"
+              title="編輯預約" aria-label="編輯">
+        <i class="fas fa-edit"></i>
       </button>
       <button onclick="quickDeleteBooking(${booking.id || booking.rowNumber}, '${safeVendor}', '${safeLocation}', '${safeDate}')" 
-              class="btn btn-danger btn-sm"
-              title="快速刪除">
-        <i class="fas fa-trash"></i> 刪除
+              class="btn btn-ghost-danger btn-sm action-icon-btn"
+              title="刪除預約" aria-label="刪除">
+        <i class="fas fa-trash"></i>
       </button>
       <button onclick="markAsProcessed(${booking.id || booking.rowNumber})" 
-              class="btn btn-secondary btn-sm"
-              title="標記為已處理">
-        <i class="fas fa-check-circle"></i> 已處理
+              class="btn btn-ghost btn-sm action-processed-btn"
+              title="標記為已處理（從快速操作區隱藏）">
+        <i class="fas fa-check"></i> 已處理
       </button>
     </div>
   `;

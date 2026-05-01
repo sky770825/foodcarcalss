@@ -1,0 +1,1353 @@
+/* ============================================
+ * admin-tweaks.css
+ * 在 admin.css 之後載入，把後台統一進前台品牌橘色系
+ * ============================================ */
+
+:root{
+  /* 覆寫品牌主色 紫 → 橘 */
+  --primary-color: #FF4B2B !important;
+  --primary-gradient: linear-gradient(135deg, #FF8A00, #FF4B2B) !important;
+  --primary-deep: #C8371A;
+  --primary-soft: #FFF1E8;
+  --primary-line: #F4D5BE;
+
+  /* 暖中性背景 */
+  --bg-secondary: #FAF7F2 !important;
+  --bg-tertiary: #F4F0E8 !important;
+  --border-color: #E8E2D8 !important;
+  --border-light: #EFE9DF !important;
+}
+
+/* ---------- 登入畫面 ---------- */
+.login-content,
+.login-modal .login-content{
+  border-radius: 16px !important;
+}
+.login-header{
+  background: linear-gradient(135deg, #FF8A00, #FF4B2B) !important;
+}
+.login-btn{
+  background: #2C2620 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  box-shadow: 0 4px 0 #C8371A, 0 8px 18px rgba(44,38,32,0.18) !important;
+  transition: transform .12s, background .15s !important;
+}
+.login-btn:hover{
+  background: #FF4B2B !important;
+  transform: translateY(-2px);
+}
+.login-btn:active{
+  transform: translateY(2px) !important;
+  box-shadow: 0 2px 0 #C8371A !important;
+}
+
+/* ---------- 頂部 admin-header ---------- */
+.admin-header{
+  background: #fff !important;
+  border-bottom: 1px solid #E8E2D8 !important;
+}
+.admin-header h1{
+  color: #2C2620 !important;
+}
+.admin-header h1 i{
+  color: #FF4B2B !important;
+}
+
+/* ---------- tab 導航 ---------- */
+.tab-btn{
+  font-weight: 600 !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+.tab-btn:hover{
+  color: #FF4B2B !important;
+  background: #FFF1E8 !important;
+}
+.tab-btn.active{
+  color: #FF4B2B !important;
+  border-bottom-color: #FF4B2B !important;
+}
+
+/* ---------- 按鈕系統 ---------- */
+.btn-primary{
+  background: #FF4B2B !important;
+  border-color: #FF4B2B !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+.btn-primary:hover{
+  background: #C8371A !important;
+  border-color: #C8371A !important;
+  transform: translateY(-1px);
+}
+.btn-secondary{
+  background: #fff !important;
+  border: 1.5px solid #E8E2D8 !important;
+  color: #5A524A !important;
+}
+.btn-secondary:hover{
+  border-color: #2C2620 !important;
+  color: #2C2620 !important;
+}
+.btn-danger{
+  background: #C8371A !important;
+}
+
+/* ---------- 統計卡片 ---------- */
+.stat-card{
+  border: 1px solid #EFE9DF !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(28,26,23,0.04), 0 4px 12px rgba(28,26,23,0.04) !important;
+  transition: transform .15s, box-shadow .15s !important;
+}
+.stat-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(28,26,23,0.05), 0 12px 24px rgba(28,26,23,0.08) !important;
+}
+.stat-card .stat-value{
+  color: #2C2620 !important;
+}
+.stat-card .stat-label{
+  color: #5A524A !important;
+}
+
+/* 各類別 icon 顏色（柔和版） */
+.stat-icon{
+  border-radius: 12px !important;
+}
+.stat-icon.stat-primary{ background: #FFF1E8 !important; color: #C8371A !important; }
+.stat-icon.stat-success{ background: #E8F1E9 !important; color: #2A5836 !important; }
+.stat-icon.stat-warning{ background: #FBF1DC !important; color: #8B4A1B !important; }
+.stat-icon.stat-danger{ background: #FCE7E2 !important; color: #C8371A !important; }
+
+/* ---------- 月份選擇器 ---------- */
+.month-grid .month-btn,
+.month-grid button{
+  border-radius: 8px !important;
+  border: 1px solid #E8E2D8 !important;
+  background: #fff !important;
+}
+.month-grid .month-btn:hover,
+.month-grid button:hover{
+  border-color: #FF4B2B !important;
+  color: #FF4B2B !important;
+}
+.month-grid .month-btn.active,
+.month-grid button.active{
+  background: #FF4B2B !important;
+  border-color: #FF4B2B !important;
+  color: #fff !important;
+}
+
+/* ---------- 篩選區 ---------- */
+.filter-section{
+  background: #fff !important;
+  border: 1px solid #EFE9DF !important;
+  border-radius: 12px !important;
+}
+.filter-item input,
+.filter-item select{
+  border: 1.5px solid #E8E2D8 !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  transition: border-color .15s, box-shadow .15s !important;
+}
+.filter-item input:focus,
+.filter-item select:focus{
+  border-color: #FF4B2B !important;
+  box-shadow: 0 0 0 3px rgba(255,75,43,0.1) !important;
+  outline: none !important;
+}
+
+/* ---------- section header ---------- */
+.section-header h2{
+  color: #2C2620 !important;
+}
+.section-header h2 i{
+  color: #FF4B2B !important;
+}
+.section-subtitle{
+  color: #9C9690 !important;
+}
+
+/* ---------- 表格 ---------- */
+.bookings-table{
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+.bookings-table thead th{
+  background: #FAF7F2 !important;
+  color: #2C2620 !important;
+  font-weight: 600 !important;
+  border-bottom: 1.5px solid #E8E2D8 !important;
+}
+.bookings-table tbody tr:hover{
+  background: #FFF7EE !important;
+}
+.bookings-table tbody td{
+  border-bottom: 1px solid #EFE9DF !important;
+}
+
+/* ---------- view-toggle ---------- */
+.view-toggle{
+  background: #FAF7F2 !important;
+  border: 1px solid #E8E2D8 !important;
+  border-radius: 8px !important;
+}
+.view-btn{
+  color: #5A524A !important;
+}
+.view-btn.active{
+  background: #FF4B2B !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+}
+
+/* ---------- 月曆視圖 ---------- */
+.admin-calendar-container{
+  background: #fff !important;
+  border: 1px solid #EFE9DF !important;
+  border-radius: 12px !important;
+}
+.calendar-month-title{
+  color: #2C2620 !important;
+}
+.calendar-nav-btn{
+  border: 1px solid #E8E2D8 !important;
+  border-radius: 8px !important;
+  color: #5A524A !important;
+}
+.calendar-nav-btn:hover{
+  border-color: #FF4B2B !important;
+  color: #FF4B2B !important;
+}
+.calendar-today-btn{
+  background: #FF4B2B !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+}
+
+/* ---------- 新預約區 ---------- */
+.new-bookings-section{
+  background: #FFF7EE !important;
+  border: 1px solid #F4D5BE !important;
+  border-radius: 12px !important;
+}
+.new-bookings-badge{
+  background: #FF4B2B !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding: 4px 12px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- modal ---------- */
+.modal-content{
+  border-radius: 14px !important;
+}
+.modal-header{
+  border-bottom: 1px solid #E8E2D8 !important;
+}
+.modal-header h2,
+.modal-header h3{
+  color: #2C2620 !important;
+}
+
+/* ---------- 場地/注意事項卡片 ---------- */
+.locations-grid > div,
+.location-card,
+.notice-card{
+  border: 1px solid #EFE9DF !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+/* ---------- body 背景 ---------- */
+body{
+  background: #FAF7F2 !important;
+}
+
+/* ============================================
+ *  v2: 月份切換 + 篩選列合併
+ * ============================================ */
+
+/* 隱藏舊月份選擇器（保留備用） */
+.month-selector-section{ display:none !important; }
+
+.filter-bar{
+  display: grid;
+  grid-template-columns: minmax(280px, auto) minmax(180px, 1fr) 180px 160px;
+  gap: 12px;
+  align-items: center;
+}
+
+.month-stepper{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FFF8F0;
+  border: 1px solid var(--primary-line);
+  border-radius: 12px;
+  padding: 4px 6px;
+  min-width: 0;
+}
+.month-stepper .month-step-btn{ flex: 0 0 auto; }
+.month-stepper .month-select{ flex: 1 1 auto; min-width: 0; }
+.month-stepper .month-today-btn{ flex: 0 0 auto; }
+.month-step-btn{
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--primary-deep);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.month-step-btn:hover{ background: rgba(255,75,43,0.08); }
+.month-select{
+  border: 0 !important;
+  background: transparent !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2C2620;
+  padding: 6px 8px !important;
+  min-width: 140px;
+  cursor: pointer;
+  appearance: none;
+  background-image: none !important;
+}
+.month-select:focus{ outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: 6px; }
+.month-today-btn{
+  margin-left: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+}
+
+.filter-search{
+  position: relative;
+}
+.filter-search-icon{
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0a6;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+.filter-search input{
+  width: 100%;
+  padding: 10px 12px 10px 34px !important;
+  border: 1px solid #E8E2D8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  font-size: 0.95rem;
+}
+.filter-search input:focus{
+  outline: none;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,43,0.12);
+}
+.filter-select{
+  padding: 10px 12px !important;
+  border: 1px solid #E8E2D8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.filter-select:focus{
+  outline: none;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,43,0.12);
+}
+
+/* RWD 篩選列 */
+@media (max-width: 1024px){
+  .filter-bar{
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-bar .month-stepper{ grid-column: 1 / -1; justify-self: start; }
+  .filter-bar .filter-search{ grid-column: 1 / -1; }
+}
+@media (max-width: 600px){
+  .filter-bar{ grid-template-columns: 1fr; }
+  .filter-bar .filter-select{ width: 100%; }
+  .month-stepper{ width: 100%; justify-content: space-between; }
+  .month-select{ flex: 1; }
+}
+
+/* 注意事項頁的篩選列：4 欄 */
+.filter-bar-notices{
+  grid-template-columns: minmax(220px, 1.6fr) 1fr 1fr 1fr;
+}
+@media (max-width: 1024px){
+  .filter-bar-notices{
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .filter-bar-notices .filter-search{ grid-column: 1 / -1; }
+}
+@media (max-width: 600px){
+  .filter-bar-notices{ grid-template-columns: 1fr; }
+}
+
+/* 統計表：紫色 → 品牌橘 */
+.statistics-section .stats-card h3{
+  color: #2C2620 !important;
+  border-bottom: 2px solid var(--primary-color) !important;
+  padding-bottom: 8px !important;
+}
+.statistics-section .stats-card h3 i{
+  color: var(--primary-color) !important;
+}
+.statistics-section .stats-subcard{
+  border: 1px solid #EFE9DF !important;
+  border-radius: 10px !important;
+  background: #FFFCF8 !important;
+}
+/* 統計表編輯彈窗的紫色 header */
+#statisticsEditModal .modal-header{
+  background: var(--primary-gradient) !important;
+}
+
+/* 「編輯調整」降為次要按鈕 */
+.statistics-section .section-actions .btn-primary{
+  background: #fff !important;
+  color: var(--primary-deep) !important;
+  border: 1px solid var(--primary-color) !important;
+  box-shadow: none !important;
+}
+.statistics-section .section-actions .btn-primary:hover{
+  background: var(--primary-soft) !important;
+}
+
+/* 統計表 (b) 區塊：總攤位數/品牌數 — 視覺化更平衡 */
+.statistics-section .stats-subcard .stat-row{
+  padding: 10px 4px !important;
+}
+
+/* ============================================
+ *  v2: 場地卡片 — 動作列排版
+ * ============================================ */
+.location-card{
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid #EFE9DF !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  overflow: hidden !important;
+  transition: box-shadow .15s, transform .15s;
+}
+.location-card:hover{
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+.location-card.disabled{
+  opacity: 0.65;
+  background: #FAF7F2 !important;
+}
+.location-card-header{
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #F0EAE0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+.location-card-header h3{
+  margin: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #2C2620 !important;
+  line-height: 1.4 !important;
+}
+.location-card-header .badge,
+.location-card-header .status-badge{
+  flex-shrink: 0 !important;
+  font-size: 0.72rem !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+}
+.location-card-body{
+  padding: 12px 16px !important;
+  flex: 1 !important;
+}
+.location-info-item{
+  font-size: 0.86rem !important;
+  color: #4a453e !important;
+  padding: 4px 0 !important;
+}
+.location-info-item i{
+  color: #c2956b !important;
+  width: 16px !important;
+  text-align: center !important;
+}
+
+/* 動作列：等寬 3 欄，主動作主色，其餘 ghost */
+.location-card-actions{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 8px !important;
+  padding: 12px 16px !important;
+  border-top: 1px solid #F0EAE0 !important;
+  background: #FCFAF6 !important;
+}
+.location-card-actions .btn{
+  padding: 8px 10px !important;
+  font-size: 0.85rem !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+}
+/* 編輯：主色填滿 */
+.location-card-actions .btn-primary{
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  border: 1px solid var(--primary-color) !important;
+}
+.location-card-actions .btn-primary:hover{
+  background: var(--primary-deep) !important;
+  border-color: var(--primary-deep) !important;
+}
+/* 停用/啟用：ghost 樣式（不再搶眼） */
+.location-card-actions .btn-warning,
+.location-card-actions .btn-success{
+  background: #fff !important;
+  border: 1px solid #E8E2D8 !important;
+  color: #6b6760 !important;
+  box-shadow: none !important;
+}
+.location-card-actions .btn-warning:hover,
+.location-card-actions .btn-success:hover{
+  background: #FAF7F2 !important;
+  color: #2C2620 !important;
+}
+/* 啟用按鈕額外綠色提示 */
+.location-card-actions .btn-success{
+  color: #2E7D32 !important;
+  border-color: #C8E6C9 !important;
+}
+.location-card-actions .btn-success:hover{
+  background: #E8F5E9 !important;
+}
+/* 刪除：ghost danger */
+.location-card-actions .btn-danger{
+  background: #fff !important;
+  color: #c62828 !important;
+  border: 1px solid #fadbd8 !important;
+  box-shadow: none !important;
+}
+.location-card-actions .btn-danger:hover{
+  background: #fdecea !important;
+  color: #b71c1c !important;
+}
+
+/* 場地卡片動作鍵 RWD 在 mobile media query (640px) 統一處理 */
+
+/* ============================================
+ *  v2: 新預約卡片 — 緊湊版
+ * ============================================ */
+
+/* 沒有圖片時，內容區自然收合（去掉舊的灰底佔位） */
+.new-booking-image-placeholder{ display: none !important; }
+
+.new-booking-content-wrapper{
+  align-items: flex-start;
+}
+
+/* 一行最多 4 欄；卡片更緊湊 */
+.new-bookings-grid{
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.new-booking-card{
+  padding: 14px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.new-booking-card .new-booking-header{
+  margin-bottom: 10px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid #F0EAE0 !important;
+}
+.new-booking-vendor{
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #2C2620 !important;
+}
+.new-booking-time{
+  font-size: 0.78rem !important;
+  color: #8a8580 !important;
+  margin-top: 2px;
+}
+.new-booking-badge{
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  font-size: 0.7rem !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+}
+.new-booking-info{
+  gap: 6px !important;
+}
+.new-booking-info-item{
+  font-size: 0.86rem !important;
+  color: #4a453e !important;
+}
+.new-booking-info-item i{
+  color: #c2956b !important;
+  width: 14px;
+  text-align: center;
+}
+
+/* 有圖片時縮小尺寸 */
+.new-booking-image-preview{
+  width: 84px !important;
+  height: 84px !important;
+  border-radius: 10px !important;
+}
+
+/* 動作列：主按鈕（標記已付款）+ 編輯/刪除/已處理 */
+.new-booking-actions{
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap;
+  align-items: stretch;
+  margin-top: 12px;
+}
+.new-booking-actions .btn{
+  padding: 7px 10px !important;
+  font-size: 0.82rem !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  line-height: 1 !important;
+}
+/* 主按鈕：標記已付款 — 撐滿剩餘寬度 */
+.action-primary-btn{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* icon-only 按鈕：編輯、刪除 */
+.action-icon-btn{
+  flex: 0 0 auto;
+  width: 32px !important;
+  padding: 7px !important;
+}
+.action-icon-btn i{ font-size: 0.85rem; }
+
+/* 已付款狀態（取代主按鈕） */
+.action-status-paid{
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: #E8F5E9;
+  color: #1B5E20;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.action-status-paid i{ color: #2E7D32; }
+
+/* 已處理：靠右、ghost 灰邊 */
+.action-processed-btn{
+  margin-left: auto;
+  font-size: 0.78rem !important;
+  color: #8a8580 !important;
+}
+.action-processed-btn:hover{
+  color: #2C2620 !important;
+}
+
+/* ghost 風格按鈕：弱化次要動作 */
+.btn.btn-ghost{
+  background: #fff !important;
+  color: #6b6760 !important;
+  border: 1px solid #E8E2D8 !important;
+  box-shadow: none !important;
+}
+.btn.btn-ghost:hover{
+  background: #FAF7F2 !important;
+  color: #2C2620 !important;
+  border-color: #D4CCBE !important;
+}
+.btn.btn-ghost-danger{
+  background: #fff !important;
+  color: #c62828 !important;
+  border: 1px solid #fadbd8 !important;
+  box-shadow: none !important;
+}
+.btn.btn-ghost-danger:hover{
+  background: #fdecea !important;
+  color: #b71c1c !important;
+  border-color: #f5b7b1 !important;
+}
+
+@media (max-width: 480px){
+  .action-processed-btn{ margin-left: 0; }
+}
+
+/* ============================================
+ *  v2: 統計卡片 — 點擊提示
+ * ============================================ */
+.stat-card-clickable{
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+  position: relative;
+}
+.stat-card-clickable:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  border-color: var(--primary-line) !important;
+}
+.stat-card-clickable::after{
+  content: '\f0b0'; /* filter icon */
+  font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free', FontAwesome;
+  font-weight: 900;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: #c8b8a0;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.stat-card-clickable:hover::after{ opacity: 1; }
+.stat-card-clickable.active{
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 14px rgba(255,75,43,0.18);
+}
+
+/* ============================================
+ *  v2: 編輯預約彈窗 — 兩欄式排版
+ * ============================================ */
+
+#editModal .modal-content{
+  max-width: 720px !important;
+  width: 90% !important;
+}
+
+.edit-form-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section-title{
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  letter-spacing: 0.5px;
+  padding: 4px 0 6px 0;
+  border-bottom: 1px solid #F0EAE0;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-section-title:first-child{ margin-top: 0; }
+.form-section-title i{
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.edit-form-grid .form-row{
+  display: grid;
+  gap: 14px;
+}
+.edit-form-grid .form-row-2{ grid-template-columns: 1fr 1fr; }
+.edit-form-grid .form-row-3{ grid-template-columns: 1.2fr 1fr 0.9fr; }
+
+.edit-form-grid .form-group{
+  margin-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.edit-form-grid .form-group label{
+  font-size: 0.85rem !important;
+  color: #4a453e !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-form-grid .form-group label i{
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+.edit-form-grid .form-group .required{
+  color: var(--primary-color);
+  font-weight: 700;
+}
+.edit-form-grid input,
+.edit-form-grid select,
+.edit-form-grid textarea{
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border: 1px solid #E8E2D8 !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  background: #fff !important;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+.edit-form-grid input:focus,
+.edit-form-grid select:focus,
+.edit-form-grid textarea:focus{
+  outline: none !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,43,0.12) !important;
+}
+.edit-form-grid textarea{
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.edit-form-grid .form-actions{
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin-top: 8px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid #F0EAE0 !important;
+}
+.edit-form-grid .form-actions .btn{
+  padding: 10px 20px !important;
+  font-size: 0.95rem !important;
+  min-width: 100px;
+  justify-content: center;
+}
+
+@media (max-width: 600px){
+  .edit-form-grid .form-row-2,
+  .edit-form-grid .form-row-3{ grid-template-columns: 1fr; }
+  #editModal .modal-content{ width: 96% !important; }
+  .edit-form-grid .form-actions{ flex-direction: column-reverse; }
+  .edit-form-grid .form-actions .btn{ width: 100%; }
+}
+
+
+/* ============================================================================
+ *  v3: 手機版完整重做 (≤640px)
+ * ============================================================================ */
+
+@media (max-width: 640px){
+
+  /* ---------- 頁首：縮小、標題與按鈕分行 ---------- */
+  .admin-header{
+    padding: 12px 14px !important;
+  }
+  /* 覆寫 admin.css 768px 的 column 排列 */
+  .admin-header .header-content{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .admin-header .header-content h1{
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  /* 按鈕：兩顆橫排等寬，不再上下堆疊 */
+  .admin-header .header-actions{
+    flex-direction: row !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .admin-header .header-actions .btn{
+    width: 100% !important;
+    padding: 10px 12px !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+  }
+
+  /* ---------- Tab 導覽：橫向滾動 + 視覺凸顯 ---------- */
+  .tabs-nav, .tabs{
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 !important;
+    margin: 0 -16px 0 -16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .tabs-nav::-webkit-scrollbar,
+  .tabs::-webkit-scrollbar{ display: none; }
+  .tab-btn{
+    flex: 0 0 auto !important;
+    padding: 10px 14px !important;
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---------- 容器：減少內距 ---------- */
+  .container, .admin-container{
+    padding: 12px !important;
+  }
+  .section-header{
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .section-header h2{
+    font-size: 1.1rem !important;
+  }
+  .section-header .section-actions{
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  .section-header .section-actions .btn{
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---------- 月份切換器：撐滿、變大 ---------- */
+  .filter-bar{ grid-template-columns: 1fr !important; gap: 10px !important; }
+  .month-stepper{
+    width: 100% !important;
+    padding: 6px !important;
+  }
+  .month-step-btn{
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1rem !important;
+  }
+  .month-select{
+    flex: 1 !important;
+    text-align: center;
+    font-size: 1rem !important;
+    padding: 8px !important;
+  }
+  .month-today-btn{
+    padding: 8px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* ---------- 統計卡片：2x2 ---------- */
+  .stats-section{
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .stat-card{
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+  .stat-icon{
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+  }
+  .stat-value{
+    font-size: 1.4rem !important;
+  }
+  .stat-label{
+    font-size: 0.78rem !important;
+  }
+  .stat-card-clickable::after{ display: none; }
+
+  /* ---------- 新預約區 ---------- */
+  .new-bookings-section{
+    padding: 14px !important;
+  }
+  .new-bookings-section .section-header h2{
+    font-size: 1rem !important;
+  }
+  .new-bookings-grid{
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  /* 卡片內容：圖片 + info 改為 column，避免圖片擠 info 寬度 */
+  .new-booking-content-wrapper{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  /* info 改為 2x2 格子，避免太垂直 */
+  .new-booking-info{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px 10px !important;
+    width: 100% !important;
+  }
+  .new-booking-info-item{
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+  }
+  .new-booking-info-item i{
+    flex-shrink: 0 !important;
+    width: 14px !important;
+    text-align: center !important;
+    color: #8a8580 !important;
+    font-size: 0.78rem !important;
+  }
+  /* 文字截斷防止溢出 */
+  .new-booking-info-item span{
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  /* 付款狀態徽章不要壓縮 */
+  .new-booking-info-item .status-badge{
+    flex-shrink: 0 !important;
+    font-size: 0.72rem !important;
+    padding: 2px 8px !important;
+  }
+  /* 圖片：撐滿、降低高度避免太佔空間 */
+  .new-booking-image-preview{
+    width: 100% !important;
+    height: 100px !important;
+    max-width: 200px !important;
+    align-self: flex-start !important;
+  }
+  /* 卡片本體緊湊 */
+  .new-booking-card{
+    padding: 12px !important;
+  }
+  .new-booking-card .new-booking-header{
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .new-booking-vendor{
+    font-size: 0.95rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  /* 動作列：第一行主按鈕；第二行三等分（編輯/刪除/已處理） */
+  .new-booking-actions{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 8px !important;
+    margin-top: 14px !important;
+  }
+  .action-primary-btn,
+  .action-status-paid{
+    grid-column: 1 / -1 !important;     /* 主按鈕獨佔整列 */
+    width: 100% !important;
+    height: 44px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    padding: 0 12px !important;
+    justify-content: center !important;
+    flex: unset !important;
+  }
+  .action-icon-btn{
+    width: 100% !important;
+    height: 40px !important;
+    padding: 0 !important;
+    flex: unset !important;
+    justify-content: center !important;
+    font-size: 0.95rem !important;
+  }
+  .action-icon-btn i{ font-size: 0.95rem !important; margin: 0 !important; }
+  .action-processed-btn{
+    width: 100% !important;
+    height: 40px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+    flex: unset !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---------- 預約列表表格：卡片化 ---------- */
+  .bookings-table-container{
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .bookings-table{
+    display: block !important;
+    background: transparent !important;
+  }
+  .bookings-table thead{ display: none !important; }
+  .bookings-table tbody{ display: block !important; }
+  .bookings-table tr{
+    display: block !important;
+    background: #fff;
+    border: 1px solid #EFE9DF;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .bookings-table td{
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 7px 0 !important;
+    border: 0 !important;
+    font-size: 0.88rem !important;
+    gap: 10px;
+    text-align: right !important;
+    min-height: 28px !important;
+  }
+  .bookings-table td::before{
+    content: attr(data-label);
+    color: #8a8580;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-align: left;
+    flex-shrink: 0;
+    min-width: 48px;
+  }
+  /* 右側 value 容器自動換行截斷 */
+  .bookings-table td > *:not(::before){
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  /* 餐車名稱：當作標題，不顯示 label */
+  .bookings-table td.col-vendor{
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #2C2620;
+    border-bottom: 1px solid #F0EAE0 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 6px !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+  .bookings-table td.col-vendor::before{ display: none; }
+  /* 操作欄：父 td 為 block，內層 .action-buttons 才是真的 grid */
+  .bookings-table td.col-actions{
+    display: block !important;
+    border-top: 1px solid #F0EAE0 !important;
+    padding: 10px 0 0 0 !important;
+    margin-top: 6px !important;
+  }
+  .bookings-table td.col-actions::before{ display: none !important; }
+  .bookings-table td.col-actions .action-buttons{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .bookings-table td.col-actions .btn{
+    width: 100% !important;
+    flex: unset !important;
+    padding: 0 8px !important;
+    font-size: 0.85rem !important;
+    height: 40px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    gap: 4px !important;
+  }
+  /* 付款狀態 td：徽章靠右、放大、加可點擊提示 */
+  .bookings-table td.col-payment .status-badge{
+    padding: 6px 14px !important;
+    font-size: 0.85rem !important;
+    border-radius: 999px !important;
+  }
+  /* 狀態徽章樣式統一加大 */
+  .bookings-table td.col-status .status-badge{
+    padding: 4px 10px !important;
+    font-size: 0.78rem !important;
+  }
+  /* 備註太長：截斷而不是換行成兩行 */
+  .bookings-table td.col-note{
+    color: #6b6760 !important;
+  }
+  .bookings-table td.col-note{
+    overflow: hidden !important;
+  }
+  .bookings-table td.col-note{
+    color: #6b6760 !important;
+  }
+
+  .loading-row{ text-align: center; padding: 20px !important; }
+
+  /* ---------- 場地卡片：手機版動作列 ---------- */
+  .locations-grid{
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  /* 場地卡片：手機版動作列 — 3 等分、緊湊 */
+  .location-card-actions{
+    grid-template-columns: 1fr 1fr 1fr !important;
+    padding: 10px 12px !important;
+    gap: 6px !important;
+  }
+  .location-card-actions .btn{
+    padding: 8px 6px !important;
+    font-size: 0.78rem !important;
+    height: 38px !important;
+    white-space: nowrap !important;
+  }
+  .location-card-actions .btn i{
+    font-size: 0.78rem !important;
+    margin-right: 3px !important;
+  }
+
+  /* ---------- 注意事項卡片 ---------- */
+  .notices-list{
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .notice-card{
+    padding: 14px !important;
+  }
+
+  /* ---------- 月曆視圖：單元格縮小 ---------- */
+  .admin-calendar-container{
+    padding: 8px !important;
+  }
+  .calendar-day-cell{
+    min-height: 60px !important;
+    padding: 4px !important;
+    font-size: 0.78rem !important;
+  }
+  .calendar-month-title{
+    font-size: 1rem !important;
+  }
+
+  /* ---------- 統計表：手機版 ---------- */
+  .stats-grid-2col{
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .stats-card{
+    padding: 14px !important;
+  }
+  .stats-card h3{
+    font-size: 1rem !important;
+  }
+
+  /* ---------- 編輯彈窗 ---------- */
+  .modal-content{
+    width: calc(100vw - 16px) !important;
+    max-width: none !important;
+    max-height: calc(100vh - 32px) !important;
+    margin: 16px 8px !important;
+    border-radius: 14px !important;
+  }
+  .modal-header{
+    padding: 14px 16px !important;
+  }
+  .modal-header h2,
+  .modal-header h3{
+    font-size: 1rem !important;
+  }
+  .modal-body{
+    padding: 16px !important;
+    max-height: calc(100vh - 100px) !important;
+    overflow-y: auto !important;
+  }
+  .edit-form-grid .form-row-2,
+  .edit-form-grid .form-row-3{
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .edit-form-grid input,
+  .edit-form-grid select,
+  .edit-form-grid textarea{
+    font-size: 16px !important; /* 防止 iOS 縮放 */
+  }
+  /* 編輯彈窗手機版：儲存／取消按鈕等寬橫排 */
+  .edit-form-grid .form-actions{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    flex-direction: row !important;
+    padding-top: 14px !important;
+    margin-top: 14px !important;
+  }
+  .edit-form-grid .form-actions .btn{
+    width: 100% !important;
+    height: 46px !important;
+    padding: 0 !important;
+    font-size: 0.95rem !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+  /* 主動作（儲存）放右邊 = 第二欄 */
+  .edit-form-grid .form-actions .btn-primary,
+  .edit-form-grid .form-actions button[type="submit"]{
+    order: 2;
+  }
+
+  /* ---------- 通用：搜尋框 input 字體 ≥16px (避免 iOS 縮放) ---------- */
+  .filter-bar input,
+  .filter-bar select{
+    font-size: 16px !important;
+  }
+
+  /* ---------- 列表/月曆切換 view-toggle ---------- */
+  .view-toggle{
+    display: flex !important;
+    width: 100%;
+  }
+  .view-toggle .view-btn{
+    flex: 1 !important;
+    padding: 8px !important;
+    font-size: 0.85rem !important;
+  }
+  .booking-count{
+    width: 100%;
+    text-align: right;
+    font-size: 0.82rem;
+    color: #8a8580;
+  }
+}
+
+/* 更小螢幕（≤380px） */
+@media (max-width: 380px){
+  .stats-section{
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .stat-value{ font-size: 1.2rem !important; }
+  .month-today-btn span{ display: none; }
+  .month-step-btn{
+    width: 34px !important;
+    height: 34px !important;
+  }
+}

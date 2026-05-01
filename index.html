@@ -39,6 +39,7 @@
 
 <!-- 外部樣式表 -->
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles-tweaks.css">
 
 </head>
 <body>
@@ -260,7 +261,7 @@
             <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
           </button>
           <div id="imagePreview" class="image-preview" style="display: none;">
-            <img id="previewImage" src="" alt="預覽圖片">
+            <img id="previewImage" alt="預覽圖片">
             <button type="button" class="remove-image-btn" onclick="removePaymentImage()" title="移除圖片">
               <i class="fas fa-times"></i>
             </button>
@@ -295,7 +296,7 @@
 <!-- 圖片放大模態框 -->
 <div id="imageModal" class="image-modal">
   <span class="modal-close" aria-label="關閉" role="button">&times;</span>
-  <img class="modal-content" id="modalImage" src="" alt="">
+  <img class="modal-content" id="modalImage" alt="">
 </div>
 
 <!-- 繳費彈窗 -->
@@ -341,7 +342,7 @@
             <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
           </button>
           <div id="paymentModalImagePreview" class="payment-image-preview" style="display: none;">
-            <img id="paymentModalPreviewImage" src="" alt="預覽圖片">
+            <img id="paymentModalPreviewImage" alt="預覽圖片">
             <button type="button" class="remove-payment-image-btn" onclick="removePaymentModalImage()" title="移除圖片">
               <i class="fas fa-times"></i>
             </button>
