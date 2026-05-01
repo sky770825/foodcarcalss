@@ -4694,6 +4694,58 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 
 // ========== 匯款圖片上傳功能 ==========
 
+// ========== 圖片壓縮工具（解決 iPhone 大檔/HEIC/Android 無 type 問題）==========
+// 把任何瀏覽器能解碼的圖片壓縮成 ≤1.5MB 的 JPEG
+async function compressImageFile(file, opts = {}) {
+  const {
+    maxWidth = 1920,    // 最長邊
+    maxHeight = 1920,
+    quality = 0.85,     // JPEG 品質
+    maxSizeKB = 1500    // 目標大小上限
+  } = opts;
+
+  // 載入成 Image
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('讀取檔案失敗'));
+    reader.readAsDataURL(file);
+  });
+
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('此圖片格式無法讀取（可能是 HEIC，請改用「儲存為 JPG」後再上傳）'));
+    im.src = dataUrl;
+  });
+
+  // 計算目標尺寸（保持比例，縮到最長邊不超過 maxWidth/maxHeight）
+  let { width, height } = img;
+  const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+  width = Math.round(width * ratio);
+  height = Math.round(height * ratio);
+
+  // 畫到 canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, width, height);
+
+  // 壓縮為 JPEG，若仍 > maxSizeKB 就降低品質再試
+  let q = quality;
+  let blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+  while (blob && blob.size > maxSizeKB * 1024 && q > 0.4) {
+    q -= 0.1;
+    blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+  }
+  if (!blob) throw new Error('壓縮失敗');
+
+  // 包成 File（保留原檔名但改副檔名為 .jpg）
+  const baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
+  return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+}
+
 // 上傳匯款圖片到 Supabase Storage
 async function uploadPaymentImage(file, vendor, location, date) {
   if (!SUPABASE_CONFIG?.enabled || !supabaseClient) {
@@ -4814,34 +4866,55 @@ async function uploadPaymentImage(file, vendor, location, date) {
 document.addEventListener('DOMContentLoaded', function() {
   const imageInput = document.getElementById('paymentImageInput');
   if (imageInput) {
-    imageInput.addEventListener('change', function(e) {
+    imageInput.addEventListener('change', async function(e) {
       const file = e.target.files[0];
-      if (file) {
-        // 驗證文件類型
-        if (!file.type.startsWith('image/')) {
-          showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
-          e.target.value = '';
-          return;
-        }
-        
-        // 驗證文件大小（最大 5MB）
-        if (file.size > 5 * 1024 * 1024) {
-          showToast('error', '檔案太大', '圖片大小不能超過 5MB');
-          e.target.value = '';
-          return;
-        }
-        
+      if (!file) return;
+
+      // 1. 寬鬆驗證：accept="image/*" + 副檔名雙重判斷（解決 Android type=='' 問題）
+      const looksLikeImage = file.type.startsWith('image/') ||
+        /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+      if (!looksLikeImage) {
+        showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
+        e.target.value = '';
+        return;
+      }
+
+      // 2. 原始檔大小放寬到 20MB（壓縮後一定會更小）
+      if (file.size > 20 * 1024 * 1024) {
+        showToast('error', '檔案太大', '原始圖片大小不能超過 20MB');
+        e.target.value = '';
+        return;
+      }
+
+      // 3. 壓縮（會自動轉 JPEG，解決 HEIC 預覽不出來問題）
+      try {
+        showLoading('🖼️ 處理圖片中...');
+        const compressed = await compressImageFile(file);
+        hideLoading();
+
+        // 把 input 的 File 物件換成壓縮後的版本（form 提交會用這個）
+        const dt = new DataTransfer();
+        dt.items.add(compressed);
+        e.target.files = dt.files;
+
+        console.log(`✅ 圖片已壓縮：${(file.size/1024/1024).toFixed(2)}MB → ${(compressed.size/1024/1024).toFixed(2)}MB`);
+
         // 顯示預覽
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function(ev) {
           const preview = document.getElementById('imagePreview');
           const previewImg = document.getElementById('previewImage');
           if (preview && previewImg) {
-            previewImg.src = e.target.result;
+            previewImg.src = ev.target.result;
             preview.style.display = 'block';
           }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(compressed);
+      } catch (err) {
+        hideLoading();
+        console.error('圖片處理失敗:', err);
+        showToast('error', '圖片處理失敗', err.message || '請改用 JPG 或 PNG 格式');
+        e.target.value = '';
       }
     });
   }
@@ -4865,40 +4938,56 @@ window.removePaymentImage = removePaymentImage;
 document.addEventListener('DOMContentLoaded', function() {
   const paymentImageInput = document.getElementById('paymentModalImageInput');
   if (paymentImageInput) {
-    paymentImageInput.addEventListener('change', function(e) {
+    paymentImageInput.addEventListener('change', async function(e) {
       const file = e.target.files[0];
-      if (file) {
-        // 驗證文件類型
-        if (!file.type.startsWith('image/')) {
-          showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
-          e.target.value = '';
-          return;
-        }
-        
-        // 驗證文件大小（最大 5MB）
-        if (file.size > 5 * 1024 * 1024) {
-          showToast('error', '檔案太大', '圖片大小不能超過 5MB');
-          e.target.value = '';
-          return;
-        }
-        
-        // 顯示預覽
+      if (!file) return;
+
+      // 寬鬆驗證
+      const looksLikeImage = file.type.startsWith('image/') ||
+        /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
+      if (!looksLikeImage) {
+        showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
+        e.target.value = '';
+        return;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        showToast('error', '檔案太大', '原始圖片大小不能超過 20MB');
+        e.target.value = '';
+        return;
+      }
+
+      // 壓縮 → 自動轉 JPEG
+      try {
+        showLoading('🖼️ 處理圖片中...');
+        const compressed = await compressImageFile(file);
+        hideLoading();
+
+        const dt = new DataTransfer();
+        dt.items.add(compressed);
+        e.target.files = dt.files;
+
+        console.log(`✅ 繳費圖已壓縮：${(file.size/1024/1024).toFixed(2)}MB → ${(compressed.size/1024/1024).toFixed(2)}MB`);
+
+        // 預覽
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function(ev) {
           const preview = document.getElementById('paymentModalImagePreview');
           const previewImg = document.getElementById('paymentModalPreviewImage');
           const uploadBtn = document.getElementById('uploadPaymentImageBtn');
-          
           if (preview && previewImg) {
-            previewImg.src = e.target.result;
+            previewImg.src = ev.target.result;
             preview.style.display = 'block';
           }
-          
           if (uploadBtn) {
             uploadBtn.style.display = 'block';
           }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(compressed);
+      } catch (err) {
+        hideLoading();
+        console.error('圖片處理失敗:', err);
+        showToast('error', '圖片處理失敗', err.message || '請改用 JPG 或 PNG 格式');
+        e.target.value = '';
       }
     });
   }
