@@ -32,6 +32,7 @@ let allLocations = []; // 場地列表將從 location_settings 表載入
 // 這個映射表用於將 location_key 映射到所有可能的場地名稱格式
 // 因為歷史資料可能使用不同的場地名稱格式
 const locationNameMap = {
+  '開心果團購': ['開心果團購', '四維路30號', '開心果團購 - 四維路30號', '楊梅區四維路30號'],
   '四維路59號': ['四維路59號', '楊梅區四維路59號'],
   '四維路60號': ['四維路60號', '楊梅區四維路60號'],
   '漢堡大亨': ['漢堡大亨', '四維路70號', '漢堡大亨 - 四維路70號', '楊梅區四維路70號'],
@@ -4172,6 +4173,5 @@ window.renderStatistics = renderStatistics;
 window.showStatisticsEditModal = showStatisticsEditModal;
 window.closeStatisticsEditModal = closeStatisticsEditModal;
 window.saveStatisticsSettings = saveStatisticsSettings;
-
 
 

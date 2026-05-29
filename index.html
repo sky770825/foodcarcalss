@@ -108,6 +108,9 @@
         <div class="location-filter">
           <label><i class="fas fa-filter"></i> 篩選場地：</label>
           <div class="location-filter-buttons">
+            <button class="filter-btn" data-location="開心果團購">
+              <i class="fas fa-map-marker-alt"></i> 四維路30號
+            </button>
             <button class="filter-btn active" data-location="四維路59號">
               <i class="fas fa-map-marker-alt"></i> 四維路59號
             </button>
@@ -142,6 +145,12 @@
       </p>
     </div>
     <div class="location-tabs">
+      <button class="location-tab" data-location="開心果團購">
+        <i class="fas fa-store"></i>
+        <span>開心果團購</span>
+        <small>楊梅區四維路30號</small>
+        <img src="assets/locations/siwei-30-happy-dog.jpg" alt="開心果團購" class="location-thumbnail" onerror="this.style.display='none'" data-full-image="assets/locations/siwei-30-happy-dog.jpg" loading="lazy">
+      </button>
       <button class="location-tab active" data-location="四維路59號">
         <i class="fas fa-map-marker-alt"></i>
         <span>四維路59號</span>
@@ -214,6 +223,7 @@
         <label for="location"><i class="fas fa-map-marker-alt"></i> 選擇場地</label>
       <select id="location">
           <option value="">請選擇場地</option>
+          <option value="開心果團購">開心果團購 - 四維路30號</option>
           <option value="四維路59號">四維路59號</option>
           <option value="漢堡大亨">漢堡大亨 - 四維路70號</option>
           <option value="自由風">自由風 - 四維路190號</option>
@@ -1223,4 +1233,3 @@
 
 </body>
 </html>
-

@@ -16,6 +16,29 @@ function escapeHtml(text) {
 
 // 多場地規則配置
 const locationConfigs = {
+  "開心果團購": {
+    name: "開心果團購",
+    address: "楊梅區四維路30號",
+    type: "合作店面",
+    days: [1, 2, 3, 4, 5, 6, 0], // 營業時間與四維路59號相同，整個月都可以排
+    slots: ["14:00-20:00"],
+    price: {
+      "14:00-20:00": "600元"
+    },
+    info: {
+      hours: "14:00-20:00",
+      fee: "600元/天",
+      limit: "僅限1車，不要影響到右邊刺青店營業",
+      ban: "煙霧太大、飲料車",
+      special: "整月都可排班"
+    },
+    notices: [
+      "不供水、不供電，需自行清潔環境及垃圾處理",
+      "僅限1車，不要影響到右邊刺青店營業",
+      "禁止煙霧太大的餐車",
+      "禁止飲料車"
+    ]
+  },
   "四維路59號": {
     name: "楊梅區四維路59號",
     address: "楊梅區四維路59號",
@@ -167,6 +190,7 @@ const locationConfigs = {
 // 已預約的日期和時段 - 根據Google Sheets 10月份實際排班資料
 // 已預約時段 - 現在完全從 Google Sheets 動態載入
 const bookedSlots = {
+  "開心果團購": {},
   "四維路59號": {},
   "四維路60號": {},
   "漢堡大亨": {},
@@ -2169,6 +2193,10 @@ async function fetchBookingsFromGoogleSheets() {
 // 場地名稱標準化對照表（處理不同格式的場地名稱）
 const locationNameMapping = {
   // Google Sheets 可能的格式 → 系統標準格式
+  "開心果團購": "開心果團購",
+  "開心果團購 - 四維路30號": "開心果團購",
+  "四維路30號": "開心果團購",
+  "楊梅區四維路30號": "開心果團購",
   "四維路59號": "四維路59號",
   "楊梅區四維路59號": "四維路59號",
   "四維路60號": "四維路60號",
@@ -2212,6 +2240,9 @@ function normalizeLocationName(locationName) {
   }
   
   // 如果沒有在對照表中，嘗試智能匹配（根據門牌號碼）
+  if (trimmed.includes('30號') || trimmed.includes('開心果')) {
+    return '開心果團購';
+  }
   if (trimmed.includes('70號') || trimmed.includes('漢堡')) {
     return '漢堡大亨';
   }

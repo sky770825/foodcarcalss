@@ -92,6 +92,23 @@ CREATE POLICY "Allow public delete" ON frontend_notices
   FOR DELETE USING (true);
 
 -- ========== 初始化資料（從現有配置遷移） ==========
+-- 開心果團購（四維路30號）
+INSERT INTO location_settings (location_key, location_name, address, location_type, available_days, info, notices)
+VALUES (
+  '開心果團購',
+  '開心果團購',
+  '楊梅區四維路30號',
+  '店面場地',
+  ARRAY[1, 2, 3, 4, 5, 6, 0],
+  '{"hours": "14:00-20:00", "fee": "600元/天", "limit": "僅限1車，不要影響到右邊刺青店營業", "ban": "煙霧太大、飲料車", "special": "整月都可排班"}'::jsonb,
+  ARRAY[
+    '不供水、不供電，需自行清潔環境及垃圾處理',
+    '僅限1車，不要影響到右邊刺青店營業',
+    '禁止煙霧太大的餐車',
+    '禁止飲料車'
+  ]
+) ON CONFLICT (location_key) DO NOTHING;
+
 -- 四維路59號
 INSERT INTO location_settings (location_key, location_name, address, location_type, available_days, info, notices)
 VALUES (

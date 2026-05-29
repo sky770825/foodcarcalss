@@ -242,6 +242,7 @@ function addBookingToSheet(bookingData) {
     // 場地名稱到地址的對應關係
     function getLocationAddress(locationName) {
       const locationMap = {
+        '開心果團購': '四維路30號',
         '四維路59號': '四維路59號',
         '四維路60號': '四維路60號',
         '漢堡大亨': '四維路70號',
@@ -408,6 +409,7 @@ function cancelBookingFromSheet(cancelData) {
     // 場地名稱到地址的對應關係（與addBookingToSheet保持一致）
     function getLocationAddress(locationName) {
       const locationMap = {
+        '開心果團購': '四維路30號',
         '四維路59號': '四維路59號',
         '四維路60號': '四維路60號',
         '漢堡大亨': '四維路70號',
