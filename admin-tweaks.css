@@ -1042,8 +1042,8 @@ body{
   /* 文字截斷防止溢出 */
   .new-booking-info-item span{
     min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
     white-space: nowrap !important;
   }
   /* 付款狀態徽章不要壓縮 */
@@ -1069,9 +1069,10 @@ body{
   }
   .new-booking-vendor{
     font-size: 0.95rem !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
   }
   /* 動作列：第一行主按鈕；第二行三等分（編輯/刪除/已處理） */
   .new-booking-actions{
@@ -1137,104 +1138,170 @@ body{
     max-width: 100% !important;
   }
   .bookings-table tr{
-    display: block !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    column-gap: 10px !important;
+    row-gap: 0 !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     background: #fff;
     border: 1px solid #EFE9DF;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    padding: 9px 11px 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
   .bookings-table td{
-    display: flex !important;
-    justify-content: space-between !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    justify-content: initial !important;
     align-items: center !important;
-    padding: 7px 0 !important;
+    padding: 4px 0 !important;
     border: 0 !important;
-    font-size: 0.88rem !important;
-    gap: 10px;
-    text-align: right !important;
-    min-height: 28px !important;
+    font-size: 0.8rem !important;
+    gap: 5px !important;
+    line-height: 1.25 !important;
+    text-align: left !important;
+    min-height: 23px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+  }
+  .bookings-table tbody td{
+    border-bottom: 0 !important;
+  }
+  .bookings-table .col-timestamp,
+  .bookings-table .col-vendor,
+  .bookings-table .col-type,
+  .bookings-table .col-location,
+  .bookings-table .col-date,
+  .bookings-table .col-status,
+  .bookings-table .col-fee,
+  .bookings-table .col-payment,
+  .bookings-table .col-note,
+  .bookings-table .col-actions{
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
   }
   .bookings-table td::before{
     content: attr(data-label);
     color: #8a8580;
-    font-size: 0.78rem;
+    font-size: 0.68rem;
     font-weight: 500;
     text-align: left;
     flex-shrink: 0;
-    min-width: 48px;
+    min-width: 0;
   }
-  /* 右側 value 容器自動換行截斷 */
+  /* 右側 value 容器保持單行，標題與備註另行覆蓋 */
   .bookings-table td > *:not(::before){
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
     white-space: nowrap;
     max-width: 100%;
   }
   /* 餐車名稱：當作標題，不顯示 label */
   .bookings-table td.col-vendor{
-    font-size: 1rem !important;
+    grid-column: 1 / -1 !important;
+    order: 1 !important;
+    width: 100% !important;
+    font-size: 0.98rem !important;
     font-weight: 700 !important;
     color: #2C2620;
     border-bottom: 1px solid #F0EAE0 !important;
-    padding-bottom: 8px !important;
-    margin-bottom: 6px !important;
+    padding: 0 0 6px 0 !important;
+    margin-bottom: 2px !important;
     justify-content: flex-start !important;
     text-align: left !important;
+    white-space: normal !important;
+    min-height: 0 !important;
+    line-height: 1.25 !important;
   }
   .bookings-table td.col-vendor::before{ display: none; }
+  .bookings-table td.col-vendor strong{
+    display: block !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+  .bookings-table td.col-timestamp{
+    grid-column: 1 / -1 !important;
+    order: 2 !important;
+    width: 100% !important;
+    color: #6b6760 !important;
+    font-size: 0.75rem !important;
+    padding-top: 2px !important;
+  }
+  .bookings-table td.col-type{ order: 3 !important; }
+  .bookings-table td.col-location{ order: 4 !important; }
+  .bookings-table td.col-date{ order: 5 !important; }
+  .bookings-table td.col-status{ order: 6 !important; }
+  .bookings-table td.col-fee{ order: 7 !important; }
+  .bookings-table td.col-payment{ order: 8 !important; }
   /* 操作欄：父 td 為 block，內層 .action-buttons 才是真的 grid */
   .bookings-table td.col-actions{
     display: block !important;
+    grid-column: 1 / -1 !important;
+    order: 10 !important;
+    width: 100% !important;
     border-top: 1px solid #F0EAE0 !important;
-    padding: 10px 0 0 0 !important;
-    margin-top: 6px !important;
+    padding: 8px 0 0 0 !important;
+    margin-top: 4px !important;
+    min-height: 0 !important;
   }
   .bookings-table td.col-actions::before{ display: none !important; }
   .bookings-table td.col-actions .action-buttons{
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
+    gap: 7px !important;
     width: 100% !important;
   }
   .bookings-table td.col-actions .btn{
     width: 100% !important;
     flex: unset !important;
     padding: 0 8px !important;
-    font-size: 0.85rem !important;
-    height: 40px !important;
+    font-size: 0.78rem !important;
+    height: 34px !important;
     justify-content: center !important;
     align-items: center !important;
     white-space: nowrap !important;
     display: inline-flex !important;
     gap: 4px !important;
+    border-radius: 8px !important;
   }
   /* 付款狀態 td：徽章靠右、放大、加可點擊提示 */
   .bookings-table td.col-payment .status-badge{
-    padding: 6px 14px !important;
-    font-size: 0.85rem !important;
+    padding: 4px 9px !important;
+    font-size: 0.74rem !important;
     border-radius: 999px !important;
+    justify-self: start !important;
   }
   /* 狀態徽章樣式統一加大 */
   .bookings-table td.col-status .status-badge{
-    padding: 4px 10px !important;
-    font-size: 0.78rem !important;
+    padding: 3px 7px !important;
+    font-size: 0.7rem !important;
+    justify-self: start !important;
   }
-  /* 備註太長：截斷而不是換行成兩行 */
+  /* 備註可用整列，避免內容被過度壓縮 */
   .bookings-table td.col-note{
+    grid-column: 1 / -1 !important;
+    order: 9 !important;
+    width: 100% !important;
     color: #6b6760 !important;
-  }
-  .bookings-table td.col-note{
+    white-space: normal !important;
     overflow: hidden !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    padding-top: 5px !important;
   }
-  .bookings-table td.col-note{
-    color: #6b6760 !important;
+  .bookings-table td.col-note::before{
+    align-self: start !important;
   }
 
   .loading-row{ text-align: center; padding: 20px !important; }
@@ -1740,6 +1807,68 @@ body{
     text-align: right;
     font-size: 0.82rem;
     color: #8a8580;
+  }
+
+  /* 預約列表工具列：手機版壓縮成單行比例 */
+  .bookings-section{
+    padding: 12px !important;
+  }
+  .bookings-section .section-header{
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+  }
+  .bookings-section .section-header h2{
+    font-size: 1.05rem !important;
+    margin-bottom: 2px !important;
+  }
+  .bookings-section .section-subtitle{
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
+  }
+  .bookings-section .section-actions{
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .bookings-section #viewProcessedBtn{
+    grid-column: 1 / -1 !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 0.78rem !important;
+  }
+  .bookings-section .view-toggle{
+    grid-column: 1 / 2 !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 36px !important;
+    padding: 3px !important;
+  }
+  .bookings-section .view-toggle .view-btn{
+    height: 30px !important;
+    padding: 0 6px !important;
+    font-size: 0.76rem !important;
+    gap: 4px !important;
+  }
+  .bookings-section .booking-count{
+    grid-column: 2 / 3 !important;
+    width: auto !important;
+    min-width: 72px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+    border: 1px solid #EFE9DF !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    font-size: 0.76rem !important;
+    white-space: nowrap !important;
+    text-align: center !important;
   }
 }
 
