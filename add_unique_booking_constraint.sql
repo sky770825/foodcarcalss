@@ -1,12 +1,22 @@
--- 防止重複報班：為「場地 + 日期 + 餐車」加上唯一限制
--- 
--- 步驟：
--- 1. 先開啟「檢查重複數據.html」，刪除所有重複記錄（保留每組最新一筆）
--- 2. 再於 Supabase Dashboard → SQL Editor 執行本腳本
+-- 防止同場地同日期重複報班
 --
--- 執行後：前端送出相同「場地+日期+餐車」時會自動更新該筆，不再新增重複。
+-- 重要：
+-- 1. 請先確認並處理現有重複資料，否則 UNIQUE CONSTRAINT 會建立失敗。
+-- 2. 本系統每個場地每天只允許 1 車，因此唯一限制必須是「location + booking_date」。
+-- 3. 舊版「location + booking_date + vendor」只能防同一餐車重複送出，無法防不同餐車搶同一天。
+--
+-- 檢查現有重複資料：
+-- SELECT location, booking_date, COUNT(*) AS duplicate_count, ARRAY_AGG(id ORDER BY id) AS ids, ARRAY_AGG(vendor ORDER BY id) AS vendors
+-- FROM foodcarcalss
+-- GROUP BY location, booking_date
+-- HAVING COUNT(*) > 1
+-- ORDER BY booking_date, location;
+--
+-- 若曾執行舊版約束，先移除：
+ALTER TABLE foodcarcalss
+DROP CONSTRAINT IF EXISTS foodcarcalss_unique_booking;
 
--- 若目前仍有重複資料，此指令會失敗，請先完成步驟 1
-ALTER TABLE foodcarcalss 
-ADD CONSTRAINT foodcarcalss_unique_booking 
-UNIQUE (location, booking_date, vendor);
+-- 建立正確的防重複約束：
+ALTER TABLE foodcarcalss
+ADD CONSTRAINT foodcarcalss_unique_location_date
+UNIQUE (location, booking_date);

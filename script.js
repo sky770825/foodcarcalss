@@ -1916,6 +1916,45 @@ async function fetchBookingsFromGitHub() {
 
 // =============== Google Sheets 同步功能 ===============
 
+// 格式化日期為「10月13日(星期一)」格式，與 Supabase booking_date 欄位一致
+function formatBookingDateForDisplay(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return dateStr;
+    }
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const dayName = dayNames[date.getDay()];
+    return `${month}月${day}日(${dayName})`;
+  } catch (error) {
+    console.warn('日期格式化失敗，使用原值:', dateStr);
+    return dateStr;
+  }
+}
+
+function getBookingLocationConflictVariants(locationName) {
+  const raw = String(locationName || '').trim();
+  const compact = raw.replace(/\s+/g, '').replace(/^楊梅區/, '');
+  const variants = new Set([raw, compact]);
+
+  const add = (...items) => items.forEach(item => {
+    if (item) variants.add(item);
+  });
+
+  if (compact.includes('30號') || compact.includes('開心果')) add('開心果團購', '開心果團購 - 四維路30號', '四維路30號', '楊梅區四維路30號');
+  else if (compact.includes('70號') || compact.includes('漢堡')) add('漢堡大亨', '漢堡大亨 - 四維路70號', '四維路70號', '楊梅區四維路70號');
+  else if (compact.includes('190號') || compact.includes('自由風')) add('自由風', '自由風 - 四維路190號', '四維路190號', '楊梅區四維路190號');
+  else if (compact.includes('216號') || compact.includes('蔬蒔')) add('蔬蒔', '蔬蒔 - 四維路216號', '四維路216號', '楊梅區四維路216號');
+  else if (compact.includes('218號') || compact.includes('金正好吃')) add('金正好吃', '金正好吃 - 四維路218號', '四維路218號', '楊梅區四維路218號');
+  else if (compact.includes('59號')) add('四維路59號', '楊梅區四維路59號');
+  else if (compact.includes('60號')) add('四維路60號', '楊梅區四維路60號');
+
+  return [...variants].filter(Boolean);
+}
+
 // 提交預約到 Supabase
 async function submitToGoogleSheets(formData) {
   // 檢查是否啟用 Supabase 同步
@@ -2021,27 +2060,27 @@ async function submitToGoogleSheets(formData) {
     }
     
     // 新增預約（預設操作）
-    // 格式化日期為「10月13日(星期一)」格式
-    function formatDateForDisplay(dateStr) {
-      if (!dateStr) return '';
-      try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-          // 如果無法解析，直接返回原值
-          return dateStr;
-        }
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-        const dayName = dayNames[date.getDay()];
-        return `${month}月${day}日(${dayName})`;
-      } catch (error) {
-        console.warn('日期格式化失敗，使用原值:', dateStr);
-        return dateStr;
-      }
+    const bookingDateFormatted = formatBookingDateForDisplay(formData.date) || formData.date;
+
+    // 送出前直接查 Supabase，避免多人同時報名時本地快取尚未更新而撞期。
+    const { data: existingBookings, error: conflictQueryError } = await supabaseClient
+      .from('foodcarcalss')
+      .select('id, vendor, payment, status')
+      .in('location', getBookingLocationConflictVariants(formData.location))
+      .eq('booking_date', bookingDateFormatted)
+      .limit(1);
+
+    if (conflictQueryError) {
+      console.error('查詢 Supabase 檔期衝突失敗:', conflictQueryError);
+      throw new Error('無法確認檔期是否已被預約，請重新整理後再試');
     }
-    
-    const bookingDateFormatted = formatDateForDisplay(formData.date) || formData.date;
+
+    if (Array.isArray(existingBookings) && existingBookings.length > 0) {
+      const existing = existingBookings[0];
+      const bookedVendor = existing.vendor ? `「${existing.vendor}」` : '其他餐車';
+      throw new Error(`此檔期已由 ${bookedVendor} 預約，請重新整理後選擇其他日期`);
+    }
+
     const bookingData = {
       timestamp: formData.timestamp || new Date().toISOString(),
       vendor: formData.vendor,
@@ -2055,26 +2094,13 @@ async function submitToGoogleSheets(formData) {
       payment_image_url: formData.paymentImageUrl || null
     };
     
-    // 先嘗試 upsert（需資料庫已加唯一約束）；若無約束則改為 insert 讓報班可先送出
-    let result = await supabaseClient
+    // 新增預約。不要 upsert，避免後報名者覆蓋同場地同日期的既有排班。
+    const result = await supabaseClient
       .from('foodcarcalss')
-      .upsert(bookingData, {
-        onConflict: 'location,booking_date,vendor',
-        ignoreDuplicates: false
-      })
+      .insert(bookingData)
       .select()
       .single();
-    
-    if (result.error && result.error.code === '42P10') {
-      // 資料庫尚未加唯一約束，改為一般新增
-      console.warn('未偵測到防重複約束，改為 insert 新增');
-      result = await supabaseClient
-        .from('foodcarcalss')
-        .insert(bookingData)
-        .select()
-        .single();
-    }
-    
+
     if (result.error) throw result.error;
     const data = result.data;
     
@@ -2093,8 +2119,11 @@ async function submitToGoogleSheets(formData) {
   } catch (error) {
     console.error('Supabase 提交失敗:', error);
     const msg = error?.message || '';
+    if (msg.includes('此檔期已由') || msg.includes('無法確認檔期')) {
+      throw error;
+    }
     if (msg.includes('unique') || msg.includes('ON CONFLICT') || msg.includes('conflict')) {
-      throw new Error('提交失敗：請確認管理員已在 Supabase 執行 add_unique_booking_constraint.sql 以啟用防重複報班。');
+      throw new Error('此場地日期已被預約，請重新整理後選擇其他日期');
     }
     throw new Error('無法連接到 Supabase: ' + msg);
   }
