@@ -1374,6 +1374,13 @@ async function saveBooking(event) {
       throw error;
     }
     
+    if (payment === '己繳款' || payment === '已付款') {
+      processedBookingIds.add(String(rowNumber));
+    } else {
+      processedBookingIds.delete(String(rowNumber));
+    }
+    saveProcessedBookingIds();
+
     showToast('success', '儲存成功', '預約資料已更新');
     closeEditModal();
     // 重新載入數據以獲取最新狀態（包括 created_at）

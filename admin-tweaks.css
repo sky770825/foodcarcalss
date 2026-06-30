@@ -1823,6 +1823,31 @@ body{
   .edit-form-grid .form-actions button[type="submit"]{
     order: 2;
   }
+  /* 確認彈窗：取消／確認等寬橫排，降低手機版高度 */
+  .modal-sm .form-actions{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    flex-direction: row !important;
+    padding-top: 14px !important;
+    margin-top: 14px !important;
+  }
+  .modal-sm .form-actions .btn{
+    width: 100% !important;
+    height: 44px !important;
+    min-width: 0 !important;
+    padding: 0 8px !important;
+    font-size: 0.88rem !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+  .modal-sm .form-actions .btn-secondary{
+    order: 1;
+  }
+  .modal-sm .form-actions .btn-primary,
+  .modal-sm .form-actions .btn-danger{
+    order: 2;
+  }
 
   /* ---------- 通用：搜尋框 input 字體 ≥16px (避免 iOS 縮放) ---------- */
   .filter-bar input,
