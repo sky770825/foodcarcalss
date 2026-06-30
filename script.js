@@ -5602,6 +5602,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 圖片點擊放大功能
   document.querySelectorAll('.location-thumbnail').forEach(thumbnail => {
     thumbnail.addEventListener('click', function(e) {
+      if (this.closest('.location-tab') && window.matchMedia('(max-width: 768px)').matches) {
+        return; // 手機上讓點擊照片等同點擊場地卡片，避免放大圖阻斷選場地流程
+      }
       e.stopPropagation(); // 防止觸發場地切換
       const fullImageSrc = this.getAttribute('data-full-image');
       const modal = document.getElementById('imageModal');
