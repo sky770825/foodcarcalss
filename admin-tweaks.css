@@ -18,6 +18,25 @@
   --border-light: #EFE9DF !important;
 }
 
+html{
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+body{
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#mainAdminContent,
+.tab-content{
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* ---------- 登入畫面 ---------- */
 .login-content,
 .login-modal .login-content{
@@ -931,6 +950,25 @@ body{
   }
 
   /* ---------- 容器：減少內距 ---------- */
+  html,
+  body{
+    overscroll-behavior-x: none;
+  }
+  #mainAdminContent,
+  .tab-content,
+  .admin-header,
+  .admin-tabs,
+  .filter-section,
+  .stats-section,
+  .new-bookings-section,
+  .bookings-section,
+  .locations-section,
+  .notices-section,
+  .statistics-section{
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
   .container, .admin-container{
     padding: 12px !important;
   }
@@ -1004,6 +1042,13 @@ body{
   /* ---------- 新預約區 ---------- */
   .new-bookings-section{
     padding: 14px !important;
+  }
+  .new-bookings-section:not(.collapsed) .new-bookings-grid{
+    max-height: min(58vh, 520px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    padding-right: 2px !important;
   }
   .new-bookings-section .section-header h2{
     font-size: 1rem !important;
