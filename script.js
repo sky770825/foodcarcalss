@@ -4524,15 +4524,16 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   // 先上傳匯款圖片（如果有的話）
   let paymentImageUrl = null;
   const imageInput = document.getElementById('paymentImageInput');
-  if (imageInput.files && imageInput.files.length > 0) {
+  const paymentImageFile = getPreparedPaymentImage(imageInput);
+  if (paymentImageFile) {
     showLoading('📤 正在上傳匯款圖片...');
     try {
-      paymentImageUrl = await uploadPaymentImage(imageInput.files[0], vendor, loc, date);
+      paymentImageUrl = await uploadPaymentImage(paymentImageFile, vendor, loc, date);
       console.log('✅ 圖片上傳成功:', paymentImageUrl);
     } catch (error) {
       console.error('圖片上傳失敗:', error);
       hideLoading();
-      showToast('warning', '圖片上傳失敗', '將繼續提交預約，但圖片未上傳');
+      showToast('warning', '圖片上傳失敗', `${error.message || '圖片未上傳'}，將繼續提交預約`);
       // 繼續提交，不阻止預約
     }
   }
@@ -4719,7 +4720,155 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 // ========== 匯款圖片上傳功能 ==========
 
 // ========== 圖片壓縮工具（解決 iPhone 大檔/HEIC/Android 無 type 問題）==========
-// 把任何瀏覽器能解碼的圖片壓縮成 ≤1.5MB 的 JPEG
+const PAYMENT_IMAGE_RAW_LIMIT_BYTES = 20 * 1024 * 1024;
+const PAYMENT_IMAGE_UPLOAD_LIMIT_BYTES = 4.5 * 1024 * 1024;
+const PAYMENT_IMAGE_PROCESS_TIMEOUT_MS = 30000;
+const PAYMENT_IMAGE_CANVAS_TIMEOUT_MS = 10000;
+const PAYMENT_IMAGE_UPLOAD_TIMEOUT_MS = 60000;
+const PAYMENT_IMAGE_DB_TIMEOUT_MS = 30000;
+const PAYMENT_IMAGE_EXT_RE = /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i;
+const preparedPaymentImageFiles = new WeakMap();
+
+function withTimeout(promise, timeoutMs, message) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes)) return '未知大小';
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+}
+
+function isLikelyPaymentImage(file) {
+  if (!file) return false;
+  const type = (file.type || '').toLowerCase();
+  const name = file.name || '';
+  return type.startsWith('image/') || PAYMENT_IMAGE_EXT_RE.test(name);
+}
+
+function validateRawPaymentImage(file) {
+  if (!isLikelyPaymentImage(file)) {
+    throw new Error('請選擇圖片檔案（JPG、PNG 等）');
+  }
+  if (file.size > PAYMENT_IMAGE_RAW_LIMIT_BYTES) {
+    throw new Error(`原始圖片不能超過 ${formatFileSize(PAYMENT_IMAGE_RAW_LIMIT_BYTES)}，請先截圖或壓縮後再上傳`);
+  }
+}
+
+function clearPreparedPaymentImage(input) {
+  if (input) preparedPaymentImageFiles.delete(input);
+}
+
+function setPreparedPaymentImage(input, file) {
+  preparedPaymentImageFiles.set(input, file);
+
+  // 部分 iPhone/Safari 不允許程式替換 input.files，保留 WeakMap 版本供上傳使用。
+  try {
+    if (typeof DataTransfer === 'function') {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+    }
+  } catch (error) {
+    console.warn('無法替換檔案輸入，將使用已壓縮的暫存檔案上傳:', error);
+  }
+}
+
+function getPreparedPaymentImage(input) {
+  if (!input) return null;
+  return preparedPaymentImageFiles.get(input) || input.files?.[0] || null;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    const timer = setTimeout(() => {
+      reader.abort();
+      reject(new Error('圖片讀取逾時，請改用截圖或較小的 JPG 再試'));
+    }, PAYMENT_IMAGE_PROCESS_TIMEOUT_MS);
+
+    reader.onload = e => {
+      clearTimeout(timer);
+      resolve(e.target.result);
+    };
+    reader.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error('讀取檔案失敗'));
+    };
+    reader.onabort = () => {
+      clearTimeout(timer);
+      reject(new Error('圖片讀取已中止，請重新選擇圖片'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageFromDataURL(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const timer = setTimeout(() => {
+      img.onload = null;
+      img.onerror = null;
+      reject(new Error('圖片解碼逾時，請先截圖或轉成 JPG/PNG 後再上傳'));
+    }, PAYMENT_IMAGE_PROCESS_TIMEOUT_MS);
+
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error('此圖片格式無法讀取，HEIC/特殊格式請先截圖或轉成 JPG 後再上傳'));
+    };
+    img.src = dataUrl;
+  });
+}
+
+function loadImageFromFile(file) {
+  if (window.URL?.createObjectURL) {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      const cleanup = () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(objectUrl);
+      };
+      const timer = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        cleanup();
+        reject(new Error('圖片解碼逾時，請先截圖或轉成 JPG/PNG 後再上傳'));
+      }, PAYMENT_IMAGE_PROCESS_TIMEOUT_MS);
+
+      img.onload = () => {
+        cleanup();
+        resolve(img);
+      };
+      img.onerror = () => {
+        cleanup();
+        reject(new Error('此圖片格式無法讀取，HEIC/特殊格式請先截圖或轉成 JPG 後再上傳'));
+      };
+      img.src = objectUrl;
+    });
+  }
+
+  return readFileAsDataURL(file).then(loadImageFromDataURL);
+}
+
+function canvasToJpegBlob(canvas, quality) {
+  return withTimeout(new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error('圖片壓縮失敗，請改用 JPG 或 PNG 再試'));
+    }, 'image/jpeg', quality);
+  }), PAYMENT_IMAGE_CANVAS_TIMEOUT_MS, '圖片壓縮逾時，請改用截圖或較小的 JPG 再試');
+}
+
+// 把任何瀏覽器能解碼的圖片壓縮成適合 Storage 的 JPEG
 async function compressImageFile(file, opts = {}) {
   const {
     maxWidth = 1920,    // 最長邊
@@ -4728,42 +4877,60 @@ async function compressImageFile(file, opts = {}) {
     maxSizeKB = 1500    // 目標大小上限
   } = opts;
 
-  // 載入成 Image
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => resolve(e.target.result);
-    reader.onerror = () => reject(new Error('讀取檔案失敗'));
-    reader.readAsDataURL(file);
-  });
+  validateRawPaymentImage(file);
 
-  const img = await new Promise((resolve, reject) => {
-    const im = new Image();
-    im.onload = () => resolve(im);
-    im.onerror = () => reject(new Error('此圖片格式無法讀取（可能是 HEIC，請改用「儲存為 JPG」後再上傳）'));
-    im.src = dataUrl;
-  });
+  const img = await loadImageFromFile(file);
 
   // 計算目標尺寸（保持比例，縮到最長邊不超過 maxWidth/maxHeight）
-  let { width, height } = img;
+  let width = img.naturalWidth || img.width;
+  let height = img.naturalHeight || img.height;
+  if (!width || !height) {
+    throw new Error('圖片尺寸異常，請改用截圖或 JPG/PNG 再上傳');
+  }
   const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
   width = Math.round(width * ratio);
   height = Math.round(height * ratio);
 
   // 畫到 canvas
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, width, height);
-
-  // 壓縮為 JPEG，若仍 > maxSizeKB 就降低品質再試
-  let q = quality;
-  let blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
-  while (blob && blob.size > maxSizeKB * 1024 && q > 0.4) {
-    q -= 0.1;
-    blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+  if (!ctx) {
+    throw new Error('瀏覽器無法處理圖片，請換成 JPG 或 PNG 後再試');
   }
-  if (!blob) throw new Error('壓縮失敗');
+
+  // 壓縮為 JPEG，必要時同時降低品質與尺寸。
+  const targetBytes = maxSizeKB * 1024;
+  let currentWidth = width;
+  let currentHeight = height;
+  let blob = null;
+
+  for (let resizeAttempt = 0; resizeAttempt < 4; resizeAttempt++) {
+    canvas.width = currentWidth;
+    canvas.height = currentHeight;
+    ctx.clearRect(0, 0, currentWidth, currentHeight);
+    ctx.drawImage(img, 0, 0, currentWidth, currentHeight);
+
+    let q = quality;
+    blob = await canvasToJpegBlob(canvas, q);
+    while (blob.size > targetBytes && q > 0.45) {
+      q = Math.max(0.45, q - 0.1);
+      blob = await canvasToJpegBlob(canvas, q);
+    }
+
+    if (blob.size <= targetBytes || currentWidth <= 900 || currentHeight <= 900) {
+      break;
+    }
+
+    currentWidth = Math.max(900, Math.round(currentWidth * 0.82));
+    currentHeight = Math.max(900, Math.round(currentHeight * 0.82));
+  }
+
+  if (!blob || !blob.size) {
+    throw new Error('壓縮失敗，請改用 JPG 或 PNG 格式');
+  }
+  if (blob.size > PAYMENT_IMAGE_UPLOAD_LIMIT_BYTES) {
+    throw new Error(`圖片壓縮後仍有 ${formatFileSize(blob.size)}，請先截圖或壓到 ${formatFileSize(PAYMENT_IMAGE_UPLOAD_LIMIT_BYTES)} 以下`);
+  }
 
   // 包成 File（保留原檔名但改副檔名為 .jpg）
   const baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
@@ -4778,8 +4945,11 @@ async function uploadPaymentImage(file, vendor, location, date) {
   if (!file || !(file instanceof File)) {
     throw new Error('請選擇有效的圖片檔案');
   }
-  if (!file.type.startsWith('image/')) {
-    throw new Error('請選擇圖片檔案（JPG、PNG）');
+  if (!isLikelyPaymentImage(file)) {
+    throw new Error('請選擇圖片檔案（JPG、PNG 等）');
+  }
+  if (file.size > PAYMENT_IMAGE_UPLOAD_LIMIT_BYTES) {
+    throw new Error(`圖片大小 ${formatFileSize(file.size)} 超過上傳上限，請先截圖或壓縮後再上傳`);
   }
   
   // 生成文件名：payment_images/場地/日期_餐車名稱_時間戳.擴展名
@@ -4794,14 +4964,12 @@ async function uploadPaymentImage(file, vendor, location, date) {
     const locationMap = {
       '四維路59號': 'siwei_59', '楊梅區四維路59號': 'siwei_59',
       '四維路60號': 'siwei_60', '楊梅區四維路60號': 'siwei_60',
+      '開心果團購': 'siwei_30', '四維路30號': 'siwei_30', '楊梅區四維路30號': 'siwei_30',
       '漢堡大亨': 'hamburger', '四維路70號': 'hamburger', '楊梅區四維路70號': 'hamburger',
       '自由風': 'ziyoufeng', '四維路190號': 'ziyoufeng', '楊梅區四維路190號': 'ziyoufeng',
       '蔬蒔': 'shushi', '四維路216號': 'shushi', '楊梅區四維路216號': 'shushi',
       '金正好吃': 'jinzhenghaochi', '四維路218號': 'jinzhenghaochi', '楊梅區四維路218號': 'jinzhenghaochi'
     };
-    
-    // 餐車名稱也需要處理（移除特殊字符）
-    const vendorMap = {};
     
     // 如果是已知的場地，使用映射
     if (locationMap[str]) {
@@ -4846,29 +5014,44 @@ async function uploadPaymentImage(file, vendor, location, date) {
     }
     return String(Date.now());
   })(date);
+  const contentType = (file.type && file.type.startsWith('image/')) ? file.type : 'image/jpeg';
   let fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
   if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) fileExt = 'jpg';
+  if (contentType === 'image/jpeg') fileExt = 'jpg';
   const fileName = `payment_images/${sanitizedLocation}/${sanitizedDate}_${sanitizedVendor}_${timestamp}.${fileExt}`;
   
-  console.log('📤 上傳圖片到:', fileName);
+  console.log('📤 上傳圖片到:', fileName, `(${formatFileSize(file.size)})`);
   
   // 使用 upsert: true 可覆蓋已存在檔案，避免重複上傳失敗
-  const { data, error } = await supabaseClient.storage
-    .from('foodcarcalss')
-    .upload(fileName, file, {
-      contentType: file.type || 'image/jpeg',
-      cacheControl: '3600',
-      upsert: true
-    });
+  const { data, error } = await withTimeout(
+    supabaseClient.storage
+      .from('foodcarcalss')
+      .upload(fileName, file, {
+        contentType,
+        cacheControl: '3600',
+        upsert: true
+      }),
+    PAYMENT_IMAGE_UPLOAD_TIMEOUT_MS,
+    '圖片上傳逾時，可能是網路不穩或圖片過大，請換網路或先截圖後再試'
+  );
   
   if (error) {
     console.error('圖片上傳錯誤:', error);
-    const msg = (error.message || String(error)).toLowerCase();
+    const msg = [error.message, error.error, error.statusCode, String(error)].filter(Boolean).join(' ').toLowerCase();
     if (msg.includes('bucket not found')) {
       throw new Error('儲存空間未設定，請聯繫管理員');
     }
+    if (msg.includes('payload') || msg.includes('too large') || msg.includes('file size') || msg.includes('413')) {
+      throw new Error('圖片超過 Storage 上限，請先截圖或壓縮後再上傳');
+    }
+    if (msg.includes('mime') || msg.includes('content type') || msg.includes('invalid')) {
+      throw new Error('圖片格式不被 Storage 接受，請改用 JPG 或 PNG');
+    }
     if (msg.includes('row-level security') || msg.includes('rls') || msg.includes('permission') || msg.includes('401') || msg.includes('403')) {
       throw new Error('上傳權限不足，請聯繫管理員確認 Storage 設定（執行 fix_storage_rls.sql）');
+    }
+    if (msg.includes('failed to fetch') || msg.includes('network')) {
+      throw new Error('網路連線不穩，圖片尚未上傳，請重新整理後再試');
     }
     throw new Error('上傳失敗：' + (error.message || '請稍後再試'));
   }
@@ -4894,34 +5077,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const file = e.target.files[0];
       if (!file) return;
 
-      // 1. 寬鬆驗證：accept="image/*" + 副檔名雙重判斷（解決 Android type=='' 問題）
-      const looksLikeImage = file.type.startsWith('image/') ||
-        /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
-      if (!looksLikeImage) {
-        showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
+      try {
+        validateRawPaymentImage(file);
+      } catch (err) {
+        showToast('error', err.message.includes('超過') ? '檔案太大' : '檔案格式錯誤', err.message);
+        clearPreparedPaymentImage(e.target);
         e.target.value = '';
         return;
       }
 
-      // 2. 原始檔大小放寬到 20MB（壓縮後一定會更小）
-      if (file.size > 20 * 1024 * 1024) {
-        showToast('error', '檔案太大', '原始圖片大小不能超過 20MB');
-        e.target.value = '';
-        return;
-      }
-
-      // 3. 壓縮（會自動轉 JPEG，解決 HEIC 預覽不出來問題）
+      // 壓縮（會自動轉 JPEG，解決 HEIC 預覽不出來問題）
       try {
         showLoading('🖼️ 處理圖片中...');
         const compressed = await compressImageFile(file);
         hideLoading();
 
-        // 把 input 的 File 物件換成壓縮後的版本（form 提交會用這個）
-        const dt = new DataTransfer();
-        dt.items.add(compressed);
-        e.target.files = dt.files;
+        setPreparedPaymentImage(e.target, compressed);
 
-        console.log(`✅ 圖片已壓縮：${(file.size/1024/1024).toFixed(2)}MB → ${(compressed.size/1024/1024).toFixed(2)}MB`);
+        console.log(`✅ 圖片已壓縮：${formatFileSize(file.size)} → ${formatFileSize(compressed.size)}`);
 
         // 顯示預覽
         const reader = new FileReader();
@@ -4938,6 +5111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideLoading();
         console.error('圖片處理失敗:', err);
         showToast('error', '圖片處理失敗', err.message || '請改用 JPG 或 PNG 格式');
+        clearPreparedPaymentImage(e.target);
         e.target.value = '';
       }
     });
@@ -4949,7 +5123,10 @@ function removePaymentImage() {
   const imageInput = document.getElementById('paymentImageInput');
   const preview = document.getElementById('imagePreview');
   
-  if (imageInput) imageInput.value = '';
+  if (imageInput) {
+    clearPreparedPaymentImage(imageInput);
+    imageInput.value = '';
+  }
   if (preview) preview.style.display = 'none';
 }
 
@@ -4966,16 +5143,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const file = e.target.files[0];
       if (!file) return;
 
-      // 寬鬆驗證
-      const looksLikeImage = file.type.startsWith('image/') ||
-        /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name);
-      if (!looksLikeImage) {
-        showToast('error', '檔案格式錯誤', '請選擇圖片檔案（JPG、PNG 等）');
-        e.target.value = '';
-        return;
-      }
-      if (file.size > 20 * 1024 * 1024) {
-        showToast('error', '檔案太大', '原始圖片大小不能超過 20MB');
+      try {
+        validateRawPaymentImage(file);
+      } catch (err) {
+        showToast('error', err.message.includes('超過') ? '檔案太大' : '檔案格式錯誤', err.message);
+        clearPreparedPaymentImage(e.target);
         e.target.value = '';
         return;
       }
@@ -4986,11 +5158,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const compressed = await compressImageFile(file);
         hideLoading();
 
-        const dt = new DataTransfer();
-        dt.items.add(compressed);
-        e.target.files = dt.files;
+        setPreparedPaymentImage(e.target, compressed);
 
-        console.log(`✅ 繳費圖已壓縮：${(file.size/1024/1024).toFixed(2)}MB → ${(compressed.size/1024/1024).toFixed(2)}MB`);
+        console.log(`✅ 繳費圖已壓縮：${formatFileSize(file.size)} → ${formatFileSize(compressed.size)}`);
 
         // 預覽
         const reader = new FileReader();
@@ -5011,6 +5181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideLoading();
         console.error('圖片處理失敗:', err);
         showToast('error', '圖片處理失敗', err.message || '請改用 JPG 或 PNG 格式');
+        clearPreparedPaymentImage(e.target);
         e.target.value = '';
       }
     });
@@ -5023,7 +5194,10 @@ function removePaymentModalImage() {
   const preview = document.getElementById('paymentModalImagePreview');
   const uploadBtn = document.getElementById('uploadPaymentImageBtn');
   
-  if (imageInput) imageInput.value = '';
+  if (imageInput) {
+    clearPreparedPaymentImage(imageInput);
+    imageInput.value = '';
+  }
   if (preview) preview.style.display = 'none';
   if (uploadBtn) uploadBtn.style.display = 'none';
 }
@@ -5032,8 +5206,9 @@ function removePaymentModalImage() {
 async function uploadPaymentImageFromModal() {
   const imageInput = document.getElementById('paymentModalImageInput');
   const uploadBtn = document.getElementById('uploadPaymentImageBtn');
+  const selectedPaymentImage = getPreparedPaymentImage(imageInput);
   
-  if (!imageInput || !imageInput.files || imageInput.files.length === 0) {
+  if (!selectedPaymentImage) {
     showToast('error', '請選擇圖片', '請先選擇要上傳的匯款圖片');
     return;
   }
@@ -5086,7 +5261,7 @@ async function uploadPaymentImageFromModal() {
     return;
   }
   
-  const file = imageInput.files[0];
+  const file = selectedPaymentImage;
   
   // 禁用上傳按鈕
   if (uploadBtn) {
@@ -5116,12 +5291,16 @@ async function uploadPaymentImageFromModal() {
       throw new Error('Supabase 未啟用');
     }
     
-    const { data, error } = await supabaseClient
-      .from('foodcarcalss')
-      .update({ payment_image_url: imageUrl })
-      .eq('id', currentBookingId)
-      .select()
-      .single();
+    const { data, error } = await withTimeout(
+      supabaseClient
+        .from('foodcarcalss')
+        .update({ payment_image_url: imageUrl })
+        .eq('id', currentBookingId)
+        .select()
+        .single(),
+      PAYMENT_IMAGE_DB_TIMEOUT_MS,
+      '圖片已上傳，但資料回寫逾時，請通知管理員確認'
+    );
     
     if (error) throw error;
     
