@@ -1118,15 +1118,30 @@ body{
     border: 0 !important;
     box-shadow: none !important;
     padding: 0 !important;
+    max-width: 100% !important;
   }
   .bookings-table{
     display: block !important;
     background: transparent !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: separate !important;
   }
   .bookings-table thead{ display: none !important; }
-  .bookings-table tbody{ display: block !important; }
+  .bookings-table tbody{
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
   .bookings-table tr{
     display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     background: #fff;
     border: 1px solid #EFE9DF;
     border-radius: 12px;
@@ -1362,11 +1377,68 @@ body{
   /* ---------- 月曆視圖：單元格縮小 ---------- */
   .admin-calendar-container{
     padding: 8px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
   }
-  .calendar-day-cell{
-    min-height: 60px !important;
-    padding: 4px !important;
-    font-size: 0.78rem !important;
+  .admin-calendar-grid{
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+    padding: 6px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .admin-calendar-weekday,
+  .admin-calendar-day{
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .admin-calendar-weekday{
+    padding: 5px 1px !important;
+    font-size: 0.68rem !important;
+    border-radius: 5px !important;
+  }
+  .admin-calendar-day{
+    min-height: 58px !important;
+    padding: 4px 2px !important;
+    border-width: 1px !important;
+    border-radius: 5px !important;
+  }
+  .admin-calendar-day:hover{
+    transform: none !important;
+  }
+  .admin-calendar-day-number{
+    font-size: 0.68rem !important;
+    margin-bottom: 3px !important;
+    padding-bottom: 3px !important;
+  }
+  .admin-calendar-events{
+    gap: 2px !important;
+    max-height: 34px !important;
+    overflow: hidden !important;
+  }
+  .admin-calendar-event{
+    min-width: 0 !important;
+    padding: 2px 3px !important;
+    gap: 2px !important;
+    border-radius: 3px !important;
+    font-size: 0.58rem !important;
+    line-height: 1.15 !important;
+  }
+  .admin-calendar-event:hover{
+    transform: none !important;
+  }
+  .admin-calendar-event-vendor{
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .admin-calendar-event-location{
+    display: none !important;
+  }
+  .admin-calendar-event-more{
+    padding: 1px 3px !important;
+    font-size: 0.56rem !important;
   }
   .calendar-month-title{
     font-size: 1rem !important;
