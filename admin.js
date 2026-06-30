@@ -3918,6 +3918,7 @@ window.clearAllProcessedBookings = clearAllProcessedBookings;
 
 // ========== 統計表功能 ==========
 const STATS_STORAGE_KEY = 'admin_statistics_settings';
+const SETTLEMENT_SITE_URL = 'https://foodcarboss.pages.dev';
 
 // 統計參數（可編輯）
 let statsSettings = {
@@ -3987,6 +3988,133 @@ function getPaidBookingsForMonth(yearMonth) {
     if (!isPaidBooking(b)) return false;
     return isDateInYearMonth(b.date, year, month);
   });
+}
+
+function getSettlementMonthInfo(yearMonth) {
+  const [year, month] = String(yearMonth).split('-').map(Number);
+  const settlementDate = new Date(year, month - 1, 1);
+  const nextScheduleDate = new Date(year, month, 1);
+  const bookingMonthDate = new Date(year, month + 2, 1);
+  return {
+    settlementMonth: settlementDate.getMonth() + 1,
+    nextScheduleMonth: nextScheduleDate.getMonth() + 1,
+    bookingMonth: bookingMonthDate.getMonth() + 1
+  };
+}
+
+function buildVenueSettlementMessage(locationName, stats, yearMonth, venueFee) {
+  const monthInfo = getSettlementMonthInfo(yearMonth);
+  const count = Number(stats.count) || 0;
+  const fee = Number(venueFee) || 0;
+  const total = Number(stats.venueFee) || (count * fee);
+
+  return `${locationName}場地方您好，
+
+✅ ${monthInfo.settlementMonth}月份實際出攤共 ${count}攤
+💰 計算金額：${fee} × ${count}=${total}元
+
+請再協助核對一下上述金額，若沒問題就麻煩轉帳囉～🙏
+
+附上餐車排班連結🔗
+${SETTLEMENT_SITE_URL}
+📅 後續排班時間提醒：
+${monthInfo.nextScheduleMonth}/1排${monthInfo.bookingMonth}/1班
+
+📢 預排班制度說明：
+因近期多數場地餐車需求增加，有些熱門場地已預排到 4 個月後。
+為確保餐車承租穩定，我們已調整排班制度：
+➡️ 改為 提早開放兩個月份 的排班申請，
+請大家多加留意公告時間，以利後續安排唷！
+
+感謝長期支持～🙌
+若有任何排班或時段需求，也都歡迎隨時聯繫我們！`;
+}
+
+function renderVenueSettlementMessages(venueRows, yearMonth, venueFee) {
+  const container = document.getElementById('venueSettlementMessages');
+  if (!container) return;
+
+  if (!venueRows.length) {
+    container.innerHTML = '<div class="venue-settlement-empty">本月無已付款場地結算資料</div>';
+    return;
+  }
+
+  container.innerHTML = venueRows.map(([loc, stats], index) => {
+    const textareaId = `venueSettlementText${index}`;
+    const message = buildVenueSettlementMessage(loc, stats, yearMonth, venueFee);
+    return `
+      <div class="venue-settlement-card">
+        <div class="venue-settlement-title">
+          <div>
+            <strong>${escapeHtml(loc)}</strong>
+            <span class="venue-settlement-meta">${stats.count} 攤 · ${venueFee} 元/攤 · ${stats.venueFee} 元</span>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="copyVenueSettlementMessage('${textareaId}')">
+            <i class="fas fa-copy"></i> 複製
+          </button>
+        </div>
+        <textarea id="${textareaId}" class="venue-settlement-text" rows="16">${escapeHtml(message)}</textarea>
+      </div>
+    `;
+  }).join('');
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      console.warn('Clipboard API 複製失敗，改用備援方法:', error);
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '-9999px';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    return document.execCommand('copy');
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+async function copyVenueSettlementMessage(textareaId) {
+  const textarea = document.getElementById(textareaId);
+  if (!textarea) {
+    showToast('error', '複製失敗', '找不到結算文字');
+    return;
+  }
+
+  const ok = await copyTextToClipboard(textarea.value);
+  if (ok) {
+    showToast('success', '複製成功', '場地方結算文字已複製');
+  } else {
+    showToast('error', '複製失敗', '請手動選取文字複製');
+  }
+}
+
+async function copyAllVenueSettlementMessages() {
+  const textareas = Array.from(document.querySelectorAll('#venueSettlementMessages .venue-settlement-text'));
+  if (!textareas.length) {
+    showToast('info', '沒有資料', '本月無可複製的場地方結算文字');
+    return;
+  }
+
+  const text = textareas.map(t => t.value.trim()).filter(Boolean).join('\n\n------------------------------\n\n');
+  const ok = await copyTextToClipboard(text);
+  if (ok) {
+    showToast('success', '複製成功', `已複製 ${textareas.length} 個場地結算文字`);
+  } else {
+    showToast('error', '複製失敗', '請手動選取文字複製');
+  }
 }
 
 // 初始化統計表月份選擇器
@@ -4061,6 +4189,10 @@ function renderStatistics() {
   const paid = getPaidBookingsForMonth(yearMonth);
   const venueFee = Number(statsSettings.venueFee) || 300; // 給業主每攤金額，預設 300
   const manualAdjust = Number(statsSettings.manualAdjust) || 0;
+  const venueFeeLabel = document.getElementById('statsVenueFeeLabel');
+  const venueFeeHeader = document.getElementById('statsVenueFeeHeader');
+  if (venueFeeLabel) venueFeeLabel.textContent = venueFee;
+  if (venueFeeHeader) venueFeeHeader.textContent = venueFee;
 
   // 1. 廠商統計
   const vendorMap = {};
@@ -4126,6 +4258,7 @@ function renderStatistics() {
       `<tr><td>${escapeHtml(loc)}</td><td>${o.count}</td><td>${o.revenue} 元</td><td>${o.venueFee} 元</td></tr>`
     ).join('') || '<tr><td colspan="4">無數據</td></tr>';
   }
+  renderVenueSettlementMessages(venueRows, yearMonth, venueFee);
 
   document.getElementById('statsVenueTotal').textContent = `${venueTotalPay} 元`;
 
@@ -4173,5 +4306,5 @@ window.renderStatistics = renderStatistics;
 window.showStatisticsEditModal = showStatisticsEditModal;
 window.closeStatisticsEditModal = closeStatisticsEditModal;
 window.saveStatisticsSettings = saveStatisticsSettings;
-
-
+window.copyVenueSettlementMessage = copyVenueSettlementMessage;
+window.copyAllVenueSettlementMessages = copyAllVenueSettlementMessages;

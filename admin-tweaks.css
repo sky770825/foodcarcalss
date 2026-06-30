@@ -411,6 +411,18 @@ body{
   border-radius: 10px !important;
   background: #FFFCF8 !important;
 }
+.statistics-section .venue-settlement-card{
+  border: 1px solid #EFE9DF !important;
+  background: #FFFCF8 !important;
+}
+.statistics-section .venue-settlement-text{
+  border-color: #EFE9DF !important;
+  color: #2C2620 !important;
+}
+.statistics-section .venue-settlement-text:focus{
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(230,126,34,0.12) !important;
+}
 /* 統計表編輯彈窗的紫色 header */
 #statisticsEditModal .modal-header{
   background: var(--primary-gradient) !important;
@@ -1420,6 +1432,49 @@ body{
   .stats-highlight-box.venue-total .value{
     font-size: 1rem !important;
     white-space: nowrap !important;
+  }
+  .stats-settlement-section{
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+  }
+  .stats-settlement-header{
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  .stats-settlement-header h4{
+    font-size: 0.8rem !important;
+    gap: 6px !important;
+  }
+  .stats-settlement-header .btn{
+    min-height: 32px !important;
+    padding: 6px 8px !important;
+    font-size: 0.76rem !important;
+  }
+  .venue-settlement-list{
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .venue-settlement-card{
+    padding: 9px !important;
+    border-radius: 8px !important;
+  }
+  .venue-settlement-title{
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  .venue-settlement-title strong{
+    font-size: 0.82rem !important;
+  }
+  .venue-settlement-meta{
+    font-size: 0.72rem !important;
+  }
+  .venue-settlement-text{
+    min-height: 300px !important;
+    padding: 8px !important;
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
   }
   .stats-total-card .stats-summary-grid{
     grid-template-columns: 1fr 1fr !important;

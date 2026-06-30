@@ -408,11 +408,11 @@
 
       <!-- 2. 場地與分潤計算 -->
       <div class="stats-card">
-        <h3><i class="fas fa-map-marker-alt"></i> 2. 場地與分潤計算（場地費 300 元/攤）</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> 2. 場地與分潤計算（場地費 <span id="statsVenueFeeLabel">300</span> 元/攤）</h3>
         <div class="stats-table-container">
           <table class="stats-table" id="venueRevenueTable">
             <thead>
-              <tr><th>場地</th><th>攤位數</th><th>營收</th><th>場地費(300×攤)</th></tr>
+              <tr><th>場地</th><th>攤位數</th><th>營收</th><th>場地費(<span id="statsVenueFeeHeader">300</span>×攤)</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -420,6 +420,15 @@
         <div class="stats-highlight-box venue-total">
           <span class="label">場地方總 Total（需支付給場地業主）</span>
           <span class="value" id="statsVenueTotal">0 元</span>
+        </div>
+        <div class="stats-settlement-section">
+          <div class="stats-settlement-header">
+            <h4><i class="fas fa-file-alt"></i> 場地方結算文字</h4>
+            <button type="button" onclick="copyAllVenueSettlementMessages()" class="btn btn-secondary btn-sm" id="copyAllVenueSettlementBtn">
+              <i class="fas fa-copy"></i> 全部複製
+            </button>
+          </div>
+          <div id="venueSettlementMessages" class="venue-settlement-list"></div>
         </div>
       </div>
 
