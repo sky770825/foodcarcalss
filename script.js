@@ -5408,13 +5408,13 @@ function closeBankModal() {
 // 付款方式按鈕函數
 function openJkopay() {
   // 街口支付連結
-  window.open('https://www.jkos.com/contact-person?j=ContactPerson:901644985', '_blank');
+  window.open('https://www.jkos.com/contact-person?j=ContactPerson:901644985', '_blank', 'noopener');
   showToast('info', '街口支付', '已開啟街口支付頁面，請完成付款後將截圖傳至官方小幫手');
 }
 
 function openLinepay() {
   // LINE-PAY連結
-  window.open('https://line.me/ti/p/natrAYmeWy', '_blank');
+  window.open('https://line.me/ti/p/natrAYmeWy', '_blank', 'noopener');
   showToast('info', 'LINE-PAY', '已開啟LINE-PAY頁面，請完成付款後將截圖傳至官方小幫手');
 }
 
@@ -5425,7 +5425,7 @@ function openBankModal() {
 
 function openOfficialAccount() {
   // 官方小幫手連結
-  window.open('https://lin.ee/BStZlfM', '_blank');
+  window.open('https://lin.ee/BStZlfM', '_blank', 'noopener');
   showToast('info', '官方小幫手', '已開啟官方小幫手，請將付款截圖或訊息傳送給我們');
 }
 
