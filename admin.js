@@ -1573,6 +1573,12 @@ async function executePaymentStatusChange(data) {
     showToast('success', '更新成功', `付款狀態已變更為「${data.paymentText}」`);
     // 更新本地數據
     booking.payment = data.newPayment;
+    if (data.newPayment === '己繳款' || data.newPayment === '已付款') {
+      processedBookingIds.add(String(data.rowNumber));
+    } else {
+      processedBookingIds.delete(String(data.rowNumber));
+    }
+    saveProcessedBookingIds();
     // 重新渲染和更新統計（不重新載入）
     filterBookings();
   } catch (error) {
@@ -1993,6 +1999,8 @@ async function executeQuickPaymentStatusChange(data) {
     if (booking) {
       booking.payment = data.newPayment;
     }
+    processedBookingIds.add(String(data.bookingId));
+    saveProcessedBookingIds();
     
     // 重新渲染（不重新載入）
     filterBookings();

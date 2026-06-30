@@ -1043,13 +1043,6 @@ body{
   .new-bookings-section{
     padding: 14px !important;
   }
-  .new-bookings-section:not(.collapsed) .new-bookings-grid{
-    max-height: min(58vh, 520px) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    overscroll-behavior: contain !important;
-    padding-right: 2px !important;
-  }
   .new-bookings-section .section-header h2{
     font-size: 1rem !important;
   }
