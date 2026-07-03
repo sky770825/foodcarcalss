@@ -2289,6 +2289,20 @@ function normalizeLocationName(locationName) {
   return locationName.trim();
 }
 
+function isPaidPaymentStatus(payment) {
+  const p = String(payment || '').trim();
+  return p === '已付款' || p === '己繳款';
+}
+
+function isExplicitOverduePaymentStatus(payment) {
+  return String(payment || '').trim() === '逾繳可排';
+}
+
+function isManualUnpaidPaymentStatus(payment) {
+  const p = String(payment || '').trim();
+  return p === '未繳款' || p === '未付款';
+}
+
 // 同步簽章：資料未變更時不重繪，避免刷新時畫面跳動
 let lastSheetsMergeSignature = '';
 
@@ -2622,8 +2636,11 @@ function checkOverduePayments() {
   const urgentEvents = [];
   
   allEvents.forEach(event => {
-    // 只檢查尚未付款的預約
-    if (event.payment !== '已付款' && event.timestamp) {
+    // 只檢查新報名預設的尚未付款；手動改成「未繳款」時尊重後台狀態，不再自動判回逾期。
+    if (!isPaidPaymentStatus(event.payment) &&
+        !isExplicitOverduePaymentStatus(event.payment) &&
+        !isManualUnpaidPaymentStatus(event.payment) &&
+        event.timestamp) {
       const bookingTime = new Date(event.timestamp);
       const deadline = new Date(bookingTime.getTime() + 24 * 60 * 60 * 1000);
       const timeLeft = deadline - now;
@@ -4071,7 +4088,7 @@ function renderCalendar() {
         eventElement.title = `${event.title} - ${event.location}`;
         eventElement.addEventListener('click', () => {
           // 如果是己付款的預約，顯示釋出選項
-          if (event.payment === '已付款' || event.payment === '己繳款') {
+          if (isPaidPaymentStatus(event.payment)) {
             showTransferModal(event, dateStr);
           } else {
             showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
@@ -4092,7 +4109,7 @@ function renderCalendar() {
           console.log(`📊 付款狀態檢查 - 餐車: ${event.title}, payment: "${event.payment}", bookedStatus: "${event.bookedStatus}"`);
           
           // 檢查付款狀態（包含「已付款」和「己繳款」）
-          if (event.payment === '已付款' || event.payment === '己繳款') {
+          if (isPaidPaymentStatus(event.payment)) {
             console.log('  ✅ 已付款 - 顯示可釋出');
             paymentStatus.innerHTML = '<span class="paid">✓ 已付款</span>';
             paymentStatus.classList.add('paid-status');
@@ -4104,8 +4121,8 @@ function renderCalendar() {
               showTransferModal(event, dateStr);
             });
           } 
-          // 檢查是否為逾繳可排狀態（來自Google Sheets）
-          else if (event.bookedStatus === '逾繳可排') {
+          // 檢查是否為逾繳可排狀態（以 payment 欄位為準，兼容舊 bookedStatus）
+          else if (isExplicitOverduePaymentStatus(event.payment) || event.bookedStatus === '逾繳可排') {
             isOverdue = true;
             paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
             paymentStatus.classList.add('overdue-status');
@@ -4116,6 +4133,17 @@ function renderCalendar() {
             });
             paymentStatus.title = '點擊接手此預約';
           } 
+          // 後台手動改成未繳款時，尊重資料庫狀態，不用舊 timestamp 再算成逾繳可排。
+          else if (isManualUnpaidPaymentStatus(event.payment)) {
+            needsPayment = true;
+            paymentStatus.innerHTML = '<span class="unpaid">未繳款</span>';
+            paymentStatus.classList.add('unpaid-status');
+            paymentStatus.addEventListener('click', (e) => {
+              e.stopPropagation();
+              showPaymentModal();
+            });
+            paymentStatus.title = '點擊前往繳費';
+          }
           // 一般未付款狀態
           else {
             console.log('  ⏰ 未付款 - 顯示倒計時');

@@ -803,6 +803,12 @@ function isUnpaidPayment(payment) {
   return !p || p === '未繳款' || p === '尚未付款' || p === '未付款';
 }
 
+// 只有新報名預設狀態才自動轉逾期；後台手動改成「未繳款」要保留人工判斷。
+function isAutoOverdueCandidatePayment(payment) {
+  const p = (payment || '').trim();
+  return !p || p === '尚未付款' || p === '未付款';
+}
+
 // 自動將超過 24 小時未繳款的預約更新為「逾繳可排」（更新資料庫 + 本地）
 async function autoUpdateOverduePayments(bookings) {
   if (!supabaseClientInstance || !bookings || bookings.length === 0) return 0;
@@ -812,7 +818,7 @@ async function autoUpdateOverduePayments(bookings) {
   const toUpdate = [];
   
   for (const b of bookings) {
-    if (!isUnpaidPayment(b.payment)) continue; // 已付款或逾繳可排不處理
+    if (!isAutoOverdueCandidatePayment(b.payment)) continue; // 已付款、逾繳可排、手動未繳款不處理
     
     const timeSource = b.timestamp || b.created_at;
     if (!timeSource) continue;
