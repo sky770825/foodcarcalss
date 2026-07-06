@@ -1211,7 +1211,10 @@ function parseDate(dateStr) {
   
   // 處理 ISO 格式 "2025-10-13" 或 "2025-10-13T00:00:00.000Z"
   if (dateStr.includes('-')) {
-    const date = new Date(dateStr);
+    const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const date = dateMatch
+      ? new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]))
+      : new Date(dateStr);
     // 檢查日期是否有效
     if (!isNaN(date.getTime())) {
       return date;
@@ -1219,6 +1222,14 @@ function parseDate(dateStr) {
   }
   
   return null;
+}
+
+function formatDateInputValue(date) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // 編輯預約（dateHint 可選，從日曆點擊時傳入正確的 YYYY-MM-DD 以避免日期跑掉）
@@ -1250,7 +1261,7 @@ function editBooking(rowNumber, dateHint) {
     } else {
       const parsedDate = parseDate(booking.date);
       if (parsedDate) {
-        dateValue = parsedDate.toISOString().split('T')[0];
+        dateValue = formatDateInputValue(parsedDate);
       }
     }
   }
@@ -1345,8 +1356,8 @@ async function saveBooking(event) {
     function formatDateForDisplay(dateStr) {
       if (!dateStr) return '';
       try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
+        const date = parseDate(dateStr);
+        if (!date || isNaN(date.getTime())) {
           return dateStr;
         }
         const month = date.getMonth() + 1;

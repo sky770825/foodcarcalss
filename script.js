@@ -1920,7 +1920,10 @@ async function fetchBookingsFromGitHub() {
 function formatBookingDateForDisplay(dateStr) {
   if (!dateStr) return '';
   try {
-    const date = new Date(dateStr);
+    const dateMatch = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const date = dateMatch
+      ? new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]))
+      : new Date(dateStr);
     if (isNaN(date.getTime())) {
       return dateStr;
     }
