@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>楊梅餐車排班報名系統 v3.2.3</title>
+<title>楊梅餐車排班報名系統 v3.2.4</title>
 
 <!-- SEO Meta Tags -->
 <meta name="description" content="楊梅餐車排班報名系統 - 線上預約餐車出攤檔期，查看最新排班日曆，支援多種付款方式，輕鬆管理餐車排班">
@@ -15,13 +15,13 @@
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="楊梅餐車排班報名系統 v3.2.3">
+<meta property="og:title" content="楊梅餐車排班報名系統 v3.2.4">
 <meta property="og:description" content="線上預約餐車出攤檔期，查看最新排班日曆，支援多種付款方式">
 <meta property="og:locale" content="zh_TW">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="楊梅餐車排班報名系統 v3.2.3">
+<meta name="twitter:title" content="楊梅餐車排班報名系統 v3.2.4">
 <meta name="twitter:description" content="線上預約餐車出攤檔期，查看最新排班日曆">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
@@ -267,7 +267,7 @@
       <div class="payment-image-upload">
         <label><i class="fas fa-image"></i> 匯款證明圖片 <span style="color: #6b7280; font-weight: normal; font-size: 0.85rem;">(選填)</span></label>
         <div class="image-upload-container">
-          <input type="file" id="paymentImageInput" accept="image/*" style="display: none;">
+          <input type="file" id="paymentImageInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.heic,.heif" style="display: none;">
           <button type="button" class="image-upload-btn" onclick="document.getElementById('paymentImageInput').click()">
             <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
           </button>
@@ -279,7 +279,7 @@
           </div>
         </div>
         <small class="form-hint" style="display: block; margin-top: 8px; color: #6b7280; font-size: 0.85rem;">
-          <i class="fas fa-info-circle"></i> 支援 JPG、PNG 格式，建議上傳匯款截圖以便審核
+          <i class="fas fa-info-circle"></i> 支援 JPG、PNG、WEBP 與 iPhone HEIC，20MB 以下會自動壓縮
         </small>
       </div>
   </div>
@@ -348,7 +348,7 @@
           <i class="fas fa-image"></i> 上傳匯款證明圖片
         </label>
         <div class="payment-image-upload-container">
-          <input type="file" id="paymentModalImageInput" accept="image/*" style="display: none;">
+          <input type="file" id="paymentModalImageInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.heic,.heif" style="display: none;">
           <button type="button" class="payment-image-upload-btn" onclick="document.getElementById('paymentModalImageInput').click()">
             <i class="fas fa-cloud-upload-alt"></i> 選擇圖片
           </button>
@@ -360,7 +360,7 @@
           </div>
         </div>
         <small class="payment-form-hint" style="display: block; margin-top: 8px; color: #6b7280; font-size: 0.85rem;">
-          <i class="fas fa-info-circle"></i> 支援 JPG、PNG 格式，建議上傳匯款截圖以便審核
+          <i class="fas fa-info-circle"></i> 支援 JPG、PNG、WEBP 與 iPhone HEIC，20MB 以下會自動壓縮
         </small>
         <button type="button" id="uploadPaymentImageBtn" class="upload-payment-image-submit-btn" onclick="uploadPaymentImageFromModal()" style="display: none;">
           <i class="fas fa-upload"></i> 上傳圖片
@@ -860,7 +860,7 @@
 </div>
 
 <!-- 外部JavaScript -->
-<script src="script.js"></script>
+<script src="script.js?v=3.2.4"></script>
 
 
 <!-- Toast 容器 -->
@@ -1227,7 +1227,7 @@
       </a>
     </p>
     <p id="systemVersionDisplay" style="margin: 8px 0 0 0; font-size: 0.75rem; color: #95a5a6; font-family: monospace;">
-      <i class="fas fa-code-branch"></i> 系統版本：v3.2.3 | <span id="browserMode">檢測中...</span>
+      <i class="fas fa-code-branch"></i> 系統版本：v3.2.4 | <span id="browserMode">檢測中...</span>
     </p>
   </div>
 </footer>

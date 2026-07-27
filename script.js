@@ -4787,7 +4787,9 @@ const PAYMENT_IMAGE_CANVAS_TIMEOUT_MS = 10000;
 const PAYMENT_IMAGE_UPLOAD_TIMEOUT_MS = 60000;
 const PAYMENT_IMAGE_DB_TIMEOUT_MS = 30000;
 const PAYMENT_IMAGE_EXT_RE = /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i;
+const PAYMENT_IMAGE_HEIC_EXT_RE = /\.(heic|heif)$/i;
 const preparedPaymentImageFiles = new WeakMap();
+let heicConverterLoader = null;
 
 function withTimeout(promise, timeoutMs, message) {
   let timeoutId;
@@ -4808,6 +4810,69 @@ function isLikelyPaymentImage(file) {
   const type = (file.type || '').toLowerCase();
   const name = file.name || '';
   return type.startsWith('image/') || PAYMENT_IMAGE_EXT_RE.test(name);
+}
+
+function isHeicPaymentImage(file) {
+  if (!file) return false;
+  const type = (file.type || '').toLowerCase();
+  return ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence'].includes(type)
+    || PAYMENT_IMAGE_HEIC_EXT_RE.test(file.name || '');
+}
+
+function loadHeicConverter() {
+  if (!heicConverterLoader) {
+    heicConverterLoader = import(new URL('assets/vendor/discourse-heic/index.js', window.location.href).href)
+      .then(module => {
+        if (typeof module.decode !== 'function') {
+          throw new Error('HEIC 轉檔元件載入不完整');
+        }
+        return module.decode;
+      })
+      .catch(error => {
+      heicConverterLoader = null;
+      throw error;
+    });
+  }
+
+  return withTimeout(
+    heicConverterLoader,
+    PAYMENT_IMAGE_PROCESS_TIMEOUT_MS,
+    'HEIC 轉檔元件載入逾時，請確認網路後再試'
+  ).catch(error => {
+    heicConverterLoader = null;
+    throw error;
+  });
+}
+
+async function convertHeicPaymentImage(file) {
+  const decode = await loadHeicConverter();
+  let imageData;
+  try {
+    imageData = await withTimeout(
+      file.arrayBuffer().then(buffer => decode(buffer)),
+      PAYMENT_IMAGE_PROCESS_TIMEOUT_MS,
+      'HEIC 圖片轉檔逾時，請先截圖後再上傳'
+    );
+  } catch (error) {
+    throw new Error(`HEIC 圖片轉檔失敗：${error.message || '請先截圖後再上傳'}`);
+  }
+
+  if (!imageData?.width || !imageData?.height || !imageData?.data) {
+    throw new Error('HEIC 圖片轉檔失敗，請先截圖後再上傳');
+  }
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('瀏覽器無法處理 HEIC 圖片，請先截圖後再上傳');
+  }
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  context.putImageData(imageData, 0, 0);
+  const blob = await canvasToJpegBlob(canvas, 0.9);
+
+  const baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
+  return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 }
 
 function validateRawPaymentImage(file) {
@@ -4939,7 +5004,9 @@ async function compressImageFile(file, opts = {}) {
 
   validateRawPaymentImage(file);
 
-  const img = await loadImageFromFile(file);
+  // Chromium cannot decode iPhone HEIC natively. Convert it before using Canvas.
+  const sourceFile = isHeicPaymentImage(file) ? await convertHeicPaymentImage(file) : file;
+  const img = await loadImageFromFile(sourceFile);
 
   // 計算目標尺寸（保持比例，縮到最長邊不超過 maxWidth/maxHeight）
   let width = img.naturalWidth || img.width;
@@ -4993,7 +5060,7 @@ async function compressImageFile(file, opts = {}) {
   }
 
   // 包成 File（保留原檔名但改副檔名為 .jpg）
-  const baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
+  const baseName = (sourceFile.name || 'image').replace(/\.[^.]+$/, '');
   return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 }
 
