@@ -803,6 +803,18 @@ function isUnpaidPayment(payment) {
   return !p || p === '未繳款' || p === '尚未付款' || p === '未付款';
 }
 
+// 僅供後台呈現與篩選使用，不能覆蓋資料庫的原始付款狀態。
+function normalizePaymentStatusForDisplay(payment) {
+  const p = (payment || '').trim();
+  if (!p || p === '未繳款' || p === '尚未付款' || p === '未付款') {
+    return '未繳款';
+  }
+  if (p === '已付款' || p === '己繳款') {
+    return '己繳款';
+  }
+  return p;
+}
+
 // 只有新報名預設狀態才自動轉逾期；後台手動改成「未繳款」要保留人工判斷。
 function isAutoOverdueCandidatePayment(payment) {
   const p = (payment || '').trim();
@@ -834,6 +846,8 @@ async function autoUpdateOverduePayments(bookings) {
   if (toUpdate.length === 0) return 0;
   
   const ids = toUpdate.map(b => b.id || b.rowNumber).filter(Boolean);
+  if (ids.length === 0) return 0;
+
   const { error } = await supabaseClientInstance
     .from('foodcarcalss')
     .update({ payment: '逾繳可排' })
@@ -881,7 +895,7 @@ async function loadBookings() {
         status: row.status || '己排',
         bookedStatus: row.status || '己排',
         fee: row.fee || '600元/天',
-        payment: row.payment || '未繳款',
+        payment: row.payment || '',
         note: row.note || '',
         paymentImageUrl: row.payment_image_url || null, // 匯款圖片 URL
         id: row.id,
@@ -891,29 +905,15 @@ async function loadBookings() {
     };
     
     if (data.success && data.bookings) {
-      // 正規化付款狀態：統一付款狀態名稱
+      // 先使用資料庫原始值判斷逾期，避免「尚未付款」被呈現用正規化提前改成「未繳款」。
+      const updatedCount = await autoUpdateOverduePayments(data.bookings);
+
+      // 資料庫判斷完成後，才統一後台的顯示名稱。
       allBookings = data.bookings.map(booking => {
-        const payment = booking.payment || '';
-        const paymentTrimmed = payment.trim();
-        
-        // 統一未付款狀態的名稱
-        if (!paymentTrimmed || 
-            paymentTrimmed === '未繳款' || 
-            paymentTrimmed === '尚未付款' || 
-            paymentTrimmed === '未付款') {
-          booking.payment = '未繳款';
-        }
-        // 統一已付款狀態的名稱
-        else if (paymentTrimmed === '已付款' || paymentTrimmed === '己繳款') {
-          booking.payment = '己繳款';
-        }
-        // 其他狀態保持不變（如「逾繳可排」）
-        
+        booking.payment = normalizePaymentStatusForDisplay(booking.payment);
         return booking;
       });
       
-      // 自動將超過 24 小時未繳款的預約更新為「逾繳可排」（讓其他餐車可接手排班）
-      const updatedCount = await autoUpdateOverduePayments(allBookings);
       if (updatedCount > 0) {
         console.log(`🔄 已自動更新 ${updatedCount} 筆逾期未繳款預約為「逾繳可排」`);
         showToast('info', '已更新逾期狀態', `${updatedCount} 筆預約已超過 24 小時未繳款，已自動改為「逾繳可排」`);
