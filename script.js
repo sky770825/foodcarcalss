@@ -1008,7 +1008,18 @@ async function submitTakeover() {
     
     // 檢查提交結果
     if (result.success) {
-      showToast('success', '接手成功！', `🎉 ${newVendor} 已成功接手\n📍 ${takeoverData.location}\n📅 ${takeoverData.formattedDate}`);
+      const booking = result.booking;
+      currentBookingId = booking.id;
+      currentBookingInfo = {
+        id: booking.id,
+        vendor: newVendor,
+        location: booking.location || takeoverData.location,
+        date: takeoverData.dateStr,
+        foodType: newFoodType
+      };
+      sessionStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
+
+      showToast('success', '接手成功！', `🎉 ${newVendor} 已成功接手\n📍 ${takeoverData.location}\n📅 ${takeoverData.formattedDate}\n⏰ 請在 24 小時內完成付款`);
       
       // 更新本地事件
       const eventIndex = allEvents.findIndex(e => 
@@ -1017,15 +1028,12 @@ async function submitTakeover() {
       );
       
       if (eventIndex >= 0) {
-        // 保持原有付款狀態
-        const preservedPayment = result.booking?.payment || allEvents[eventIndex].payment || takeoverData.originalEvent.payment || '未繳款';
-        
         allEvents[eventIndex] = {
           ...allEvents[eventIndex],
           title: newVendor,
           foodType: newFoodType,
-          timestamp: formatTimestamp(),
-          payment: preservedPayment, // 保持原有付款狀態
+          timestamp: booking.timestamp || formatTimestamp(),
+          payment: booking.payment || '尚未付款',
           source: 'takeover' // 標記為接手的預約
         };
       }
@@ -1971,31 +1979,29 @@ async function submitToGoogleSheets(formData) {
     
     // 處理不同的操作類型
     if (formData.action === 'takeover') {
-      // 接手預約：保留資料庫最新付款狀態，已付款也允許換班
-      const { data: existingBooking, error: fetchError } = await supabaseClient
-        .from('foodcarcalss')
-        .select('payment')
-        .eq('id', formData.rowNumber)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      const currentPayment = (existingBooking && existingBooking.payment) ? String(existingBooking.payment).trim() : '';
-      const preservedPayment = currentPayment || '未繳款';
-      console.log(`接手預約 - 原有付款狀態: ${currentPayment}, 保持狀態: ${preservedPayment}`);
-      
+      // 只有目前仍可接手的名額才能接手，並從接手當下重新計算 24 小時付款期限。
+      const recordId = formData.rowNumber;
+      if (recordId == null || recordId === '') {
+        throw new Error('缺少預約 ID，無法執行接手');
+      }
+      const takeoverTimestamp = formData.timestamp || formatTimestamp();
       const { data, error } = await supabaseClient
         .from('foodcarcalss')
         .update({
           vendor: formData.vendor,
           food_type: formData.foodType,
-          payment: preservedPayment
+          payment: '尚未付款',
+          timestamp: takeoverTimestamp
         })
-        .eq('id', formData.rowNumber)
+        .eq('id', recordId)
+        .eq('payment', '逾繳可排')
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) {
+        throw new Error('此逾期名額已被其他餐車接手或狀態已變更，請重新整理後再試');
+      }
       return { success: true, message: '預約已成功接手', booking: data };
     }
     
@@ -4124,8 +4130,8 @@ function renderCalendar() {
               showTransferModal(event, dateStr);
             });
           } 
-          // 檢查是否為逾繳可排狀態（以 payment 欄位為準，兼容舊 bookedStatus）
-          else if (isExplicitOverduePaymentStatus(event.payment) || event.bookedStatus === '逾繳可排') {
+          // 只以資料庫的 payment 欄位判定可接手狀態，避免舊 status 值與付款狀態不同步。
+          else if (isExplicitOverduePaymentStatus(event.payment)) {
             isOverdue = true;
             paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
             paymentStatus.classList.add('overdue-status');
@@ -4167,10 +4173,10 @@ function renderCalendar() {
               
               if (hoursLeft < 6) {
                 // 少於6小時，橙紅警告
-                paymentStatus.innerHTML = `<span class="unpaid urgent">⚠️ ${hoursLeft}h${minutesLeft}m繳費時間</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid urgent">⚠️ 未繳款・剩餘 ${hoursLeft}h${minutesLeft}m</span>`;
               } else {
                 // 還有時間，黃色提醒
-                paymentStatus.innerHTML = `<span class="unpaid">⏰ ${hoursLeft}h繳費時間</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid">⏰ 未繳款・剩餘 ${hoursLeft}h${minutesLeft}m</span>`;
               }
               paymentStatus.classList.add('unpaid-status');
               // 點擊文字打開繳費彈窗
