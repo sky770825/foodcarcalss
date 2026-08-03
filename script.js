@@ -4091,7 +4091,18 @@ function renderCalendar() {
         
         const eventElement = document.createElement('div');
         eventElement.className = 'event-item';
-        eventElement.textContent = event.title;
+        const titleCharacters = Array.from(String(event.title || ''));
+        const firstColumnLength = Math.ceil(titleCharacters.length / 2);
+        [
+          titleCharacters.slice(0, firstColumnLength),
+          titleCharacters.slice(firstColumnLength)
+        ].filter(columnCharacters => columnCharacters.length > 0).forEach(columnCharacters => {
+          const titleColumn = document.createElement('span');
+          titleColumn.className = 'event-name-column';
+          titleColumn.textContent = columnCharacters.join('');
+          eventElement.appendChild(titleColumn);
+        });
+        eventElement.classList.toggle('event-item--single', titleCharacters.length <= 1);
         eventElement.title = `${event.title} - ${event.location}，點擊查看或變更排班`;
         eventElement.setAttribute('role', 'button');
         eventElement.tabIndex = 0;
@@ -4178,13 +4189,14 @@ function renderCalendar() {
               needsPayment = true;
               const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
               const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+              const countdownText = `${hoursLeft}h${minutesLeft}m`;
               
               if (hoursLeft < 6) {
                 // 少於6小時，橙紅警告
-                paymentStatus.innerHTML = `<span class="unpaid urgent">未繳款 ${hoursLeft}h${minutesLeft}m</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid urgent">${countdownText}</span>`;
               } else {
                 // 還有時間，黃色提醒
-                paymentStatus.innerHTML = `<span class="unpaid">未繳款 ${hoursLeft}h${minutesLeft}m</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid">${countdownText}</span>`;
               }
               paymentStatus.classList.add('unpaid-status');
               // 點擊文字打開繳費彈窗
@@ -4192,7 +4204,7 @@ function renderCalendar() {
                 e.stopPropagation();
                 showPaymentModal();
               });
-              paymentStatus.title = '點擊前往繳費';
+              paymentStatus.title = `倒數 ${countdownText}，點擊前往繳費`;
             } else {
               // 已逾期（超過24小時）
               isOverdue = true;

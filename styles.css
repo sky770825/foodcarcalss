@@ -2380,6 +2380,11 @@ body.line-browser .event-container {
   min-height: 22px;
 }
 
+/* 桌面版保留一行品牌名稱；手機版再將每個片段排成兩欄直式文字。 */
+.event-name-column {
+  display: contents;
+}
+
 .event-item:hover {
   opacity: 0.8;
 }
@@ -2781,7 +2786,7 @@ body.line-browser .event-container {
   }
 }
 
-/* 手機月曆維持七欄，但以短橫向名稱避免長品牌把整列日期撐高。 */
+/* 手機月曆維持七欄：名稱以兩欄直式呈現，付款標籤固定在日期格底部。 */
 @media (max-width: 600px) {
   .container {
     padding-inline: 6px;
@@ -2796,7 +2801,7 @@ body.line-browser .event-container {
   }
 
   .calendar-day {
-    min-height: 92px;
+    min-height: 112px;
     padding: 3px 2px;
     align-items: stretch;
   }
@@ -2817,37 +2822,56 @@ body.line-browser .event-container {
   }
 
   .event-container {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
     width: 100%;
-    min-height: 0;
-    height: auto;
-    padding: 20px 0 15px;
+    min-height: 94px;
+    height: 94px;
+    padding: 18px 0;
   }
 
   .event-item {
-    display: -webkit-box;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: stretch;
+    justify-content: center;
     width: 100%;
-    min-height: 0;
+    min-height: 58px;
+    height: 58px;
     max-width: none;
-    max-height: 30px;
-    overflow: hidden;
-    padding: 2px 2px;
-    font-size: 0.56rem;
-    line-height: 1.2;
+    padding: 2px 1px;
+    font-size: 0.55rem;
+    line-height: 1.1;
     letter-spacing: 0;
     writing-mode: horizontal-tb;
     -webkit-writing-mode: horizontal-tb;
-    text-orientation: mixed;
-    -webkit-text-orientation: mixed;
+    overflow: hidden;
+  }
+
+  .event-name-column {
+    display: block;
+    flex: 0 0 50%;
+    width: 50%;
+    height: 100%;
+    overflow-wrap: anywhere;
     word-break: break-all;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: upright;
+    -webkit-text-orientation: upright;
+  }
+
+  .event-item--single .event-name-column {
+    flex-basis: 100%;
+    width: 100%;
   }
 
   .event-container .payment-status-inline {
     position: absolute;
     right: 0;
-    bottom: 0;
+    bottom: 2px;
     left: 0;
     width: 100%;
     max-width: none;
@@ -2858,11 +2882,9 @@ body.line-browser .event-container {
   .event-container .payment-status-inline span {
     display: inline-block;
     max-width: 100%;
-    overflow: hidden;
     padding: 1px 2px;
     font-size: 0.45rem;
     line-height: 1.1;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
