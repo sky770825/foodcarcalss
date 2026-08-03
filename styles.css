@@ -2801,7 +2801,7 @@ body.line-browser .event-container {
   }
 
   .calendar-day {
-    min-height: 112px;
+    min-height: 105px;
     padding: 3px 2px;
     align-items: stretch;
   }
@@ -2827,9 +2827,9 @@ body.line-browser .event-container {
     justify-content: center;
     box-sizing: border-box;
     width: 100%;
-    min-height: 94px;
-    height: 94px;
-    padding: 18px 0;
+    min-height: 88px;
+    height: 88px;
+    padding: 15px 0;
   }
 
   .event-item {
@@ -2837,12 +2837,13 @@ body.line-browser .event-container {
     flex-direction: row-reverse;
     align-items: stretch;
     justify-content: center;
+    gap: 1px;
     width: 100%;
     min-height: 58px;
     height: 58px;
     max-width: none;
     padding: 2px 1px;
-    font-size: 0.55rem;
+    font-size: 0.52rem;
     line-height: 1.1;
     letter-spacing: 0;
     writing-mode: horizontal-tb;
@@ -2852,8 +2853,8 @@ body.line-browser .event-container {
 
   .event-name-column {
     display: block;
-    flex: 0 0 50%;
-    width: 50%;
+    flex: 0 0 0.54rem;
+    width: 0.54rem;
     height: 100%;
     overflow-wrap: anywhere;
     word-break: break-all;
@@ -2861,11 +2862,6 @@ body.line-browser .event-container {
     -webkit-writing-mode: vertical-rl;
     text-orientation: upright;
     -webkit-text-orientation: upright;
-  }
-
-  .event-item--single .event-name-column {
-    flex-basis: 100%;
-    width: 100%;
   }
 
   .event-container .payment-status-inline {

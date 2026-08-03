@@ -4092,17 +4092,19 @@ function renderCalendar() {
         const eventElement = document.createElement('div');
         eventElement.className = 'event-item';
         const titleCharacters = Array.from(String(event.title || ''));
-        const firstColumnLength = Math.ceil(titleCharacters.length / 2);
-        [
-          titleCharacters.slice(0, firstColumnLength),
-          titleCharacters.slice(firstColumnLength)
-        ].filter(columnCharacters => columnCharacters.length > 0).forEach(columnCharacters => {
+        // 單欄直式安全容納 6 個字，超過才依長度新增直式文字欄。
+        const maxNameCharsPerColumn = 6;
+        const columnCount = Math.ceil(titleCharacters.length / maxNameCharsPerColumn);
+        const charactersPerColumn = Math.ceil(titleCharacters.length / columnCount);
+        const titleColumns = Array.from({ length: columnCount }, (_, index) => (
+          titleCharacters.slice(index * charactersPerColumn, (index + 1) * charactersPerColumn)
+        ));
+        titleColumns.filter(columnCharacters => columnCharacters.length > 0).forEach(columnCharacters => {
           const titleColumn = document.createElement('span');
           titleColumn.className = 'event-name-column';
           titleColumn.textContent = columnCharacters.join('');
           eventElement.appendChild(titleColumn);
         });
-        eventElement.classList.toggle('event-item--single', titleCharacters.length <= 1);
         eventElement.title = `${event.title} - ${event.location}，點擊查看或變更排班`;
         eventElement.setAttribute('role', 'button');
         eventElement.tabIndex = 0;
