@@ -574,15 +574,15 @@
   </div>
 </div>
 
-<!-- 編輯預約彈窗（含更換班表：可變更日期或場地） -->
+<!-- 變更排班彈窗（可調整餐車、日期或場地） -->
 <div id="editModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3><i class="fas fa-edit"></i> 編輯預約</h3>
+      <h3><i class="fas fa-edit"></i> 變更排班</h3>
       <span class="modal-close" onclick="closeEditModal()" aria-label="關閉" role="button">&times;</span>
     </div>
     <div class="modal-body">
-      <p class="form-hint" style="margin: -8px 0 16px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更日期或場地進行換班作業</p>
+      <p class="form-hint" style="margin: -8px 0 16px 0; font-size: 0.85rem;"><i class="fas fa-exchange-alt"></i> 可變更餐車、日期或場地；已繳款會維持已繳款</p>
       <form id="editForm" onsubmit="saveBooking(event)" class="edit-form-grid">
         <input type="hidden" id="editRowNumber">
 
@@ -647,7 +647,8 @@
           <div class="form-group">
             <label for="editPayment">付款狀態</label>
             <select id="editPayment">
-              <option value="未繳款">未繳款</option>
+              <option value="尚未付款">未繳款（24 小時計時）</option>
+              <option value="未繳款">未繳款（手動）</option>
               <option value="己繳款">已繳款</option>
               <option value="逾繳可排">逾繳可排</option>
             </select>

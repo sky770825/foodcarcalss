@@ -815,6 +815,15 @@ function normalizePaymentStatusForDisplay(payment) {
   return p;
 }
 
+// 後台列表可將狀態統一顯示為「未繳款」，但編輯時必須保留原始值，
+// 否則儲存場地或日期的變更會意外停止 24 小時自動逾期機制。
+function getEditablePaymentStatus(booking) {
+  const payment = String(booking.rawPayment ?? booking.payment ?? '').trim();
+  if (!payment || payment === '未付款') return '尚未付款';
+  if (payment === '已付款') return '己繳款';
+  return payment;
+}
+
 // 只有新報名預設狀態才自動轉逾期；後台手動改成「未繳款」要保留人工判斷。
 function isAutoOverdueCandidatePayment(payment) {
   const p = (payment || '').trim();
@@ -908,8 +917,9 @@ async function loadBookings() {
       // 先使用資料庫原始值判斷逾期，避免「尚未付款」被呈現用正規化提前改成「未繳款」。
       const updatedCount = await autoUpdateOverduePayments(data.bookings);
 
-      // 資料庫判斷完成後，才統一後台的顯示名稱。
+      // 資料庫判斷完成後，才統一後台的顯示名稱，同時保留原始付款狀態供編輯儲存。
       allBookings = data.bookings.map(booking => {
+        booking.rawPayment = booking.payment;
         booking.payment = normalizePaymentStatusForDisplay(booking.payment);
         return booking;
       });
@@ -1028,8 +1038,8 @@ function renderBookings() {
         <td class="col-note" data-label="備註" title="${escapeHtml(booking.note || '-')}">${escapeHtml(booking.note || '-')}</td>
         <td class="col-actions">
           <div class="action-buttons">
-            <button onclick="editBooking(${booking.rowNumber})" class="btn btn-primary btn-sm">
-              <i class="fas fa-edit"></i> 編輯
+            <button onclick="editBooking(${booking.rowNumber})" class="btn btn-primary btn-sm" title="變更餐車、場地或日期">
+              <i class="fas fa-edit"></i> 變更排班
             </button>
             <button onclick="deleteBooking(${booking.rowNumber}, '${safeVendor}', '${safeLocation}', '${safeDate}')" class="btn btn-danger btn-sm">
               <i class="fas fa-trash"></i> 刪除
@@ -1269,7 +1279,7 @@ function editBooking(rowNumber, dateHint) {
   
   document.getElementById('editStatus').value = booking.status || booking.bookedStatus || '己排';
   document.getElementById('editFee').value = booking.fee || '600元/天';
-  document.getElementById('editPayment').value = booking.payment || '未繳款';
+  document.getElementById('editPayment').value = getEditablePaymentStatus(booking);
   document.getElementById('editNote').value = booking.note || '';
   
   // 顯示模態框
@@ -1597,6 +1607,7 @@ async function executePaymentStatusChange(data) {
     showToast('success', '更新成功', `付款狀態已變更為「${data.paymentText}」`);
     // 更新本地數據
     booking.payment = data.newPayment;
+    booking.rawPayment = data.newPayment;
     if (data.newPayment === '己繳款' || data.newPayment === '已付款') {
       processedBookingIds.add(String(data.rowNumber));
     } else {
@@ -1937,9 +1948,9 @@ function createNewBookingCard(booking) {
         </button>
       `}
       <button onclick="quickEditBooking(${booking.id || booking.rowNumber})" 
-              class="btn btn-ghost btn-sm action-icon-btn"
-              title="編輯預約" aria-label="編輯">
-        <i class="fas fa-edit"></i>
+              class="btn btn-ghost btn-sm action-schedule-btn"
+              title="變更餐車、場地或日期" aria-label="變更排班">
+        <i class="fas fa-edit"></i> 變更排班
       </button>
       <button onclick="quickDeleteBooking(${booking.id || booking.rowNumber}, '${safeVendor}', '${safeLocation}', '${safeDate}')" 
               class="btn btn-ghost-danger btn-sm action-icon-btn"
@@ -2022,6 +2033,7 @@ async function executeQuickPaymentStatusChange(data) {
     const booking = allBookings.find(b => (b.id || b.rowNumber) === data.bookingId);
     if (booking) {
       booking.payment = data.newPayment;
+      booking.rawPayment = data.newPayment;
     }
     processedBookingIds.add(String(data.bookingId));
     saveProcessedBookingIds();
@@ -2475,11 +2487,8 @@ function showDayBookingsModal(dateStr, bookings) {
           <span class="status-badge ${paymentClass}">${payment}</span>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button onclick="closeDayBookingsModal(); editBooking(${bid}, '${dateStr}')" class="btn btn-primary btn-sm">
-            <i class="fas fa-edit"></i> 編輯
-          </button>
-          <button onclick="closeDayBookingsModal(); editBooking(${bid}, '${dateStr}')" class="btn btn-secondary btn-sm" title="變更日期或場地進行換班">
-            <i class="fas fa-exchange-alt"></i> 更換班表
+          <button onclick="closeDayBookingsModal(); editBooking(${bid}, '${dateStr}')" class="btn btn-primary btn-sm" title="變更餐車、場地或日期">
+            <i class="fas fa-edit"></i> 變更排班
           </button>
           <button onclick="closeDayBookingsModal(); deleteBooking(${bid}, '${safeVendor}', '${safeLocation}', '${safeDate}')" class="btn btn-danger btn-sm">
             <i class="fas fa-trash"></i> 刪除

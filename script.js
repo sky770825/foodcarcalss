@@ -4083,8 +4083,6 @@ function renderCalendar() {
       return eventDate === dateStr;
     });
     
-    let paymentStatusElement = null; // 保存付款狀態元素
-    
     dayEvents.forEach(event => {
       // 只顯示當前篩選場地的事件
       if (event.location === currentFilter) {
@@ -4094,13 +4092,22 @@ function renderCalendar() {
         const eventElement = document.createElement('div');
         eventElement.className = 'event-item';
         eventElement.textContent = event.title;
-        eventElement.title = `${event.title} - ${event.location}`;
-        eventElement.addEventListener('click', () => {
+        eventElement.title = `${event.title} - ${event.location}，點擊查看或變更排班`;
+        eventElement.setAttribute('role', 'button');
+        eventElement.tabIndex = 0;
+        const openBookingDetails = () => {
           // 如果是己付款的預約，顯示釋出選項
           if (isPaidPaymentStatus(event.payment)) {
             showTransferModal(event, dateStr);
           } else {
             showToast('info', '餐車資訊', `${event.title}\n場地：${event.location}\n時間：14:00-20:00`);
+          }
+        };
+        eventElement.addEventListener('click', openBookingDetails);
+        eventElement.addEventListener('keydown', (keyboardEvent) => {
+          if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+            keyboardEvent.preventDefault();
+            openBookingDetails();
           }
         });
         
@@ -4109,10 +4116,11 @@ function renderCalendar() {
         // 添加付款狀態和倒計時
         let isOverdue = false;
         let needsPayment = false;
+        let paymentStatus = null;
         
         if (event.payment || event.timestamp || event.bookedStatus) {
-          const paymentStatus = document.createElement('div');
-          paymentStatus.className = 'payment-status';
+          paymentStatus = document.createElement('div');
+          paymentStatus.className = 'payment-status payment-status-inline';
           
           // 日誌：診斷付款狀態
           console.log(`📊 付款狀態檢查 - 餐車: ${event.title}, payment: "${event.payment}", bookedStatus: "${event.bookedStatus}"`);
@@ -4173,10 +4181,10 @@ function renderCalendar() {
               
               if (hoursLeft < 6) {
                 // 少於6小時，橙紅警告
-                paymentStatus.innerHTML = `<span class="unpaid urgent">⚠️ 未繳款・剩餘 ${hoursLeft}h${minutesLeft}m</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid urgent">未繳款 ${hoursLeft}h${minutesLeft}m</span>`;
               } else {
                 // 還有時間，黃色提醒
-                paymentStatus.innerHTML = `<span class="unpaid">⏰ 未繳款・剩餘 ${hoursLeft}h${minutesLeft}m</span>`;
+                paymentStatus.innerHTML = `<span class="unpaid">未繳款 ${hoursLeft}h${minutesLeft}m</span>`;
               }
               paymentStatus.classList.add('unpaid-status');
               // 點擊文字打開繳費彈窗
@@ -4199,8 +4207,11 @@ function renderCalendar() {
             }
           }
           
-          // 保存付款狀態元素，稍後append到dayElement
-          paymentStatusElement = paymentStatus;
+        }
+
+        // 付款狀態跟隨餐車卡片排列，避免絕對定位蓋住日期。
+        if (paymentStatus) {
+          eventContainer.appendChild(paymentStatus);
         }
         
         // 添加取消按鈕和審計按鈕（只對當天和未來日期顯示）
@@ -4216,8 +4227,10 @@ function renderCalendar() {
           // 管理按鈕（顯示在右上角，點擊後顯示管理選項）
           const cancelBtn = document.createElement('button');
           cancelBtn.className = 'cancel-btn';
+          cancelBtn.type = 'button';
           cancelBtn.innerHTML = '<i class="fas fa-cog"></i>';
           cancelBtn.title = '系統管理';
+          cancelBtn.setAttribute('aria-label', `管理 ${event.title} 的排班`);
           cancelBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             showAdminOptionsModal(event, dateStr);
@@ -4290,11 +4303,6 @@ function renderCalendar() {
     }
     
     dayElement.appendChild(eventsContainer);
-    
-    // 如果有付款狀態，直接append到dayElement（這樣它就能移到最上方）
-    if (paymentStatusElement) {
-      dayElement.appendChild(paymentStatusElement);
-    }
     
     // 為空白且可預約的日期添加點擊預約功能
     const isEmptyDay = dayEvents.length === 0 || !dayEvents.some(e => e.location === currentFilter);

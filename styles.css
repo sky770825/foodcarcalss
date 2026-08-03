@@ -543,6 +543,7 @@ button.submit:hover{
   right: 2px;
   font-size: 0.8rem;
   opacity: 0.8;
+  pointer-events: none;
 }
 
 .calendar-day.non-operating {
@@ -560,6 +561,7 @@ button.submit:hover{
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
   opacity: 0.8;
+  pointer-events: none;
 }
 
 .calendar-day.past-date {
@@ -1263,7 +1265,7 @@ body.line-browser .event-container {
     align-items:center;
     min-height:35px;
     position:relative;
-    padding-top:8px;
+    padding-top:24px;
   }
   
   .calendar-day{
@@ -1282,8 +1284,8 @@ body.line-browser .event-container {
   }
   
   .cancel-btn{
-    top:-4px;
-    right:-4px;
+    top:2px;
+    right:2px;
   }
 }
 
@@ -1498,11 +1500,11 @@ body.line-browser .event-container {
   }
   
   .cancel-btn{
-    width:20px;
-    height:20px;
+    width:22px;
+    height:22px;
     font-size:10px;
-    top:-3px;
-    right:-3px;
+    top:2px;
+    right:2px;
   }
   
   .takeover-btn,.calendar-payment-btn{
@@ -2303,12 +2305,13 @@ body.line-browser .event-container {
 /* 日曆事件容器樣式調整 */
 .event-container {
   position: relative;
-  padding: 2px;
+  padding: 24px 2px 2px;
   min-height: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   width: 100%;
+  min-width: 0;
 }
 
 .event-item {
@@ -2331,13 +2334,46 @@ body.line-browser .event-container {
   opacity: 0.8;
 }
 
+/* 付款標籤放在所屬餐車下方，避免蓋住左上角日期。 */
+.event-container .payment-status-inline {
+  position: static;
+  width: 100%;
+  max-width: none;
+  margin-top: 3px;
+  padding: 0;
+  line-height: 1;
+  text-align: center;
+}
+
+.event-container .payment-status-inline span {
+  padding: 2px 4px;
+  font-size: clamp(0.48rem, 0.8vw, 0.6rem);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .day-events {
+    margin-top: 2px;
+  }
+
+  .event-container .payment-status-inline {
+    margin-top: 2px;
+  }
+
+  .event-container .payment-status-inline span {
+    font-size: clamp(0.38rem, 2.6vw, 0.5rem);
+    padding: 1px 3px;
+  }
+}
+
 /* 取消按鈕樣式優化 - 右上角 */
 .cancel-btn {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 16px;
-  height: 16px;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
   background: rgba(220, 53, 69, 0.95);
   border: 1px solid white;
   border-radius: 50%;
@@ -2554,4 +2590,3 @@ body.line-browser .event-container {
   width: 100%;
   margin-top: 20px;
 }
-
