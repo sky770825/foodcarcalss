@@ -2786,7 +2786,7 @@ body.line-browser .event-container {
   }
 }
 
-/* 手機月曆維持七欄：名稱以兩欄直式呈現，付款標籤固定在日期格底部。 */
+/* 手機月曆維持七欄：名稱以條件分欄直式呈現，付款標籤固定在日期格底部。 */
 @media (max-width: 600px) {
   .container {
     padding-inline: 6px;
@@ -2829,7 +2829,7 @@ body.line-browser .event-container {
     width: 100%;
     min-height: 88px;
     height: 88px;
-    padding: 15px 0;
+    padding: 8px 0 22px;
   }
 
   .event-item {
@@ -2867,19 +2867,23 @@ body.line-browser .event-container {
   .event-container .payment-status-inline {
     position: absolute;
     right: 0;
-    bottom: 2px;
+    bottom: 0;
     left: 0;
     width: 100%;
+    min-height: 20px;
     max-width: none;
     margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
   }
 
   .event-container .payment-status-inline span {
     display: inline-block;
     max-width: 100%;
-    padding: 1px 2px;
-    font-size: 0.45rem;
+    padding: 2px 3px;
+    font-size: 0.47rem;
     line-height: 1.1;
     white-space: nowrap;
   }
@@ -2890,5 +2894,17 @@ body.line-browser .event-container {
     width: 18px;
     height: 18px;
     font-size: 8px;
+  }
+}
+
+/* 手機維持固定比例，不允許橫向拖動或雙指縮放後移動整頁。 */
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
   }
 }
