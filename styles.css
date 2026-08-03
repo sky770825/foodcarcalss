@@ -2908,3 +2908,11 @@ body.line-browser .event-container {
     touch-action: pan-y;
   }
 }
+
+/* 最窄手機欄位也完整顯示逾期可排文字。 */
+@media (max-width: 360px) {
+  .event-container .payment-status-inline .overdue {
+    padding: 1px;
+    font-size: 0.4rem;
+  }
+}

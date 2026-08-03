@@ -4154,7 +4154,7 @@ function renderCalendar() {
           // 只以資料庫的 payment 欄位判定可接手狀態，避免舊 status 值與付款狀態不同步。
           else if (isExplicitOverduePaymentStatus(event.payment)) {
             isOverdue = true;
-            paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
+            paymentStatus.innerHTML = '<span class="unpaid overdue">逾期可排</span>';
             paymentStatus.classList.add('overdue-status');
             // 點擊文字打開接手彈窗
             paymentStatus.addEventListener('click', (e) => {
@@ -4210,7 +4210,7 @@ function renderCalendar() {
             } else {
               // 已逾期（超過24小時）
               isOverdue = true;
-              paymentStatus.innerHTML = '<span class="unpaid overdue">❌ 逾繳可排</span>';
+              paymentStatus.innerHTML = '<span class="unpaid overdue">逾期可排</span>';
               paymentStatus.classList.add('overdue-status');
               // 點擊文字打開接手彈窗
               paymentStatus.addEventListener('click', (e) => {
