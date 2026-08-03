@@ -514,6 +514,8 @@ button.submit:hover{
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-day:hover {
@@ -537,12 +539,8 @@ button.submit:hover{
 }
 
 .calendar-day.booked::after {
-  content: '🚫';
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  font-size: 0.8rem;
-  opacity: 0.8;
+  /* 保留 .booked 的不可重複報名邏輯，但不在日曆上顯示禁止圖示。 */
+  display: none;
   pointer-events: none;
 }
 
@@ -586,6 +584,8 @@ button.submit:hover{
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* .event-item, .event-container, .cancel-btn 樣式已統一到下方行事曆優化區塊 */
@@ -2307,14 +2307,17 @@ body.line-browser .event-container {
   position: relative;
   padding: 24px 2px 2px;
   min-height: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 20px minmax(22px, 1fr) auto;
+  align-items: center;
   width: 100%;
   min-width: 0;
 }
 
 .event-item {
+  grid-row: 2;
+  align-self: center;
   cursor: pointer;
   padding: 5px 7px;
   border-radius: 4px;
@@ -2336,6 +2339,8 @@ body.line-browser .event-container {
 
 /* 付款標籤放在所屬餐車下方，避免蓋住左上角日期。 */
 .event-container .payment-status-inline {
+  grid-row: 3;
+  align-self: end;
   position: static;
   width: 100%;
   max-width: none;
