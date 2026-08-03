@@ -2780,3 +2780,97 @@ body.line-browser .event-container {
     white-space: nowrap;
   }
 }
+
+/* 手機月曆維持七欄，但以短橫向名稱避免長品牌把整列日期撐高。 */
+@media (max-width: 600px) {
+  .container {
+    padding-inline: 6px;
+  }
+
+  .calendar-container {
+    padding: 8px;
+  }
+
+  .calendar-grid {
+    border-radius: 6px;
+  }
+
+  .calendar-day {
+    min-height: 92px;
+    padding: 3px 2px;
+    align-items: stretch;
+  }
+
+  .day-number {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .day-events {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 3px;
+    margin-top: 0;
+  }
+
+  .event-container {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    padding: 20px 0 15px;
+  }
+
+  .event-item {
+    display: -webkit-box;
+    width: 100%;
+    min-height: 0;
+    max-width: none;
+    max-height: 30px;
+    overflow: hidden;
+    padding: 2px 2px;
+    font-size: 0.56rem;
+    line-height: 1.2;
+    letter-spacing: 0;
+    writing-mode: horizontal-tb;
+    -webkit-writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    -webkit-text-orientation: mixed;
+    word-break: break-all;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .event-container .payment-status-inline {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    text-align: center;
+  }
+
+  .event-container .payment-status-inline span {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 1px 2px;
+    font-size: 0.45rem;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cancel-btn {
+    top: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+  }
+}
