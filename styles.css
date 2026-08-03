@@ -2642,3 +2642,141 @@ body.line-browser .event-container {
   width: 100%;
   margin-top: 20px;
 }
+
+/* 前端彈窗共用容器：依視窗尺寸保留安全邊距，避免手機內容貼邊或超出畫面。 */
+.payment-modal,
+.bank-modal,
+.cancel-modal,
+.password-modal {
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(18, 24, 38, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.payment-modal-content,
+.bank-modal-content,
+.cancel-modal-content,
+.password-modal-content {
+  width: 100%;
+  max-height: calc(100dvh - 48px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.payment-header h3,
+.bank-header h3,
+.cancel-header h3,
+.password-header h3 {
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.payment-header .modal-close,
+.bank-header .modal-close,
+.cancel-header .modal-close,
+.password-header .modal-close {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.booking-details,
+.original-booking-info,
+.payment-image-upload-section {
+  box-sizing: border-box;
+}
+
+.account-number span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#bankModal .bank-account-item {
+  align-items: stretch;
+}
+
+#bankModal .bank-account-item > label {
+  align-self: center;
+}
+
+#bankModal .account-number {
+  min-width: 0;
+}
+
+.cancel-buttons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cancel-buttons > button {
+  min-height: 52px;
+  padding: 12px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .payment-modal,
+  .bank-modal,
+  .cancel-modal,
+  .password-modal {
+    padding: 12px;
+  }
+
+  .payment-modal-content,
+  .bank-modal-content,
+  .cancel-modal-content,
+  .password-modal-content {
+    max-height: calc(100dvh - 24px) !important;
+  }
+
+  .payment-header .modal-close,
+  .bank-header .modal-close,
+  .cancel-header .modal-close,
+  .password-header .modal-close {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .cancel-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  #bankModal .bank-account-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #bankModal .bank-account-item > label {
+    align-self: flex-start;
+    min-width: 0;
+  }
+
+  #bankModal .account-number {
+    width: 100%;
+    gap: 8px;
+  }
+
+  #bankModal .account-number span {
+    text-align: center;
+  }
+
+  #bankModal .copy-btn {
+    min-height: 40px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+}
