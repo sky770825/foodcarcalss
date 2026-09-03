@@ -17,8 +17,8 @@ vm.runInContext(`${source.slice(configStart, configEnd)}\nglobalThis.__locationC
 const siwei30 = context.__locationConfigs['開心果團購'];
 assert.deepEqual(
   JSON.parse(JSON.stringify(siwei30.days)),
-  [0, 1, 2],
-  '四維路30號只應開放週日、週一、週二的新報班'
+  [6, 0, 1],
+  '四維路30號只應開放週六、週日、週一的新報班'
 );
 
 console.log('四維路30號開放日規則測試通過。');

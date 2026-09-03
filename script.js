@@ -20,7 +20,7 @@ const locationConfigs = {
     name: "開心果團購",
     address: "楊梅區四維路30號",
     type: "合作店面",
-    days: [0, 1, 2], // 僅開放週日、週一、週二新報班
+    days: [6, 0, 1], // 僅開放週六、週日、週一新報班
     slots: ["14:00-20:00"],
     price: {
       "14:00-20:00": "600元"
@@ -30,7 +30,7 @@ const locationConfigs = {
       fee: "600元/天",
       limit: "僅限1車，不要影響到右邊刺青店營業",
       ban: "煙霧太大、飲料車",
-      special: "僅開放週日、週一、週二報班"
+      special: "僅開放週六、週日、週一報班"
     },
     notices: [
       "不供水、不供電，需自行清潔環境及垃圾處理",
@@ -2073,7 +2073,7 @@ async function submitToGoogleSheets(formData) {
     if (locationConfig && formData.date) {
       const bookingDayOfWeek = new Date(`${formData.date}T00:00:00`).getDay();
       if (!locationConfig.days.includes(bookingDayOfWeek)) {
-        throw new Error(`${locationConfig.name}僅開放週日、週一、週二報班`);
+        throw new Error(`${locationConfig.name}僅開放週六、週日、週一報班`);
       }
     }
 
@@ -2136,7 +2136,7 @@ async function submitToGoogleSheets(formData) {
   } catch (error) {
     console.error('Supabase 提交失敗:', error);
     const msg = error?.message || '';
-    if (msg.includes('此檔期已由') || msg.includes('無法確認檔期') || msg.includes('僅開放週日、週一、週二')) {
+    if (msg.includes('此檔期已由') || msg.includes('無法確認檔期') || msg.includes('僅開放週六、週日、週一')) {
       throw error;
     }
     if (msg.includes('unique') || msg.includes('ON CONFLICT') || msg.includes('conflict')) {
@@ -4279,8 +4279,8 @@ function renderCalendar() {
       
       switch (currentFilter) {
         case '開心果團購':
-          // 只開放週日、週一、週二新報班
-          if (dayOfWeek !== 0 && dayOfWeek !== 1 && dayOfWeek !== 2) {
+          // 只開放週六、週日、週一新報班
+          if (dayOfWeek !== 6 && dayOfWeek !== 0 && dayOfWeek !== 1) {
             isNonOperating = true;
           }
           break;
@@ -4549,7 +4549,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const locationConfig = locationConfigs[loc];
   const selectedDayOfWeek = new Date(`${date}T00:00:00`).getDay();
   if (locationConfig && !locationConfig.days.includes(selectedDayOfWeek)) {
-    showToast('error', '該日不開放', `${locationConfig.name}僅開放週日、週一、週二報班`);
+    showToast('error', '該日不開放', `${locationConfig.name}僅開放週六、週日、週一報班`);
     return;
   }
   
