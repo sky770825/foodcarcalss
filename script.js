@@ -20,7 +20,7 @@ const locationConfigs = {
     name: "開心果團購",
     address: "楊梅區四維路30號",
     type: "合作店面",
-    days: [1, 2, 3, 4, 5, 6, 0], // 營業時間與四維路59號相同，整個月都可以排
+    days: [0, 1, 2], // 僅開放週日、週一、週二新報班
     slots: ["14:00-20:00"],
     price: {
       "14:00-20:00": "600元"
@@ -30,7 +30,7 @@ const locationConfigs = {
       fee: "600元/天",
       limit: "僅限1車，不要影響到右邊刺青店營業",
       ban: "煙霧太大、飲料車",
-      special: "整月都可排班"
+      special: "僅開放週日、週一、週二報班"
     },
     notices: [
       "不供水、不供電，需自行清潔環境及垃圾處理",
@@ -2069,6 +2069,14 @@ async function submitToGoogleSheets(formData) {
     }
     
     // 新增預約（預設操作）
+    const locationConfig = locationConfigs[formData.location];
+    if (locationConfig && formData.date) {
+      const bookingDayOfWeek = new Date(`${formData.date}T00:00:00`).getDay();
+      if (!locationConfig.days.includes(bookingDayOfWeek)) {
+        throw new Error(`${locationConfig.name}僅開放週日、週一、週二報班`);
+      }
+    }
+
     const bookingDateFormatted = formatBookingDateForDisplay(formData.date) || formData.date;
 
     // 送出前直接查 Supabase，避免多人同時報名時本地快取尚未更新而撞期。
@@ -2128,7 +2136,7 @@ async function submitToGoogleSheets(formData) {
   } catch (error) {
     console.error('Supabase 提交失敗:', error);
     const msg = error?.message || '';
-    if (msg.includes('此檔期已由') || msg.includes('無法確認檔期')) {
+    if (msg.includes('此檔期已由') || msg.includes('無法確認檔期') || msg.includes('僅開放週日、週一、週二')) {
       throw error;
     }
     if (msg.includes('unique') || msg.includes('ON CONFLICT') || msg.includes('conflict')) {
@@ -4270,6 +4278,12 @@ function renderCalendar() {
       let isNonOperating = false;
       
       switch (currentFilter) {
+        case '開心果團購':
+          // 只開放週日、週一、週二新報班
+          if (dayOfWeek !== 0 && dayOfWeek !== 1 && dayOfWeek !== 2) {
+            isNonOperating = true;
+          }
+          break;
         case '四維路60號':
           // 週四~週日不開放
           if (dayOfWeek >= 4 || dayOfWeek === 0) {
@@ -4311,7 +4325,8 @@ function renderCalendar() {
           break;
       }
       
-      if (isNonOperating) {
+      const hasExistingBookingForCurrentFilter = dayEvents.some(event => event.location === currentFilter);
+      if (isNonOperating && !hasExistingBookingForCurrentFilter) {
         dayElement.classList.add('non-operating');
       }
     }
@@ -4528,6 +4543,13 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   // 驗證表單
   if (!vendor || !loc || !date || !foodType) {
     showToast('error', '表單錯誤', '請完整填寫必要欄位');
+    return;
+  }
+
+  const locationConfig = locationConfigs[loc];
+  const selectedDayOfWeek = new Date(`${date}T00:00:00`).getDay();
+  if (locationConfig && !locationConfig.days.includes(selectedDayOfWeek)) {
+    showToast('error', '該日不開放', `${locationConfig.name}僅開放週日、週一、週二報班`);
     return;
   }
   
