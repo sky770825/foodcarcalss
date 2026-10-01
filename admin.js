@@ -100,6 +100,47 @@ function getLocationKeyForDisplayName(displayName) {
   return normalized; // 找不到時回傳原值，讓表單嘗試匹配
 }
 
+const adminDayDisplayNames = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+
+function getAvailableDaysForLocation(location) {
+  const rawDays = location?.available_days || [];
+  if (Array.isArray(rawDays)) {
+    return rawDays.map(day => Number(day)).filter(day => Number.isInteger(day));
+  }
+  if (typeof rawDays === 'string') {
+    try {
+      const parsed = JSON.parse(rawDays);
+      return Array.isArray(parsed)
+        ? parsed.map(day => Number(day)).filter(day => Number.isInteger(day))
+        : [];
+    } catch (error) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function getLocationOpenDayMessage(location) {
+  const daysText = getAvailableDaysForLocation(location)
+    .map(day => adminDayDisplayNames[day])
+    .filter(Boolean)
+    .join('、');
+  const locationName = location?.location_name || location?.location_key || '此場地';
+  return `${locationName}僅開放${daysText}報班`;
+}
+
+function findLocationSetting(locationKeyOrName) {
+  const locationKey = getLocationKeyForDisplayName(locationKeyOrName);
+  return (allLocations || []).find(location => location.location_key === locationKey) || null;
+}
+
+function getBookingDateInputValue(dateStr) {
+  if (!dateStr) return '';
+  if (String(dateStr).includes('-')) return String(dateStr).split('T')[0];
+  const parsed = parseDate(dateStr);
+  return parsed ? formatDateInputValue(parsed) : '';
+}
+
 // 檢查場地名稱是否匹配（支援多種格式）
 function matchesLocation(bookingLocation, filterLocationKey) {
   if (!filterLocationKey) return true; // 如果沒有篩選條件，返回 true
@@ -1337,6 +1378,19 @@ async function saveBooking(event) {
   if (!dateRegex.test(date)) {
     showToast('error', '驗證失敗', '日期格式不正確');
     return;
+  }
+
+  const targetLocation = findLocationSetting(location);
+  const targetAvailableDays = getAvailableDaysForLocation(targetLocation);
+  const originalLocation = getLocationKeyForDisplayName(currentEditingBooking?.location || '');
+  const originalDate = getBookingDateInputValue(currentEditingBooking?.date || '');
+  const scheduleChanged = originalLocation !== location || originalDate !== date;
+  if (scheduleChanged && targetAvailableDays.length > 0) {
+    const selectedDayOfWeek = new Date(`${date}T00:00:00`).getDay();
+    if (!targetAvailableDays.includes(selectedDayOfWeek)) {
+      showToast('error', '該日不開放', getLocationOpenDayMessage(targetLocation));
+      return;
+    }
   }
   
   if (note && !validateInputLength(note, 0, 500)) {
