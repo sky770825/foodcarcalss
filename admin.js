@@ -129,6 +129,14 @@ function getLocationOpenDayMessage(location) {
   return `${locationName}僅開放${daysText}報班`;
 }
 
+function isDateAllowedForLocation(location, date) {
+  const availableDays = getAvailableDaysForLocation(location);
+  if (availableDays.length === 0) return true;
+
+  const selectedDate = new Date(`${date}T00:00:00`);
+  return !Number.isNaN(selectedDate.getTime()) && availableDays.includes(selectedDate.getDay());
+}
+
 function findLocationSetting(locationKeyOrName) {
   const locationKey = getLocationKeyForDisplayName(locationKeyOrName);
   return (allLocations || []).find(location => location.location_key === locationKey) || null;
@@ -1386,8 +1394,7 @@ async function saveBooking(event) {
   const originalDate = getBookingDateInputValue(currentEditingBooking?.date || '');
   const scheduleChanged = originalLocation !== location || originalDate !== date;
   if (scheduleChanged && targetAvailableDays.length > 0) {
-    const selectedDayOfWeek = new Date(`${date}T00:00:00`).getDay();
-    if (!targetAvailableDays.includes(selectedDayOfWeek)) {
+    if (!isDateAllowedForLocation(targetLocation, date)) {
       showToast('error', '該日不開放', getLocationOpenDayMessage(targetLocation));
       return;
     }
