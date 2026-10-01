@@ -1,0 +1,87 @@
+name: Apply Siwei 30 Sun Mon Booking Lock
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-siwei30-sunmon.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Siwei 30 booking rules
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          function read(file) {
+            return fs.readFileSync(file, 'utf8');
+          }
+
+          function write(file, content) {
+            fs.writeFileSync(file, content);
+          }
+
+          function replaceRequired(file, from, to) {
+            const original = read(file);
+            if (!original.includes(from)) {
+              if (original.includes(to)) return;
+              throw new Error(`${file} missing expected text: ${from}`);
+            }
+            write(file, original.replace(from, to));
+          }
+
+          function replaceAll(file, from, to) {
+            const original = read(file);
+            if (!original.includes(from)) {
+              if (original.includes(to)) return;
+              throw new Error(`${file} missing expected text: ${from}`);
+            }
+            write(file, original.split(from).join(to));
+          }
+
+          replaceRequired('script.js', 'days: [6, 0, 1], // 僅開放週六、週日、週一新報班', 'days: [0, 1], // 僅開放週日、週一新報班');
+          replaceAll('script.js', '週六、週日、週一', '週日、週一');
+          replaceRequired('script.js', 'if (dayOfWeek !== 6 && dayOfWeek !== 0 && dayOfWeek !== 1) {', 'if (dayOfWeek !== 0 && dayOfWeek !== 1) {');
+          replaceRequired('index.html', 'script.js?v=3.2.16', 'script.js?v=3.2.17');
+
+          const adminHelperMarker = '  return normalized; // 找不到時回傳原值，讓表單嘗試匹配\n}\n\n// 檢查場地名稱是否匹配';
+          const adminHelpers = `  return normalized; // 找不到時回傳原值，讓表單嘗試匹配\n}\n\nconst adminDayDisplayNames = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];\n\nfunction getAvailableDaysForLocation(location) {\n  const rawDays = location?.available_days || [];\n  if (Array.isArray(rawDays)) {\n    return rawDays.map(day => Number(day)).filter(day => Number.isInteger(day));\n  }\n  if (typeof rawDays === 'string') {\n    try {\n      const parsed = JSON.parse(rawDays);\n      return Array.isArray(parsed)\n        ? parsed.map(day => Number(day)).filter(day => Number.isInteger(day))\n        : [];\n    } catch (error) {\n      return [];\n    }\n  }\n  return [];\n}\n\nfunction getLocationOpenDayMessage(location) {\n  const daysText = getAvailableDaysForLocation(location)\n    .map(day => adminDayDisplayNames[day])\n    .filter(Boolean)\n    .join('、');\n  const locationName = location?.location_name || location?.location_key || '此場地';\n  return \`${locationName}僅開放${daysText}報班\`;\n}\n\nfunction findLocationSetting(locationKeyOrName) {\n  const locationKey = getLocationKeyForDisplayName(locationKeyOrName);\n  return (allLocations || []).find(location => location.location_key === locationKey) || null;\n}\n\nfunction getBookingDateInputValue(dateStr) {\n  if (!dateStr) return '';\n  if (String(dateStr).includes('-')) return String(dateStr).split('T')[0];\n  const parsed = parseDate(dateStr);\n  return parsed ? formatDateInputValue(parsed) : '';\n}\n\n// 檢查場地名稱是否匹配`;
+          replaceRequired('admin.js', adminHelperMarker, adminHelpers);
+
+          const adminValidationMarker = `  if (!dateRegex.test(date)) {\n    showToast('error', '驗證失敗', '日期格式不正確');\n    return;\n  }\n  \n  if (note && !validateInputLength(note, 0, 500)) {`;
+          const adminValidation = `  if (!dateRegex.test(date)) {\n    showToast('error', '驗證失敗', '日期格式不正確');\n    return;\n  }\n\n  const targetLocation = findLocationSetting(location);\n  const targetAvailableDays = getAvailableDaysForLocation(targetLocation);\n  const originalLocation = getLocationKeyForDisplayName(currentEditingBooking?.location || '');\n  const originalDate = getBookingDateInputValue(currentEditingBooking?.date || '');\n  const scheduleChanged = originalLocation !== location || originalDate !== date;\n  if (scheduleChanged && targetAvailableDays.length > 0) {\n    const selectedDayOfWeek = new Date(\`${date}T00:00:00\`).getDay();\n    if (!targetAvailableDays.includes(selectedDayOfWeek)) {\n      showToast('error', '該日不開放', getLocationOpenDayMessage(targetLocation));\n      return;\n    }\n  }\n  \n  if (note && !validateInputLength(note, 0, 500)) {`;
+          replaceRequired('admin.js', adminValidationMarker, adminValidation);
+          replaceRequired('admin.html', '<script src="admin.js"></script>', '<script src="admin.js?v=3.2.17"></script>');
+
+          replaceRequired('test_siwei_30_booking_days.js', '[6, 0, 1]', '[0, 1]');
+          replaceAll('test_siwei_30_booking_days.js', '週六、週日、週一', '週日、週一');
+
+          fs.mkdirSync('supabase/migrations', { recursive: true });
+          write('supabase/migrations/20261001060000_update_siwei30_open_days.sql', `-- Update 四維路30號 / 開心果團購 to only allow Sunday and Monday new bookings.\nUPDATE location_settings\nSET\n  available_days = ARRAY[0, 1],\n  info = jsonb_set(\n    COALESCE(info, '{}'::jsonb),\n    '{special}',\n    '"僅開放週日、週一報班"'::jsonb,\n    true\n  ),\n  updated_at = NOW()\nWHERE location_key = '開心果團購';\n`);
+          NODE
+
+      - name: Validate patched files
+        run: |
+          node --check script.js
+          node --check admin.js
+          node test_siwei_30_booking_days.js
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add script.js admin.js index.html admin.html test_siwei_30_booking_days.js supabase/migrations/20261001060000_update_siwei30_open_days.sql
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Limit Siwei 30 bookings to Sun and Mon"
+          git push
