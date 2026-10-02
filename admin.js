@@ -1240,6 +1240,19 @@ function sortBookingsByDate() {
 // 解析日期（處理多種格式）
 function parseDate(dateStr) {
   if (!dateStr) return null;
+
+  // 處理含年份的格式，例如「2027年1月5日(星期一)」。
+  const explicitYearMatch = String(dateStr).match(/(\d{4})年(\d+)月(\d+)日/);
+  if (explicitYearMatch) {
+    const date = new Date(
+      Number(explicitYearMatch[1]),
+      Number(explicitYearMatch[2]) - 1,
+      Number(explicitYearMatch[3])
+    );
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
   
   // 處理 "10月13日(星期一)" 格式
   if (dateStr.includes('月') && dateStr.includes('日')) {
@@ -1435,7 +1448,7 @@ async function saveBooking(event) {
         const day = date.getDate();
         const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
         const dayName = dayNames[date.getDay()];
-        return `${month}月${day}日(${dayName})`;
+        return `${date.getFullYear()}年${month}月${day}日(${dayName})`;
       } catch (error) {
         console.warn('日期格式化失敗，使用原值:', dateStr);
         return dateStr;
@@ -2401,33 +2414,11 @@ function createCalendarDay(year, month, day, isOtherMonth) {
   
   // 查找該日期的預約（基於 filteredBookings）
   const dayBookings = filteredBookings.filter(booking => {
-    if (!booking.date) return false;
-    
-    // 解析日期格式（例如：1月10日(星期六)）
-    const dateMatch = booking.date.match(/(\d+)月(\d+)日/);
-    if (!dateMatch) return false;
-    
-    const bookingMonth = parseInt(dateMatch[1]);
-    const bookingDay = parseInt(dateMatch[2]);
-    
-    // 判斷年份：根據當前顯示的月份和預約月份判斷
-    let bookingYear = year;
-    
-    // 如果預約月份小於當前顯示月份，可能是下一年（例如：12月顯示，1月預約）
-    if (bookingMonth < month + 1) {
-      // 檢查是否跨年
-      if (month === 11) { // 當前是12月
-        bookingYear = year + 1;
-      }
-    } else if (bookingMonth > month + 1) {
-      // 如果預約月份大於當前顯示月份，可能是上一年（例如：1月顯示，12月預約）
-      if (month === 0) { // 當前是1月
-        bookingYear = year - 1;
-      }
-    }
-    
-    // 精確匹配：月份和日期都要匹配
-    return bookingMonth === month + 1 && bookingDay === day;
+    const bookingDate = parseDate(booking.date);
+    return bookingDate &&
+      bookingDate.getFullYear() === date.getFullYear() &&
+      bookingDate.getMonth() === date.getMonth() &&
+      bookingDate.getDate() === date.getDate();
   });
   
   // 顯示最多3個事件，超過顯示「+N」

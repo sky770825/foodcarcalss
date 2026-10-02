@@ -1938,7 +1938,7 @@ async function fetchBookingsFromGitHub() {
 
 // =============== Google Sheets 同步功能 ===============
 
-// 格式化日期為「10月13日(星期一)」格式，與 Supabase booking_date 欄位一致
+// 格式化日期為含年份的格式，避免不同年度的同月同日共用同一個 booking_date。
 function formatBookingDateForDisplay(dateStr) {
   if (!dateStr) return '';
   try {
@@ -1953,7 +1953,7 @@ function formatBookingDateForDisplay(dateStr) {
     const day = date.getDate();
     const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     const dayName = dayNames[date.getDay()];
-    return `${month}月${day}日(${dayName})`;
+    return `${date.getFullYear()}年${month}月${day}日(${dayName})`;
   } catch (error) {
     console.warn('日期格式化失敗，使用原值:', dateStr);
     return dateStr;
@@ -2160,6 +2160,72 @@ async function submitToGoogleSheets(formData) {
   }
 }
 
+// 將資料庫的日期欄位統一轉為本地 YYYY-MM-DD。
+// booking_date 舊格式只有「月日」，跨年時需以建立時間判斷年份。
+function resolveBookingDateToISO(booking, referenceDate = new Date()) {
+  const rawDate = typeof booking === 'string'
+    ? booking
+    : (booking?.date || booking?.booking_date || '');
+
+  if (!rawDate) return '';
+
+  const isoMatch = String(rawDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const explicitYearMatch = String(rawDate).match(/(\d{4})年(\d+)月(\d+)日/);
+  if (explicitYearMatch) {
+    const year = Number(explicitYearMatch[1]);
+    const month = Number(explicitYearMatch[2]);
+    const day = Number(explicitYearMatch[3]);
+    const resolved = new Date(year, month - 1, day);
+    if (resolved.getFullYear() !== year || resolved.getMonth() !== month - 1 || resolved.getDate() !== day) {
+      return '';
+    }
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  const dateMatch = String(rawDate).match(/(\d+)月(\d+)日/);
+  if (!dateMatch) return '';
+
+  const month = Number(dateMatch[1]);
+  const day = Number(dateMatch[2]);
+  let year;
+
+  const timestamp = booking && typeof booking === 'object'
+    ? (booking.timestamp || booking.created_at)
+    : '';
+  const sourceDate = timestamp ? new Date(timestamp) : null;
+
+  if (sourceDate && !isNaN(sourceDate.getTime())) {
+    const sourceMonth = sourceDate.getMonth() + 1;
+    year = sourceDate.getFullYear();
+
+    // 新報名最多可排到後兩個月；10 至 12 月建立的 1 至 3 月班次即為隔年。
+    if (sourceMonth >= 10 && month <= 3 && month < sourceMonth) {
+      year += 1;
+    }
+  } else {
+    const reference = new Date(referenceDate);
+    const referenceMonth = reference.getMonth() + 1;
+    year = reference.getFullYear();
+
+    if (referenceMonth >= 10 && month <= 3) {
+      year += 1;
+    } else if (referenceMonth <= 3 && month >= 10) {
+      year -= 1;
+    }
+  }
+
+  const resolved = new Date(year, month - 1, day);
+  if (resolved.getFullYear() !== year || resolved.getMonth() !== month - 1 || resolved.getDate() !== day) {
+    return '';
+  }
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 // 從 Supabase 讀取所有預約數據
 async function fetchBookingsFromGoogleSheets() {
   // 檢查是否啟用 Supabase 同步
@@ -2193,7 +2259,8 @@ async function fetchBookingsFromGoogleSheets() {
     const result = {
       success: true,
       bookings: (data || []).map(row => ({
-        timestamp: row.timestamp || new Date().toISOString(),
+        timestamp: row.timestamp || row.created_at || '',
+        created_at: row.created_at || '',
         vendor: row.vendor || '',
         foodType: row.food_type || '',
         location: row.location || '',
@@ -2425,37 +2492,12 @@ function mergeSheetsDataToCalendar() {
       return;
     }
     
-    const dateMatch = booking.date.match(/(\d+)月(\d+)日/);
-    if (!dateMatch) {
+    const dateStr = resolveBookingDateToISO(booking);
+    if (!dateStr) {
       console.warn(`❌ 無法解析日期格式: "${booking.date}" - 跳過: ${booking.vendor} (ID: ${booking.id || booking.rowNumber || 'N/A'})`);
       skippedCount++;
       return;
     }
-    
-    const month = parseInt(dateMatch[1]);
-    const day = parseInt(dateMatch[2]);
-    
-    // 根據時間戳記判斷年份：時間戳記 + 3 個月內的日期
-    let year;
-    if (booking.timestamp) {
-      const timestampDate = new Date(booking.timestamp);
-      const timestampYear = timestampDate.getFullYear();
-      const timestampMonth = timestampDate.getMonth() + 1;
-      
-      // 計算預約日期可能的年份範圍（從時間戳記到 +3 個月）
-      // 例如：11月登記 → 可預約 11月、12月、1月
-      if (month >= timestampMonth) {
-        year = timestampYear;
-      } else if (timestampMonth >= 10 && month <= 3) {
-        year = timestampYear + 1;
-      } else {
-        year = timestampYear;
-      }
-    } else {
-      year = new Date().getFullYear();
-    }
-    
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
     // 標準化場地名稱
     const originalLocation = booking.location;
@@ -2720,7 +2762,7 @@ async function fetchBookedDatesFromSheets() {
     // 從 Supabase 獲取所有預約
     const { data, error } = await supabaseClient
       .from('foodcarcalss')
-      .select('location, booking_date, payment');
+      .select('location, booking_date, payment, timestamp, created_at');
     
     if (error) {
       throw error;
@@ -2736,19 +2778,7 @@ async function fetchBookedDatesFromSheets() {
         bookedDates[booking.location] = [];
       }
       
-      // 解析日期格式
-      let standardDate = '';
-      if (booking.booking_date.includes('月') && booking.booking_date.includes('日')) {
-        const match = booking.booking_date.match(/(\d+)月(\d+)日/);
-        if (match) {
-          const year = new Date().getFullYear();
-          const month = String(parseInt(match[1])).padStart(2, '0');
-          const day = String(parseInt(match[2])).padStart(2, '0');
-          standardDate = `${year}-${month}-${day}`;
-        }
-      } else if (booking.booking_date.includes('-')) {
-        standardDate = booking.booking_date.split('T')[0];
-      }
+      const standardDate = resolveBookingDateToISO(booking);
       
       if (standardDate) {
         bookedDates[booking.location].push({

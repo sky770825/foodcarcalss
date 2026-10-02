@@ -14,6 +14,7 @@
     "test:tabs": "node test_tab_switching.js",
     "test:overdue": "node test_overdue_payments.js",
     "test:takeover": "node test_takeover_flow.js",
+    "test:year-boundary": "node test_cross_year_booking_dates.js",
     "test:tabs:auto": "./run_tab_test.sh",
     "test:all": "npm run test && npm run test:location && npm run test:tabs"
   },
