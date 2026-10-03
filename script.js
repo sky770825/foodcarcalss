@@ -4222,7 +4222,7 @@ function renderCalendar() {
             paymentStatus.classList.add('unpaid-status');
             paymentStatus.addEventListener('click', (e) => {
               e.stopPropagation();
-              showPaymentModal();
+              showPaymentModal(event, dateStr);
             });
             paymentStatus.title = '點擊前往繳費';
           }
@@ -4256,7 +4256,7 @@ function renderCalendar() {
               // 點擊文字打開繳費彈窗
               paymentStatus.addEventListener('click', (e) => {
                 e.stopPropagation();
-                showPaymentModal();
+                showPaymentModal(event, dateStr);
               });
               paymentStatus.title = `倒數 ${countdownText}，點擊前往繳費`;
             } else {
@@ -5463,7 +5463,7 @@ async function uploadPaymentImageFromModal() {
         date: date
       };
     } else {
-      showToast('error', '錯誤', '無法識別當前預約，請重新提交預約後再上傳圖片');
+      showToast('error', '無法識別預約', '請關閉彈窗，點選您班次的繳費倒數或「未繳款」，再上傳圖片；不需要重新報名');
       return;
     }
   }
@@ -5474,7 +5474,7 @@ async function uploadPaymentImageFromModal() {
   }
   
   if (!currentBookingId) {
-    showToast('error', '錯誤', '無法識別當前預約 ID，請重新提交預約後再上傳圖片');
+    showToast('error', '無法識別預約', '請關閉彈窗，點選您班次的繳費倒數或「未繳款」，再上傳圖片；不需要重新報名');
     console.error('❌ 無法獲取預約 ID');
     console.error('   - currentBookingId:', currentBookingId);
     console.error('   - bookingInfo:', bookingInfo);
@@ -5493,6 +5493,19 @@ async function uploadPaymentImageFromModal() {
   showLoading('📤 正在上傳匯款圖片...');
   
   try {
+    const { data: activeBooking, error: lookupError } = await withTimeout(
+      supabaseClient.from('foodcarcalss').select('id, vendor, timestamp, created_at, booking_date, location')
+        .eq('id', currentBookingId).single(),
+      PAYMENT_IMAGE_DB_TIMEOUT_MS,
+      '確認預約逾時，請檢查網路後重試'
+    );
+    if (lookupError) throw lookupError;
+    if (!activeBooking || activeBooking.vendor !== bookingInfo.vendor ||
+        (bookingInfo.timestamp && new Date(activeBooking.timestamp || activeBooking.created_at).getTime() !==
+          new Date(bookingInfo.timestamp).getTime())) {
+      throw new Error('此班次已變更或被接手，請重新整理並點選自己的班次');
+    }
+
     // 使用保存的預約資訊（優先）或從表單獲取
     const vendor = bookingInfo?.vendor || document.getElementById('vendorName')?.value || 'unknown';
     const location = bookingInfo?.location || document.getElementById('location')?.value || 'unknown';
@@ -5512,13 +5525,16 @@ async function uploadPaymentImageFromModal() {
       throw new Error('Supabase 未啟用');
     }
     
-    const { data, error } = await withTimeout(
-      supabaseClient
+    let proofUpdate = supabaseClient
         .from('foodcarcalss')
         .update({ payment_image_url: imageUrl })
         .eq('id', currentBookingId)
-        .select()
-        .single(),
+        .eq('vendor', activeBooking.vendor);
+    proofUpdate = activeBooking.timestamp == null
+      ? proofUpdate.is('timestamp', null)
+      : proofUpdate.eq('timestamp', activeBooking.timestamp);
+    const { data, error } = await withTimeout(
+      proofUpdate.select().single(),
       PAYMENT_IMAGE_DB_TIMEOUT_MS,
       '圖片已上傳，但資料回寫逾時，請通知管理員確認'
     );
@@ -5560,7 +5576,18 @@ window.removePaymentModalImage = removePaymentModalImage;
 window.uploadPaymentImageFromModal = uploadPaymentImageFromModal;
 
 // 繳費彈窗相關函數
-function showPaymentModal() {
+function showPaymentModal(bookingEvent, dateStr) {
+  if (bookingEvent) {
+    currentBookingInfo = {
+      id: bookingEvent.rowNumber ?? bookingEvent.id,
+      vendor: bookingEvent.title || bookingEvent.vendor || '',
+      location: bookingEvent.location || '',
+      date: dateStr || String(bookingEvent.start || '').split('T')[0],
+      timestamp: bookingEvent.timestamp || ''
+    };
+    currentBookingId = currentBookingInfo.id || null;
+    sessionStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
+  }
   const modal = document.getElementById('paymentModal');
   modal.classList.add('active');
   document.body.style.overflow = 'hidden'; // 防止背景滾動
