@@ -39,7 +39,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- 外部樣式表 -->
-<link rel="stylesheet" href="styles.css?v=3.2.14">
+<link rel="stylesheet" href="styles.css?v=3.2.15">
 <link rel="stylesheet" href="styles-tweaks.css">
 
 </head>
@@ -366,7 +366,10 @@
           <i class="fas fa-upload"></i> 上傳圖片
         </button>
       </div>
-      <div class="payment-notice">
+      <div class="payment-notice payment-deadline-notice">
+        <p><strong>預約保留 24 小時：</strong>繳費倒數期間，其他餐車不能報名或接手同一場地、日期；逾期後才開放接手，接手者重新計算 24 小時。</p>
+        <p><strong>人工審核於早上進行。</strong>晚上 21:00～23:00 或更晚繳款，可能要等隔天早上才能確認。請提前完成繳款、上傳證明並通知小幫手，預留審核時間。</p>
+        <p><strong>上傳證明不代表已審核付款，倒數仍會繼續。</strong>若審核前已超過 24 小時，場次可能逾期並被其他餐車接手；接近截止時間請立即聯絡小幫手確認，勿等到最後一刻。</p>
         <p><i class="fas fa-info-circle"></i> 繳費完成後，請將截圖或訊息傳至<a href="https://lin.ee/BStZlfM" target="_blank" rel="noopener" style="color: #00C300; font-weight: bold; text-decoration: underline; cursor: pointer;">官方小幫手</a></p>
       </div>
     </div>
@@ -731,6 +734,8 @@
           </h4>
           <ul style="line-height: 1.8; color: #555; font-size: 0.9rem; padding-left: 20px;">
             <li>預約後需在<strong style="color: #dc3545;">24小時內付款</strong>，否則將變成<span style="background: #f8d7da; padding: 2px 6px; border-radius: 4px; color: #721c24;">逾繳可排</span>狀態</li>
+            <li>24 小時繳費倒數期間，同場地、同日期不能被其他餐車報名或接手；逾期才開放接手。</li>
+            <li>人工審核於早上進行。晚上 21:00～23:00 或更晚繳款，可能等到隔天早上才審核；上傳證明後倒數仍會繼續，審核前逾期仍可能被接手。請提前繳款、上傳證明並通知小幫手，接近截止時立即聯絡確認。</li>
             <li>支援街口支付、LINE-PAY、銀行轉帳三種方式</li>
             <li>付款完成後，請將截圖傳至<a href="https://lin.ee/BStZlfM" target="_blank" rel="noopener" style="color: #00C300; font-weight: bold; text-decoration: underline;">官方小幫手</a></li>
             <li>付款狀態會顯示為<span style="background: #d4edda; padding: 2px 6px; border-radius: 4px; color: #155724;">✓ 已付款</span></li>

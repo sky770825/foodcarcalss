@@ -15,6 +15,7 @@ assert(start >= 0 && end > start, 'Unable to locate submitToGoogleSheets in scri
 const updates = [];
 const conditions = [];
 const takeoverTimestamp = '2026-08-02T01:23:45Z';
+let storedPayment = '逾繳可排';
 
 const supabaseClient = {
   from(table) {
@@ -38,6 +39,8 @@ const supabaseClient = {
         return { data: { id: 42, ...updates.at(-1) }, error: null };
       },
       async maybeSingle() {
+        const requiredPayment = conditions.find(([column]) => column === 'payment')?.[1];
+        if (requiredPayment !== storedPayment) return { data: null, error: null };
         return { data: { id: 42, ...updates.at(-1) }, error: null };
       }
     };
@@ -74,6 +77,16 @@ async function run() {
   ]);
   assert.equal(result.booking.payment, '尚未付款');
   assert.equal(result.booking.timestamp, takeoverTimestamp);
+
+  for (const payment of ['尚未付款', '未繳款', '己繳款']) {
+    storedPayment = payment;
+    updates.length = 0;
+    conditions.length = 0;
+    await assert.rejects(context.submitToGoogleSheets({
+      action: 'takeover', rowNumber: 42, vendor: '禁止接手測試',
+      foodType: '主食類', timestamp: takeoverTimestamp
+    }), /狀態已變更/, `${payment} must not allow takeover`);
+  }
 
   console.log('Takeover flow regression test passed.');
 }
