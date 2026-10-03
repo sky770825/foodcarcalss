@@ -16,7 +16,7 @@ const helperStart = source.indexOf('function resolveBookingDateToISO(booking, re
 const helperEnd = source.indexOf('// 從 Supabase 讀取所有預約數據', helperStart);
 const fetchStart = source.indexOf('async function fetchBookedDatesFromSheets()');
 const fetchEnd = source.indexOf('// 暴露到全局', fetchStart);
-const adminParseStart = adminSource.indexOf('function parseDate(dateStr)');
+const adminParseStart = adminSource.indexOf('function parseDate(dateStr, sourceTimestamp)');
 const adminParseEnd = adminSource.indexOf('function formatDateInputValue', adminParseStart);
 
 assert(formatterStart >= 0 && formatterEnd > formatterStart, 'Unable to locate booking-date formatter');
@@ -138,6 +138,14 @@ async function run() {
   assert.equal(parsedAdminDate.getFullYear(), 2027);
   assert.equal(parsedAdminDate.getMonth(), 0);
   assert.equal(parsedAdminDate.getDate(), 5);
+
+  const legacyJanuary = adminContext.parseDate('1月5日(星期一)', '2026-01-02T12:00:00+08:00');
+  assert.equal(legacyJanuary.getFullYear(), 2026);
+  assert.equal(legacyJanuary.getMonth(), 0);
+
+  const nextYearJanuary = adminContext.parseDate('1月5日(星期一)', '2026-12-15T12:00:00+08:00');
+  assert.equal(nextYearJanuary.getFullYear(), 2027);
+  assert.equal(nextYearJanuary.getMonth(), 0);
 
   const submission = await submissionContext.submitToGoogleSheets({
     vendor: '跨年測試餐車',

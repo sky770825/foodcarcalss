@@ -142,10 +142,12 @@ function findLocationSetting(locationKeyOrName) {
   return (allLocations || []).find(location => location.location_key === locationKey) || null;
 }
 
-function getBookingDateInputValue(dateStr) {
+function getBookingDateInputValue(bookingOrDate) {
+  const booking = bookingOrDate && typeof bookingOrDate === 'object' ? bookingOrDate : null;
+  const dateStr = booking ? booking.date : bookingOrDate;
   if (!dateStr) return '';
   if (String(dateStr).includes('-')) return String(dateStr).split('T')[0];
-  const parsed = parseDate(dateStr);
+  const parsed = parseDate(dateStr, booking?.timestamp || booking?.created_at);
   return parsed ? formatDateInputValue(parsed) : '';
 }
 
@@ -1165,7 +1167,7 @@ function filterBookings() {
   filteredBookings = allBookings.filter(booking => {
     // 月份篩選（優先）
     if (selectedMonth) {
-      const bookingDate = parseDate(booking.date);
+      const bookingDate = parseDate(booking.date, booking.timestamp || booking.created_at);
       if (bookingDate) {
         const bookingYear = bookingDate.getFullYear();
         const bookingMonth = String(bookingDate.getMonth() + 1).padStart(2, '0');
@@ -1224,8 +1226,8 @@ function filterBookings() {
 // 依照日期排序
 function sortBookingsByDate() {
   filteredBookings.sort((a, b) => {
-    const dateA = parseDate(a.date);
-    const dateB = parseDate(b.date);
+    const dateA = parseDate(a.date, a.timestamp || a.created_at);
+    const dateB = parseDate(b.date, b.timestamp || b.created_at);
     
     // 如果無法解析日期，放到最後
     if (!dateA && !dateB) return 0;
@@ -1238,7 +1240,7 @@ function sortBookingsByDate() {
 }
 
 // 解析日期（處理多種格式）
-function parseDate(dateStr) {
+function parseDate(dateStr, sourceTimestamp) {
   if (!dateStr) return null;
 
   // 處理含年份的格式，例如「2027年1月5日(星期一)」。
@@ -1258,10 +1260,22 @@ function parseDate(dateStr) {
   if (dateStr.includes('月') && dateStr.includes('日')) {
     const match = dateStr.match(/(\d+)月(\d+)日/);
     if (match) {
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
       const month = parseInt(match[1]) - 1;
       const day = parseInt(match[2]);
+
+      // 舊資料未保存年份時，以原始報名時間判斷；避免去年 1 月被列入明年 1 月。
+      const sourceDate = sourceTimestamp ? new Date(sourceTimestamp) : null;
+      if (sourceDate && !isNaN(sourceDate.getTime())) {
+        const sourceMonth = sourceDate.getMonth();
+        let year = sourceDate.getFullYear();
+        if (sourceMonth >= 9 && month <= 2 && month < sourceMonth) {
+          year += 1;
+        }
+        return new Date(year, month, day);
+      }
+
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
       
       // 嘗試使用當前年份
       let date = new Date(currentYear, month, day);
@@ -1331,7 +1345,7 @@ function editBooking(rowNumber, dateHint) {
     if (booking.date.includes('-')) {
       dateValue = booking.date.split('T')[0];
     } else {
-      const parsedDate = parseDate(booking.date);
+      const parsedDate = parseDate(booking.date, booking.timestamp || booking.created_at);
       if (parsedDate) {
         dateValue = formatDateInputValue(parsedDate);
       }
@@ -1404,7 +1418,7 @@ async function saveBooking(event) {
   const targetLocation = findLocationSetting(location);
   const targetAvailableDays = getAvailableDaysForLocation(targetLocation);
   const originalLocation = getLocationKeyForDisplayName(currentEditingBooking?.location || '');
-  const originalDate = getBookingDateInputValue(currentEditingBooking?.date || '');
+  const originalDate = getBookingDateInputValue(currentEditingBooking);
   const scheduleChanged = originalLocation !== location || originalDate !== date;
   if (scheduleChanged && targetAvailableDays.length > 0) {
     if (!isDateAllowedForLocation(targetLocation, date)) {
@@ -2414,7 +2428,7 @@ function createCalendarDay(year, month, day, isOtherMonth) {
   
   // 查找該日期的預約（基於 filteredBookings）
   const dayBookings = filteredBookings.filter(booking => {
-    const bookingDate = parseDate(booking.date);
+    const bookingDate = parseDate(booking.date, booking.timestamp || booking.created_at);
     return bookingDate &&
       bookingDate.getFullYear() === date.getFullYear() &&
       bookingDate.getMonth() === date.getMonth() &&
