@@ -783,9 +783,21 @@ function initMonthSelector() {
   monthSelect.value = selectedMonth;
 }
 
+// 清單與月曆共用月份基準，避免切到跨年月份時顯示不同步。
+function syncAdminCalendarToSelectedMonth() {
+  if (!selectedMonth) return;
+
+  const [year, month] = selectedMonth.split('-').map(Number);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return;
+
+  adminCalendarYear = year;
+  adminCalendarMonth = month - 1;
+}
+
 // 選擇月份
 function selectMonth(monthKey) {
   selectedMonth = monthKey;
+  syncAdminCalendarToSelectedMonth();
   
   // 更新下拉選單
   const monthSelect = document.getElementById('monthSelect');
@@ -2576,29 +2588,27 @@ function closeDayBookingsModal() {
 }
 
 // 月曆導航
+function selectAdminCalendarMonth(date) {
+  const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  const monthSelect = document.getElementById('monthSelect');
+  const isAvailableMonth = Array.from(monthSelect?.options || []).some(option => option.value === monthKey);
+  if (!isAvailableMonth) return;
+
+  selectMonth(monthKey);
+}
+
 function adminCalendarPrevMonth() {
-  adminCalendarMonth--;
-  if (adminCalendarMonth < 0) {
-    adminCalendarMonth = 11;
-    adminCalendarYear--;
-  }
-  renderAdminCalendar();
+  const previousMonth = new Date(adminCalendarYear, adminCalendarMonth - 1, 1);
+  selectAdminCalendarMonth(previousMonth);
 }
 
 function adminCalendarNextMonth() {
-  adminCalendarMonth++;
-  if (adminCalendarMonth > 11) {
-    adminCalendarMonth = 0;
-    adminCalendarYear++;
-  }
-  renderAdminCalendar();
+  const nextMonth = new Date(adminCalendarYear, adminCalendarMonth + 1, 1);
+  selectAdminCalendarMonth(nextMonth);
 }
 
 function adminCalendarToday() {
-  const today = new Date();
-  adminCalendarMonth = today.getMonth();
-  adminCalendarYear = today.getFullYear();
-  renderAdminCalendar();
+  selectCurrentMonth();
 }
 
 // ========== 自動刷新功能 ==========

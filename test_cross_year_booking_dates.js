@@ -18,12 +18,15 @@ const fetchStart = source.indexOf('async function fetchBookedDatesFromSheets()')
 const fetchEnd = source.indexOf('// 暴露到全局', fetchStart);
 const adminParseStart = adminSource.indexOf('function parseDate(dateStr, sourceTimestamp)');
 const adminParseEnd = adminSource.indexOf('function formatDateInputValue', adminParseStart);
+const adminCalendarSyncStart = adminSource.indexOf('function syncAdminCalendarToSelectedMonth()');
+const adminCalendarSyncEnd = adminSource.indexOf('// 選擇月份', adminCalendarSyncStart);
 
 assert(formatterStart >= 0 && formatterEnd > formatterStart, 'Unable to locate booking-date formatter');
 assert(submitStart >= 0 && submitEnd > submitStart, 'Unable to locate booking submission flow');
 assert(helperStart >= 0 && helperEnd > helperStart, 'Unable to locate cross-year date resolver');
 assert(fetchStart >= 0 && fetchEnd > fetchStart, 'Unable to locate booked-date synchronizer');
 assert(adminParseStart >= 0 && adminParseEnd > adminParseStart, 'Unable to locate admin date parser');
+assert(adminCalendarSyncStart >= 0 && adminCalendarSyncEnd > adminCalendarSyncStart, 'Unable to locate admin calendar month synchronizer');
 
 const selectedColumns = [];
 const sampleBookings = [
@@ -66,6 +69,16 @@ vm.runInContext(source.slice(formatterStart, formatterEnd), formatterContext);
 
 const adminContext = vm.createContext({ Date });
 vm.runInContext(adminSource.slice(adminParseStart, adminParseEnd), adminContext);
+
+const calendarMonthContext = vm.createContext({});
+vm.runInContext(`
+  let selectedMonth = '2027-01';
+  let adminCalendarMonth = 9;
+  let adminCalendarYear = 2026;
+  ${adminSource.slice(adminCalendarSyncStart, adminCalendarSyncEnd)}
+  syncAdminCalendarToSelectedMonth();
+  globalThis.calendarState = { year: adminCalendarYear, month: adminCalendarMonth };
+`, calendarMonthContext);
 
 const conflictChecks = [];
 const insertedBookings = [];
@@ -146,6 +159,11 @@ async function run() {
   const nextYearJanuary = adminContext.parseDate('1月5日(星期一)', '2026-12-15T12:00:00+08:00');
   assert.equal(nextYearJanuary.getFullYear(), 2027);
   assert.equal(nextYearJanuary.getMonth(), 0);
+
+  assert.deepEqual(JSON.parse(JSON.stringify(calendarMonthContext.calendarState)), {
+    year: 2027,
+    month: 0
+  });
 
   const submission = await submissionContext.submitToGoogleSheets({
     vendor: '跨年測試餐車',
